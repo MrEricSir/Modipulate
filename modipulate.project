@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeLite_Project Name="modipulate" InternalType="Library">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
+    </Plugin>
+  </Plugins>
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="src">
+    <File Name="src/main.cpp"/>
+    <File Name="src/modipulate_common.h"/>
+    <File Name="src/mod_stream.cpp"/>
+    <File Name="src/mod_stream.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="libmodipulate-hacked">
+    <File Name="libmodplug-hacked/config.h"/>
+    <File Name="libmodplug-hacked/fastmix.cpp"/>
+    <File Name="libmodplug-hacked/it_defs.h"/>
+    <File Name="libmodplug-hacked/load_669.cpp"/>
+    <File Name="libmodplug-hacked/load_abc.cpp"/>
+    <File Name="libmodplug-hacked/load_amf.cpp"/>
+    <File Name="libmodplug-hacked/load_ams.cpp"/>
+    <File Name="libmodplug-hacked/load_dbm.cpp"/>
+    <File Name="libmodplug-hacked/load_dmf.cpp"/>
+    <File Name="libmodplug-hacked/load_dsm.cpp"/>
+    <File Name="libmodplug-hacked/load_far.cpp"/>
+    <File Name="libmodplug-hacked/load_it.cpp"/>
+    <File Name="libmodplug-hacked/load_j2b.cpp"/>
+    <File Name="libmodplug-hacked/load_mdl.cpp"/>
+    <File Name="libmodplug-hacked/load_med.cpp"/>
+    <File Name="libmodplug-hacked/load_mid.cpp"/>
+    <File Name="libmodplug-hacked/load_mod.cpp"/>
+    <File Name="libmodplug-hacked/load_mt2.cpp"/>
+    <File Name="libmodplug-hacked/load_mtm.cpp"/>
+    <File Name="libmodplug-hacked/load_okt.cpp"/>
+    <File Name="libmodplug-hacked/load_pat.cpp"/>
+    <File Name="libmodplug-hacked/load_pat.h"/>
+    <File Name="libmodplug-hacked/load_psm.cpp"/>
+    <File Name="libmodplug-hacked/load_ptm.cpp"/>
+    <File Name="libmodplug-hacked/load_s3m.cpp"/>
+    <File Name="libmodplug-hacked/load_stm.cpp"/>
+    <File Name="libmodplug-hacked/load_ult.cpp"/>
+    <File Name="libmodplug-hacked/load_umx.cpp"/>
+    <File Name="libmodplug-hacked/load_wav.cpp"/>
+    <File Name="libmodplug-hacked/load_xm.cpp"/>
+    <File Name="libmodplug-hacked/mmcmp.cpp"/>
+    <File Name="libmodplug-hacked/modplug.cpp"/>
+    <File Name="libmodplug-hacked/modplug.h"/>
+    <File Name="libmodplug-hacked/snd_dsp.cpp"/>
+    <File Name="libmodplug-hacked/sndfile.cpp"/>
+    <File Name="libmodplug-hacked/sndfile.h"/>
+    <File Name="libmodplug-hacked/snd_flt.cpp"/>
+    <File Name="libmodplug-hacked/snd_fx.cpp"/>
+    <File Name="libmodplug-hacked/sndmix.cpp"/>
+    <File Name="libmodplug-hacked/stdafx.h"/>
+    <File Name="libmodplug-hacked/tables.h"/>
+  </VirtualDirectory>
+  <Settings Type="Dynamic Library">
+    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g;-Wall;-nostdlib" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Debug" Command="" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O2" Required="yes" PreCompiledHeader=""/>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Release" Command="" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+    </Configuration>
+    <GlobalSettings>
+      <Compiler Options="-fPIC">
+        <IncludePath Value="."/>
+        <IncludePath Value="src"/>
+        <IncludePath Value="libmodipulate-hacked"/>
+        <IncludePath Value="/usr/include/lua5.1"/>
+      </Compiler>
+      <Linker Options="-fPIC">
+        <LibraryPath Value="."/>
+        <Library Value="openal"/>
+        <Library Value="alut"/>
+        <Library Value="alure"/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+  </Settings>
+</CodeLite_Project>

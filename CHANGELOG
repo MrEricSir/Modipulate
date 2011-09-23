@@ -1,0 +1,12 @@
+2011-09-22  Eric Gregory <mrericsir@gmail.com>
+
+    * Welcome to Modipulate. This library is intended for
+    manipulation between games and music.
+
+    * Currently, it's built only with Lua interface for
+    usage with our Love demos.
+
+    * This library is NOT yet stable. It requires CodeLight
+    to compile, is unoptimized, and is missing many desired
+    functions. 
+
