@@ -1,3 +1,7 @@
 /Debug
 /Release
 /build
+modipulate.mk
+Modipulate.tags
+Modipulate.workspace.session
+Modipulate_wsp.mk
