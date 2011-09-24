@@ -263,7 +263,7 @@ void call_pattern_changed(unsigned pattern) {
     
     lua_getglobal(on_pattern_changed_state, "pattern_changed");
     lua_pushnumber(on_pattern_changed_state, pattern);
-    lua_call(on_pattern_changed_state, 2, 0);
+    lua_call(on_pattern_changed_state, 1, 0);
 }
 
 ////////////////////////////////////////////////////////////

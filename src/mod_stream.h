@@ -11,12 +11,18 @@
 #define MODSTREAM_H
 
 #include <string>
+#include <list>
 #include <AL/al.h>
 #include "libmodplug-hacked/modplug.h"
 
 // Uses modplug-hacked to stream audio via OpenAL.
 // Same pattern as the ogg_stream class from: 
 //    http://www.devmaster.net/articles/openal-tutorials/lesson8.php
+
+struct NoteChange {
+    unsigned channel;
+    int note;
+};
 
 class ModStream {
 
@@ -50,8 +56,6 @@ public:
     // Returns the number of channels.
     int get_num_channels();
     
-    void print(unsigned u, bool b);
-    
 protected:
     void on_note_change(unsigned channel, int note);
     void on_pattern_changed(unsigned pattern);
@@ -61,6 +65,7 @@ private:
     bool stream(ALuint buffer);
     void empty();
     void check_error(int line);
+    void perform_callbacks();
     
     HackedModPlugFile* modplug_file; // handle to file
     unsigned long file_length;  // length of file
@@ -70,6 +75,10 @@ private:
     ALuint buffers[2];
     ALuint source;
     ALenum format;
+    
+    // Cached callback data.
+    long cache_pattern_change;
+    std::list<NoteChange> cache_note_change;
     
     friend class HackedCSoundFile;
 };

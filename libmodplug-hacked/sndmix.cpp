@@ -367,7 +367,7 @@ BOOL HackedCSoundFile::ProcessRow()
 		// Reset Pattern Loop Effect
 		if (m_nCurrentPattern != m_nNextPattern) {
 				m_nCurrentPattern = m_nNextPattern;
-				DPRINT("pattern switch");
+				//DPRINT("pattern switch");
                 mod_stream->on_pattern_changed(m_nCurrentPattern);
 		}
 		// Check if pattern is valid
@@ -421,7 +421,7 @@ BOOL HackedCSoundFile::ProcessRow()
 				} else
 				{
 					m_nCurrentPattern++;
-					DPRINT("alt pattern switch");
+					//DPRINT("alt pattern switch");
                     mod_stream->on_pattern_changed(m_nCurrentPattern);
 				}
 				m_nPattern = (m_nCurrentPattern < MAX_ORDERS) ? Order[m_nCurrentPattern] : 0xFF;
