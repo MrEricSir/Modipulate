@@ -91,15 +91,10 @@ static int quit(lua_State *L) {
 // Updates the audio, triggers callbacks.
 // Call this from love.update()
 static int update(lua_State *L) {
-    //DPRINT("Update loop"); // For testing only: this printf may eat CPU time.
-    
     try {
         if (!mod.update()) {
-            if (!mod.is_playing()) {
-                DPRINT("MOD is not playing");
-                if (!mod.playback())
-                    throw std::string("Mod abruptly stopped.");
-            }
+            if (!mod.is_playing() && !mod.playback())
+                throw std::string("Mod abruptly stopped.");
         }
     }
     catch(std::string e) {
@@ -144,9 +139,8 @@ static int set_playing(lua_State *L) {
         return 0;
     }
     
-    bool b = (bool) lua_toboolean(L, 1);
-    DPRINT(b ? "Playing" : "Not playing");
-    mod.set_playing(b);  // TODO: Fix this. The function doesn't work.
+    bool b = (bool) lua_toboolean(L, 1);;
+    mod.set_playing(b);
     
     return 0;
 }

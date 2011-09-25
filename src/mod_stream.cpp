@@ -98,6 +98,9 @@ void ModStream::close() {
 }
 
 bool ModStream::playback() {
+    if (!playing)
+        return true;
+    
     if (is_playing())
         return true;
     
@@ -114,9 +117,13 @@ bool ModStream::playback() {
 }
 
 void ModStream::set_playing(bool is_playing) {
-    DPRINT("set playing: %d", (int) is_playing);
-    // TODO: seems like we need a better way to start/stop
-    //alSourcei(source, AL_SOURCE_STATE, is_playing ? AL_PLAYING : AL_PAUSED);
+    playing = is_playing;
+    //DPRINT("set playing: %d", (int) is_playing);
+    if (is_playing)
+        alSourcePlay(source);
+    else
+        alSourcePause(source);
+    
     check_error(__LINE__);
 }
 
@@ -124,7 +131,7 @@ bool ModStream::is_playing() {
     ALenum state;
     alGetSourcei(source, AL_SOURCE_STATE, &state);
     check_error(__LINE__);
-    return AL_PLAYING == state;
+    return AL_PLAYING == state && playing;
 }
 
 bool ModStream::update() {
@@ -159,6 +166,8 @@ bool ModStream::update() {
 }
 
 bool ModStream::stream(ALuint buffer) {
+    if (!playing)
+        return false;
     char data[BUFFER_SIZE];
     
     int size = HackedModPlug_Read(modplug_file, data, BUFFER_SIZE);
