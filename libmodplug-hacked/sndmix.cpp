@@ -1208,7 +1208,8 @@ BOOL HackedCSoundFile::ReadNote()
 			pChn->nRampRightVol = pChn->nRightVol << VOLUMERAMPPRECISION;
 			pChn->nRampLeftVol = pChn->nLeftVol << VOLUMERAMPPRECISION;
 			// Adding the channel in the channel list
-			ChnMix[m_nMixChannels++] = nChn;
+            if (enabled_channels[nChn])
+                ChnMix[m_nMixChannels++] = nChn;
 			if (m_nMixChannels >= MAX_CHANNELS) break;
 		} else
 		{
