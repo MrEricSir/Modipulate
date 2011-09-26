@@ -56,6 +56,9 @@ public:
     // Returns the number of channels.
     int get_num_channels();
     
+    // Gets title of song.
+    std::string get_title();
+    
 protected:
     void on_note_change(unsigned channel, int note);
     void on_pattern_changed(unsigned pattern);

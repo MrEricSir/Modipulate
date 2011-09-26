@@ -32,6 +32,7 @@ extern "C" {
     static int get_channel_enabled(lua_State *L);
     static int set_on_note_changed(lua_State *L);
     static int set_on_pattern_changed(lua_State *L);
+    static int get_title(lua_State *L);
 }
 
 ////////////////////////////////////////////////////////////
@@ -196,17 +197,20 @@ static int get_channel_enabled(lua_State *L) {
     return 1;
 }
 
-// Callbacks.
-//
-// TODO
-// I'm thinking for starters, something like this.
-//
-// note_changed(void* callback, int channel, int note, int instrument)
-// note_changed_callback(int channel, int note, int instrument) <-- callback sig
-// -1's for ints that don't matter (want all changes)
 
-// and another for
-// pattern_changed(void* callback, int pattern_number)
+static int get_title(lua_State *L) {
+    DPRINT("Getting title");
+    int argc = lua_gettop(L);
+    if (argc != 0) {
+        DPRINT("This function doesn't require any arguments!");
+    }
+    
+    lua_pushstring(L, mod.get_title().c_str());
+    return 1;
+}
+
+
+// Callbacks.
 
 
 
@@ -279,6 +283,7 @@ int LUA_API luaopen_modipulate(lua_State *L) {
         { "get_channel_enabled", get_channel_enabled },
         { "set_on_note_changed", set_on_note_changed },
         { "set_on_pattern_changed", set_on_pattern_changed },
+        { "get_title", get_title },
         { NULL, NULL },
     };
     luaL_openlib (L, "modipulate", driver, 0);

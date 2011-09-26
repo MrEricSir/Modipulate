@@ -56,8 +56,6 @@ void ModStream::open(string path) {
     if (modplug_file == NULL)
         throw("File was loaded, modplug couldn't parse it.");
     
-    DPRINT("Name of track: %s", ModPlug_GetName(modplug_file));
-    
     // Setup playback format.
     ModPlug_Settings settings;
     ModPlug_GetSettings(&settings);
@@ -277,4 +275,8 @@ void ModStream::on_note_change(unsigned channel, int note) {
 
 void ModStream::on_pattern_changed(unsigned pattern) {
     cache_pattern_change = pattern;
+}
+
+std::string ModStream::get_title() {
+    return string(ModPlug_GetName(modplug_file));
 }

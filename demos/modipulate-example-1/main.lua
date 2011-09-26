@@ -20,6 +20,8 @@ function love.load()
 	playing_text = 'Playing'
 	modipulate.set_playing(playing)
 	
+	print("Song title", modipulate.get_title())
+	
 	c = modipulate.get_num_channels()
 	print("Number of channels", c)
 	
