@@ -15,11 +15,13 @@ using namespace std;
 
 extern void call_note_changed(unsigned channel, int note);
 extern void call_pattern_changed(unsigned pattern);
+extern void call_beat_changed();
 
 ModStream::ModStream() {
     modplug_file = NULL;
     file_length = 0;
     cache_pattern_change = -1;
+    cache_beat_change = false;
 }
 
 ModStream::~ModStream() {
@@ -264,6 +266,11 @@ void ModStream::perform_callbacks() {
         }
         cache_note_change.clear();
     }
+    
+    if (cache_beat_change) {
+        call_beat_changed();
+        cache_beat_change = false;
+    }
 }
 
 void ModStream::on_note_change(unsigned channel, int note) {
@@ -275,6 +282,10 @@ void ModStream::on_note_change(unsigned channel, int note) {
 
 void ModStream::on_pattern_changed(unsigned pattern) {
     cache_pattern_change = pattern;
+}
+
+void ModStream::on_beat_changed() {
+    cache_beat_change = true;
 }
 
 std::string ModStream::get_title() {

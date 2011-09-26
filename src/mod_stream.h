@@ -62,7 +62,7 @@ public:
 protected:
     void on_note_change(unsigned channel, int note);
     void on_pattern_changed(unsigned pattern);
-    
+    void on_beat_changed();
     
 private:
     bool stream(ALuint buffer);
@@ -83,6 +83,7 @@ private:
     // Cached callback data.
     long cache_pattern_change;
     std::list<NoteChange> cache_note_change;
+    bool cache_beat_change;
     
     friend class HackedCSoundFile;
 };

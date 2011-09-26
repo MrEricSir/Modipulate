@@ -26,13 +26,14 @@ extern "C" {
     static int quit(lua_State *L);
     static int update(lua_State *L);
     static int open_file(lua_State *L);
+    static int get_title(lua_State *L);
     static int set_playing(lua_State *L);
     static int get_num_channels(lua_State *L);
     static int set_channel_enabled(lua_State *L);
     static int get_channel_enabled(lua_State *L);
     static int set_on_note_changed(lua_State *L);
     static int set_on_pattern_changed(lua_State *L);
-    static int get_title(lua_State *L);
+    static int set_on_beat_changed(lua_State *L);
 }
 
 ////////////////////////////////////////////////////////////
@@ -46,9 +47,11 @@ ModStream mod;
 int on_note_changed = - 1;
 lua_State *on_note_changed_state = NULL;
 
-
 int on_pattern_changed = - 1;
 lua_State *on_pattern_changed_state = NULL;
+
+int on_beat_changed = - 1;
+lua_State *on_beat_changed_state = NULL;
 
 ////////////////////////////////////////////////////////////
 
@@ -264,6 +267,26 @@ void call_pattern_changed(unsigned pattern) {
     lua_call(on_pattern_changed_state, 1, 0);
 }
 
+static int set_on_beat_changed(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 1) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("bool set_on_beat_changed(function)");
+        DPRINT("  function: void your_func()");
+        return 0;
+    }
+    
+    on_beat_changed = luaL_ref(L, LUA_REGISTRYINDEX);
+    on_beat_changed_state = L;
+    return 0;
+}
+
+void call_beat_changed() {
+    lua_getglobal(on_beat_changed_state, "beat_changed");
+    lua_call(on_beat_changed_state, 0, 0);
+}
+
 ////////////////////////////////////////////////////////////
 
 // Loader.
@@ -277,13 +300,14 @@ int LUA_API luaopen_modipulate(lua_State *L) {
         { "quit", quit },
         { "update", update },
         { "open_file", open_file },
+        { "get_title", get_title },
         { "set_playing", set_playing },
         { "get_num_channels", get_num_channels },
         { "set_channel_enabled", set_channel_enabled },
         { "get_channel_enabled", get_channel_enabled },
         { "set_on_note_changed", set_on_note_changed },
         { "set_on_pattern_changed", set_on_pattern_changed },
-        { "get_title", get_title },
+        { "set_on_beat_changed", set_on_beat_changed },
         { NULL, NULL },
     };
     luaL_openlib (L, "modipulate", driver, 0);
