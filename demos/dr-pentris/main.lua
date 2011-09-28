@@ -14,15 +14,22 @@ function love.load()
 	require('piece')
 	require('grid')
 
-	-- The beat
+	-- Local copies
+	local grid = level_grid
+
+	-- Timing
+	tempo = 140 -- Beats per minute
+	period = 60 / tempo -- Beat interval in seconds
+	-- Beat counters
 	t_beat = 0 -- Timer for 1/4 notes; always start at 0
 	t_eighth = 0 -- Timer for 1/8 notes
 	t_sixteenth = 0 -- Timer for 1/16 notes
-	beat_text = ' ' -- For display
+	-- For display
+	beat_text = ' '
 	eighth_text = ' '
 	sixteenth_text = ' '
-	tempo = 80 -- Beats per minute
-	period = 60 / tempo -- Beat interval in seconds
+
+	-- Functions -- move later
 
 	-- Get X/Y of the origin of a tile based on a tile coordinate
 	-- E.g., 1,5 is column 1, row 5 (numbers start from 1)
@@ -30,6 +37,22 @@ function love.load()
 		local x = col * tile_size + grid.x
 		local y = row * tile_size + grid.y
 		return x, y
+	end
+
+	-- Shift the values in a 2D table down 1 step
+	-- args:
+	---- t: table to move
+	function shift(t)
+		-- For each column between the second to last row
+		-- and the first, in reverse...
+		for row=(#t-1),1,-1 do
+			for col=1,#t[row] do
+				-- ...give the next highest row the current value
+				t[row + 1][col] = t[row][col]
+				t[row][col] = false -- So nothing is left behind
+			end
+		end
+		-- The last row is skipped to avoid increasing the table's length.
 	end
 
 	-- Rotate a 2D table
@@ -58,12 +81,9 @@ function love.load()
 		return new_t
 	end
 
-	-- Drop a 2D table down 1 step
-	-- args:
-	---- t: table to move
-	function drop_table(t) -- No, not like in SQL
-		
-	end
+	-- TEST: Start in play mode
+	level_in_progress = true
+	init_cycle = true -- TODO: make this automatic from some init_play()
 
 end
 
@@ -117,22 +137,47 @@ end
 
 function love.draw()
 
+	-- Locals for great speed
+	local grid = level_grid
+	local grid_x = grid.x
+	local grid_y = grid.y
+	local grid_rows = grid.rows
+	local grid_cols = grid.cols
+	local grid_lines = grid.lines
+
 	-- Draw the grid itself
-	local lines = grid.lines
 	love.graphics.setColor(0x80, 0x80, 0x80)
-	for i,line in ipairs(lines) do
+	for i,line in ipairs(grid_lines) do
 		love.graphics.line(line)
 	end
 
 	-- Draw the pieces
-	for row=1,grid.rows do
-		for col=1,grid.cols do
+	love.graphics.setColor(0xFF, 0xFF, 0xFF)
+	for row=1,grid_rows do
+		-- For each tile in the level
+		for col=1,grid_cols do
+			-- Draw the frozen level piece, if there is one
 			local color = grid[row][col]
 			if color then
 				love.graphics.draw(tile_images[color],
-						grid.x + (col - 1) * tile_size,
-						grid.y + (row - 1) * tile_size)
+						grid_x + (col - 1) * tile_size,
+						grid_y + (row - 1) * tile_size)
 			end
+			-- Draw the currently falling piece, if there is one
+			color = cycle_grid[row][col]
+			if color then
+				love.graphics.draw(tile_images[color],
+						grid_x + (col - 1) * tile_size,
+						grid_y + (row - 1) * tile_size)
+			end
+		end
+	end
+	-- Draw the active piece
+	if active_piece then
+		for i,v in ipairs(active_piece) do
+			love.graphics.draw(tile_images[v.color],
+					grid_x + (v.x - 1) * tile_size,
+					grid_y + (v.y - 1) * tile_size)
 		end
 	end
 

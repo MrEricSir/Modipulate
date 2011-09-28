@@ -2,13 +2,23 @@
 
 require('piece')
 
-grid = {}
-grid.rows = 14
-grid.cols = 8
--- Fill out the grid
-local grid = grid
-for row=1,grid.rows do
-	grid[row] = {} -- 14 empty rows
+-- One permanent one for the level
+level_grid = {}
+level_grid.rows = 14
+level_grid.cols = 8
+-- One temporary one for each drop cycle
+cycle_grid = {}
+-- Fill out the grids
+local grid = level_grid
+for row=1,level_grid.rows do
+	-- Initialize
+	grid[row] = {}
+	cycle_grid[row] = {}
+	-- Fill with false -- avoid nil so #grid still works
+	for col=1,level_grid.cols do
+		grid[row][col] = false
+		cycle_grid[row][col] = false
+	end
 end
 -- Redundant information about the grid
 grid.w = grid.cols * tile_size
@@ -31,3 +41,4 @@ for col=0,grid.cols do -- Starting at 0 for extra line before col 1
 			{col * tile_size + grid.x, grid.y,
 			col * tile_size + grid.x, grid.h + grid.y})
 end
+
