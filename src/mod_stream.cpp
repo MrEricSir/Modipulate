@@ -7,6 +7,7 @@
 #include <string>
 #include <malloc.h>
 #include <sstream>
+#include <math.h>
 
 #include <AL/al.h>
 #include <ogg/ogg.h>
@@ -290,4 +291,16 @@ void ModStream::on_beat_changed() {
 
 std::string ModStream::get_title() {
     return string(ModPlug_GetName(modplug_file));
+}
+
+double ModStream::get_volume() {
+    return ((double) (ModPlug_GetMasterVolume(modplug_file) - 1)) / 511.0;
+}
+
+void ModStream::set_volume(double vol) {
+    if (vol < 0.)
+        vol = 0.;
+    else if (vol > 1.)
+        vol = 1.;
+    ModPlug_SetMasterVolume(modplug_file, round(vol * 511) + 1);
 }

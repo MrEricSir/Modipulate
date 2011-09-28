@@ -31,6 +31,8 @@ extern "C" {
     static int get_num_channels(lua_State *L);
     static int set_channel_enabled(lua_State *L);
     static int get_channel_enabled(lua_State *L);
+    static int set_volume(lua_State *L);
+    static int get_volume(lua_State *L);
     static int set_on_note_changed(lua_State *L);
     static int set_on_pattern_changed(lua_State *L);
     static int set_on_beat_changed(lua_State *L);
@@ -213,6 +215,38 @@ static int get_title(lua_State *L) {
 }
 
 
+static int set_volume(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 1) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("set_volume(double vol)");
+        DPRINT("  vol: volume to set, from 0 to 1.0");
+        return 0;
+    }
+    
+    mod.set_volume(lua_tonumber(L, 1));
+    
+    return 0;
+}
+
+
+static int get_volume(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 0) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("double get_volume()");
+        DPRINT("returns: current volume from 0 to 1.0");
+        return 0;
+    }
+    
+    lua_pushnumber(L, mod.get_volume());
+    
+    return 1;
+}
+
+
 // Callbacks.
 
 
@@ -305,6 +339,8 @@ int LUA_API luaopen_modipulate(lua_State *L) {
         { "get_num_channels", get_num_channels },
         { "set_channel_enabled", set_channel_enabled },
         { "get_channel_enabled", get_channel_enabled },
+        { "set_volume", set_volume },
+        { "get_volume", get_volume },
         { "set_on_note_changed", set_on_note_changed },
         { "set_on_pattern_changed", set_on_pattern_changed },
         { "set_on_beat_changed", set_on_beat_changed },

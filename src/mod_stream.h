@@ -59,6 +59,10 @@ public:
     // Gets title of song.
     std::string get_title();
     
+    // Get/set volume. Between 0 and 1.0
+    double get_volume();
+    void set_volume(double vol);
+    
 protected:
     void on_note_change(unsigned channel, int note);
     void on_pattern_changed(unsigned pattern);
