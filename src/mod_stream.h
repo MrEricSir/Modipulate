@@ -59,6 +59,18 @@ public:
     // Gets title of song.
     std::string get_title();
     
+    // Gets the "message" text associated with the song.
+    std::string get_message();
+    
+    // Get instrument info.
+    unsigned get_num_instruments();
+    std::string get_instrument_name(unsigned number);
+    
+    // Get sample info.
+    unsigned get_num_samples();
+    std::string get_sample_name(unsigned number);
+    
+    
     // Get/set volume. Between 0 and 1.0
     double get_volume();
     void set_volume(double vol);

@@ -22,6 +22,17 @@ function love.load()
 	modipulate.set_volume(1);
 	
 	print("Song title", modipulate.get_title())
+	print("Song message", modipulate.get_message())
+	
+	print("# Instruments", modipulate.get_num_instruments())
+    for i = 0, modipulate.get_num_instruments() do
+        print("Instrument:", i, modipulate.get_instrument_name(i))
+    end
+    
+    print("# Samples", modipulate.get_num_samples())
+    for i = 0, modipulate.get_num_samples() do
+        print("Sample:", i, modipulate.get_sample_name(i))
+    end
 	
 	c = modipulate.get_num_channels()
 	print("Number of channels", c)

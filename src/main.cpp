@@ -27,6 +27,11 @@ extern "C" {
     static int update(lua_State *L);
     static int open_file(lua_State *L);
     static int get_title(lua_State *L);
+    static int get_message(lua_State *L);
+    static int get_num_instruments(lua_State *L);
+    static int get_instrument_name(lua_State *L);
+    static int get_num_samples(lua_State *L);
+    static int get_sample_name(lua_State *L);
     static int set_playing(lua_State *L);
     static int get_num_channels(lua_State *L);
     static int set_channel_enabled(lua_State *L);
@@ -214,6 +219,81 @@ static int get_title(lua_State *L) {
     return 1;
 }
 
+static int get_message(lua_State *L) {
+    DPRINT("Getting message");
+    int argc = lua_gettop(L);
+    if (argc != 0) {
+        DPRINT("This function doesn't require any arguments!");
+    }
+    
+    lua_pushstring(L, mod.get_message().c_str());
+    return 1;
+}
+
+static int get_num_instruments(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 0) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("int get_num_instruments()");
+        DPRINT("returns: number of instruments");
+        return 0;
+    }
+    
+    lua_pushnumber(L, mod.get_num_instruments());
+    
+    return 1;
+}
+
+static int get_instrument_name(lua_State *L) {
+     DPRINT("Getting instrument name...");
+    int argc = lua_gettop(L);
+    
+    if (argc != 1) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("string get_instrument_name(int instrument)");
+        DPRINT("  instrument: # of instrument to get name of");
+        DPRINT("returns: name of instrument");
+        return 0;
+    }
+    
+    unsigned instrument = (unsigned)lua_tonumber(L, 1);
+    lua_pushstring(L, mod.get_instrument_name(instrument).c_str());
+    return 1;
+}
+
+static int get_num_samples(lua_State *L){
+int argc = lua_gettop(L);
+    
+    if (argc != 0) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("int get_num_samples()");
+        DPRINT("returns: number of samples");
+        return 0;
+    }
+    
+    lua_pushnumber(L, mod.get_num_samples());
+    
+    return 1;
+}
+
+static int get_sample_name(lua_State *L)  {
+     DPRINT("Getting sample name...");
+    int argc = lua_gettop(L);
+    
+    if (argc != 1) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("string get_sample_name(int sample)");
+        DPRINT("  sample: # of sample to get name of");
+        DPRINT("returns: name of sample");
+        return 0;
+    }
+    
+    unsigned sample = (unsigned)lua_tonumber(L, 1);
+    lua_pushstring(L, mod.get_sample_name(sample).c_str());
+    return 1;
+}
+
 
 static int set_volume(lua_State *L) {
     int argc = lua_gettop(L);
@@ -317,6 +397,9 @@ static int set_on_beat_changed(lua_State *L) {
 }
 
 void call_beat_changed() {
+    if (on_beat_changed == -1)
+        return;
+    
     lua_getglobal(on_beat_changed_state, "beat_changed");
     lua_call(on_beat_changed_state, 0, 0);
 }
@@ -335,6 +418,11 @@ int LUA_API luaopen_modipulate(lua_State *L) {
         { "update", update },
         { "open_file", open_file },
         { "get_title", get_title },
+        { "get_message", get_message },
+        { "get_num_instruments", get_num_instruments },
+        { "get_instrument_name", get_instrument_name },
+        { "get_num_samples", get_num_samples },
+        { "get_sample_name", get_sample_name },
         { "set_playing", set_playing },
         { "get_num_channels", get_num_channels },
         { "set_channel_enabled", set_channel_enabled },

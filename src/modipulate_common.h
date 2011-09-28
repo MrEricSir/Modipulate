@@ -20,10 +20,14 @@
 #define BUFFER_SIZE (MIN_BUFFER_SIZE * 8)
 
 // For printing. When release mode becomes available, this will likely do nothing.
+#ifdef DEBUG
 #define DPRINT(...) {\
 printf("Modipulate (%s:%d): ", __FUNCTION__, __LINE__);\
 printf(__VA_ARGS__);\
 printf("\n");\
 }
+#else
+#define DPRINT(...)
+#endif
 
 #endif

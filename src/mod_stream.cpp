@@ -290,7 +290,13 @@ void ModStream::on_beat_changed() {
 }
 
 std::string ModStream::get_title() {
-    return string(ModPlug_GetName(modplug_file));
+    const char* name = ModPlug_GetName(modplug_file);
+    return name != NULL ? string(name) : string("");
+}
+
+std::string ModStream::get_message() {
+    const char* message = ModPlug_GetMessage(modplug_file);
+    return (message != NULL) ? string(message) : string("");
 }
 
 double ModStream::get_volume() {
@@ -303,4 +309,44 @@ void ModStream::set_volume(double vol) {
     else if (vol > 1.)
         vol = 1.;
     ModPlug_SetMasterVolume(modplug_file, round(vol * 511) + 1);
+}
+
+unsigned ModStream::get_num_instruments() {
+    return ModPlug_NumInstruments(modplug_file);
+}
+
+std::string ModStream::get_instrument_name(unsigned number) {
+    std::string ret = "";
+    unsigned length = ModPlug_InstrumentName(modplug_file, number, NULL);
+    if (length == 0)
+        return ret;
+    
+    char* buffer = new char[length+2];
+    for (unsigned i = 0; i < length+2; i++)
+        buffer[i] = 0;
+    if (length == ModPlug_InstrumentName(modplug_file, number, buffer))
+        ret = string(buffer);
+    
+    delete [] buffer;
+    return ret;
+}
+
+unsigned ModStream::get_num_samples() {
+    return ModPlug_NumSamples(modplug_file);
+}
+
+std::string ModStream::get_sample_name(unsigned number) {
+    std::string ret = "";
+    unsigned length = ModPlug_SampleName(modplug_file, number, NULL);
+    if (length == 0)
+        return ret;
+    
+    char* buffer = new char[length+2];
+    for (unsigned i = 0; i < length+2; i++)
+        buffer[i] = 0;
+    if (length == ModPlug_SampleName(modplug_file, number, buffer))
+        ret = string(buffer);
+    
+    delete [] buffer;
+    return ret;
 }
