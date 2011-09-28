@@ -1,6 +1,7 @@
 /Debug
 /Release
 /build
+/.build-release
 modipulate.mk
 Modipulate.tags
 Modipulate.workspace.session
