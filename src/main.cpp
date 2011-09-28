@@ -26,12 +26,16 @@ extern "C" {
     static int quit(lua_State *L);
     static int update(lua_State *L);
     static int open_file(lua_State *L);
+    static int get_title(lua_State *L);
     static int set_playing(lua_State *L);
     static int get_num_channels(lua_State *L);
     static int set_channel_enabled(lua_State *L);
     static int get_channel_enabled(lua_State *L);
+    static int set_volume(lua_State *L);
+    static int get_volume(lua_State *L);
     static int set_on_note_changed(lua_State *L);
     static int set_on_pattern_changed(lua_State *L);
+    static int set_on_beat_changed(lua_State *L);
 }
 
 ////////////////////////////////////////////////////////////
@@ -45,9 +49,11 @@ ModStream mod;
 int on_note_changed = - 1;
 lua_State *on_note_changed_state = NULL;
 
-
 int on_pattern_changed = - 1;
 lua_State *on_pattern_changed_state = NULL;
+
+int on_beat_changed = - 1;
+lua_State *on_beat_changed_state = NULL;
 
 ////////////////////////////////////////////////////////////
 
@@ -91,15 +97,10 @@ static int quit(lua_State *L) {
 // Updates the audio, triggers callbacks.
 // Call this from love.update()
 static int update(lua_State *L) {
-    //DPRINT("Update loop"); // For testing only: this printf may eat CPU time.
-    
     try {
         if (!mod.update()) {
-            if (!mod.is_playing()) {
-                DPRINT("MOD is not playing");
-                if (!mod.playback())
-                    throw std::string("Mod abruptly stopped.");
-            }
+            if (!mod.is_playing() && !mod.playback())
+                throw std::string("Mod abruptly stopped.");
         }
     }
     catch(std::string e) {
@@ -144,9 +145,8 @@ static int set_playing(lua_State *L) {
         return 0;
     }
     
-    bool b = (bool) lua_toboolean(L, 1);
-    DPRINT(b ? "Playing" : "Not playing");
-    mod.set_playing(b);  // TODO: Fix this. The function doesn't work.
+    bool b = (bool) lua_toboolean(L, 1);;
+    mod.set_playing(b);
     
     return 0;
 }
@@ -202,17 +202,52 @@ static int get_channel_enabled(lua_State *L) {
     return 1;
 }
 
-// Callbacks.
-//
-// TODO
-// I'm thinking for starters, something like this.
-//
-// note_changed(void* callback, int channel, int note, int instrument)
-// note_changed_callback(int channel, int note, int instrument) <-- callback sig
-// -1's for ints that don't matter (want all changes)
 
-// and another for
-// pattern_changed(void* callback, int pattern_number)
+static int get_title(lua_State *L) {
+    DPRINT("Getting title");
+    int argc = lua_gettop(L);
+    if (argc != 0) {
+        DPRINT("This function doesn't require any arguments!");
+    }
+    
+    lua_pushstring(L, mod.get_title().c_str());
+    return 1;
+}
+
+
+static int set_volume(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 1) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("set_volume(double vol)");
+        DPRINT("  vol: volume to set, from 0 to 1.0");
+        return 0;
+    }
+    
+    mod.set_volume(lua_tonumber(L, 1));
+    
+    return 0;
+}
+
+
+static int get_volume(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 0) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("double get_volume()");
+        DPRINT("returns: current volume from 0 to 1.0");
+        return 0;
+    }
+    
+    lua_pushnumber(L, mod.get_volume());
+    
+    return 1;
+}
+
+
+// Callbacks.
 
 
 
@@ -263,7 +298,27 @@ void call_pattern_changed(unsigned pattern) {
     
     lua_getglobal(on_pattern_changed_state, "pattern_changed");
     lua_pushnumber(on_pattern_changed_state, pattern);
-    lua_call(on_pattern_changed_state, 2, 0);
+    lua_call(on_pattern_changed_state, 1, 0);
+}
+
+static int set_on_beat_changed(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 1) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("bool set_on_beat_changed(function)");
+        DPRINT("  function: void your_func()");
+        return 0;
+    }
+    
+    on_beat_changed = luaL_ref(L, LUA_REGISTRYINDEX);
+    on_beat_changed_state = L;
+    return 0;
+}
+
+void call_beat_changed() {
+    lua_getglobal(on_beat_changed_state, "beat_changed");
+    lua_call(on_beat_changed_state, 0, 0);
 }
 
 ////////////////////////////////////////////////////////////
@@ -279,12 +334,16 @@ int LUA_API luaopen_modipulate(lua_State *L) {
         { "quit", quit },
         { "update", update },
         { "open_file", open_file },
+        { "get_title", get_title },
         { "set_playing", set_playing },
         { "get_num_channels", get_num_channels },
         { "set_channel_enabled", set_channel_enabled },
         { "get_channel_enabled", get_channel_enabled },
+        { "set_volume", set_volume },
+        { "get_volume", get_volume },
         { "set_on_note_changed", set_on_note_changed },
         { "set_on_pattern_changed", set_on_pattern_changed },
+        { "set_on_beat_changed", set_on_beat_changed },
         { NULL, NULL },
     };
     luaL_openlib (L, "modipulate", driver, 0);

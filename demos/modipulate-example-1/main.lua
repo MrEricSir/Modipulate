@@ -19,12 +19,16 @@ function love.load()
 	playing = true
 	playing_text = 'Playing'
 	modipulate.set_playing(playing)
+	modipulate.set_volume(1);
+	
+	print("Song title", modipulate.get_title())
 	
 	c = modipulate.get_num_channels()
 	print("Number of channels", c)
 	
 	modipulate.set_on_note_changed(note_changed)
 	modipulate.set_on_pattern_changed(pattern_changed)
+	modipulate.set_on_beat_changed(beat_changed)
 end
 
 
@@ -50,49 +54,56 @@ function love.keypressed(k)
 	elseif k == 'escape' or k == 'q' then
 		love.event.push('q')
 	elseif k == '0' then
-	    modipulate.set_channel_enabled(0, false);
+	    modipulate.set_channel_enabled(0, false)
 	elseif k == '1' then
-	    modipulate.set_channel_enabled(1, false);
+	    modipulate.set_channel_enabled(1, false)
 	elseif k == '2' then
-        modipulate.set_channel_enabled(2, false);
+        modipulate.set_channel_enabled(2, false)
     elseif k == '3' then
-        modipulate.set_channel_enabled(3, false);
+        modipulate.set_channel_enabled(3, false)
     elseif k == '4' then
-        modipulate.set_channel_enabled(4, false);
+        modipulate.set_channel_enabled(4, false)
     elseif k == '5' then
-        modipulate.set_channel_enabled(5, false);
+        modipulate.set_channel_enabled(5, false)
     elseif k == '6' then
-        modipulate.set_channel_enabled(6, false);
+        modipulate.set_channel_enabled(6, false)
     elseif k == '7' then
-        modipulate.set_channel_enabled(7, false);
+        modipulate.set_channel_enabled(7, false)
     elseif k == '8' then
-        modipulate.set_channel_enabled(8, false);
+        modipulate.set_channel_enabled(8, false)
     elseif k == '9' then
-        modipulate.set_channel_enabled(9, false);
+        modipulate.set_channel_enabled(9, false)
 	end
 end
 
 function love.keyreleased(k)
+    VOL_STEP = 1 / 10; -- volume step, from 0 to 1
     if k == '0' then
-        modipulate.set_channel_enabled(0, true);
+        modipulate.set_channel_enabled(0, true)
     elseif k == '1' then
-        modipulate.set_channel_enabled(1, true);
+        modipulate.set_channel_enabled(1, true)
     elseif k == '2' then
-        modipulate.set_channel_enabled(2, true);
+        modipulate.set_channel_enabled(2, true)
     elseif k == '3' then
-        modipulate.set_channel_enabled(3, true);
+        modipulate.set_channel_enabled(3, true)
     elseif k == '4' then
-        modipulate.set_channel_enabled(4, true);
+        modipulate.set_channel_enabled(4, true)
     elseif k == '5' then
-        modipulate.set_channel_enabled(5, true);
+        modipulate.set_channel_enabled(5, true)
     elseif k == '6' then
-        modipulate.set_channel_enabled(6, true);
+        modipulate.set_channel_enabled(6, true)
     elseif k == '7' then
-        modipulate.set_channel_enabled(7, true);
+        modipulate.set_channel_enabled(7, true)
     elseif k == '8' then
-        modipulate.set_channel_enabled(8, true);
+        modipulate.set_channel_enabled(8, true)
     elseif k == '9' then
-        modipulate.set_channel_enabled(9, true);
+        modipulate.set_channel_enabled(9, true)
+    elseif k == '-' then
+        modipulate.set_volume(modipulate.get_volume() - VOL_STEP)
+        print("Volume is", modipulate.get_volume())
+    elseif k == '=' then
+        modipulate.set_volume(modipulate.get_volume() + VOL_STEP)
+        print("Volume is", modipulate.get_volume())
     end
 end
 
@@ -104,10 +115,14 @@ function love.draw()
 end
 
 function note_changed(channel, note) 
-    print("Note changed (channel, note)", channel, note )
+   print("Note changed (channel, note)", channel, note)
 end
 
 function pattern_changed(pattern) 
     print("Pattern changed ", pattern)
+end
+
+function beat_changed()
+   print("Beat")
 end
 

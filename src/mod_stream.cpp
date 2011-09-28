@@ -7,6 +7,7 @@
 #include <string>
 #include <malloc.h>
 #include <sstream>
+#include <math.h>
 
 #include <AL/al.h>
 #include <ogg/ogg.h>
@@ -15,10 +16,13 @@ using namespace std;
 
 extern void call_note_changed(unsigned channel, int note);
 extern void call_pattern_changed(unsigned pattern);
+extern void call_beat_changed();
 
 ModStream::ModStream() {
     modplug_file = NULL;
     file_length = 0;
+    cache_pattern_change = -1;
+    cache_beat_change = false;
 }
 
 ModStream::~ModStream() {
@@ -54,8 +58,6 @@ void ModStream::open(string path) {
     modplug_file = HackedModPlug_Load(buffer, file_length + 1);
     if (modplug_file == NULL)
         throw("File was loaded, modplug couldn't parse it.");
-    
-    DPRINT("Name of track: %s", ModPlug_GetName(modplug_file));
     
     // Setup playback format.
     ModPlug_Settings settings;
@@ -97,6 +99,9 @@ void ModStream::close() {
 }
 
 bool ModStream::playback() {
+    if (!playing)
+        return true;
+    
     if (is_playing())
         return true;
     
@@ -113,9 +118,13 @@ bool ModStream::playback() {
 }
 
 void ModStream::set_playing(bool is_playing) {
-    DPRINT("set playing: %d", (int) is_playing);
-    // TODO: seems like we need a better way to start/stop
-    //alSourcei(source, AL_SOURCE_STATE, is_playing ? AL_PLAYING : AL_PAUSED);
+    playing = is_playing;
+    //DPRINT("set playing: %d", (int) is_playing);
+    if (is_playing)
+        alSourcePlay(source);
+    else
+        alSourcePause(source);
+    
     check_error(__LINE__);
 }
 
@@ -123,16 +132,20 @@ bool ModStream::is_playing() {
     ALenum state;
     alGetSourcei(source, AL_SOURCE_STATE, &state);
     check_error(__LINE__);
-    return AL_PLAYING == state;
+    return AL_PLAYING == state && playing;
 }
 
 bool ModStream::update() {
+    static bool in_update = false; // anti-reentrancy hack
     int processed;
     bool active = true;
     
     if (!is_playing())
         return false;
     
+    if (in_update)
+        return true;
+    in_update = true;
     alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
     while (processed--) {
         ALuint buffer;
@@ -146,10 +159,16 @@ bool ModStream::update() {
         check_error(__LINE__);
     }
     
+    // Activate cached callbacks.
+    perform_callbacks();
+    
+    in_update = false;
     return active;
 }
 
 bool ModStream::stream(ALuint buffer) {
+    if (!playing)
+        return false;
     char data[BUFFER_SIZE];
     
     int size = HackedModPlug_Read(modplug_file, data, BUFFER_SIZE);
@@ -181,9 +200,40 @@ void ModStream::empty() {
 
 void ModStream::check_error(int line) {
     int error = alGetError();
+    string serror = "";
+    
+    switch(error) {
+        break;
+
+        case AL_INVALID_NAME:
+            serror = "AL_INVALID_NAME";
+        break;
+
+        case AL_INVALID_ENUM:
+            serror = "AL_INVALID_ENUM";
+        break;
+
+        case AL_INVALID_VALUE:
+            serror = "AL_INVALID_VALUE";
+        break;
+
+        case AL_INVALID_OPERATION:
+            serror = "AL_INVALID_OPERATION";
+        break;
+
+        case AL_OUT_OF_MEMORY:
+            serror = "AL_OUT_OF_MEMORY";
+        break;
+    }
+    
     if (error != AL_NO_ERROR) {
         stringstream ss;
-        ss << "OpenAL error was raised: " << error << " at line " << line;
+        ss << "OpenAL error was raised: ";
+        if (serror != "")
+            ss << serror;
+        else
+            ss << error;
+        ss << " at line " << line;
         throw string(ss.str());
     }
 }
@@ -201,11 +251,56 @@ int ModStream::get_num_channels() {
     return (int) ModPlug_NumChannels(modplug_file);
 }
 
+void ModStream::perform_callbacks() {
+    // Pattern change.
+    if (cache_pattern_change >= 0) {
+        call_pattern_changed((unsigned) cache_pattern_change);
+        cache_pattern_change = -1;
+    }
+    
+    // Note change.
+    if (cache_note_change.size() > 0) {
+        list<NoteChange>::iterator it;
+        
+        for (it = cache_note_change.begin(); it != cache_note_change.end(); it++) {
+            call_note_changed(it->channel, it->note);
+        }
+        cache_note_change.clear();
+    }
+    
+    if (cache_beat_change) {
+        call_beat_changed();
+        cache_beat_change = false;
+    }
+}
+
 void ModStream::on_note_change(unsigned channel, int note) {
-    call_note_changed(channel, note);
+    NoteChange n;
+    n.channel = channel;
+    n.note = note;
+    cache_note_change.push_back(n);
 }
 
 void ModStream::on_pattern_changed(unsigned pattern) {
-    call_pattern_changed(pattern);
+    cache_pattern_change = pattern;
 }
 
+void ModStream::on_beat_changed() {
+    cache_beat_change = true;
+}
+
+std::string ModStream::get_title() {
+    return string(ModPlug_GetName(modplug_file));
+}
+
+double ModStream::get_volume() {
+    return ((double) (ModPlug_GetMasterVolume(modplug_file) - 1)) / 511.0;
+}
+
+void ModStream::set_volume(double vol) {
+    if (vol < 0.)
+        vol = 0.;
+    else if (vol > 1.)
+        vol = 1.;
+    ModPlug_SetMasterVolume(modplug_file, round(vol * 511) + 1);
+}
