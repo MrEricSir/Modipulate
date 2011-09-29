@@ -40,7 +40,7 @@ extern "C" {
     static int get_volume(lua_State *L);
     static int set_on_note_changed(lua_State *L);
     static int set_on_pattern_changed(lua_State *L);
-    static int set_on_beat_changed(lua_State *L);
+    static int set_on_row_changed(lua_State *L);
 }
 
 ////////////////////////////////////////////////////////////
@@ -57,8 +57,8 @@ lua_State *on_note_changed_state = NULL;
 int on_pattern_changed = - 1;
 lua_State *on_pattern_changed_state = NULL;
 
-int on_beat_changed = - 1;
-lua_State *on_beat_changed_state = NULL;
+int on_row_changed = - 1;
+lua_State *on_row_changed_state = NULL;
 
 ////////////////////////////////////////////////////////////
 
@@ -384,27 +384,27 @@ void call_pattern_changed(unsigned pattern) {
     lua_call(on_pattern_changed_state, 1, 0);
 }
 
-static int set_on_beat_changed(lua_State *L) {
+static int set_on_row_changed(lua_State *L) {
     int argc = lua_gettop(L);
     
     if (argc != 1) {
         DPRINT("ERROR: Function parameters incorrect.");
-        DPRINT("bool set_on_beat_changed(function)");
+        DPRINT("bool set_on_row_changed(function)");
         DPRINT("  function: void your_func()");
         return 0;
     }
     
-    on_beat_changed = luaL_ref(L, LUA_REGISTRYINDEX);
-    on_beat_changed_state = L;
+    on_row_changed = luaL_ref(L, LUA_REGISTRYINDEX);
+    on_row_changed_state = L;
     return 0;
 }
 
-void call_beat_changed() {
-    if (on_beat_changed == -1)
+void call_row_changed() {
+    if (on_row_changed == -1)
         return;
     
-    lua_getglobal(on_beat_changed_state, "beat_changed");
-    lua_call(on_beat_changed_state, 0, 0);
+    lua_getglobal(on_row_changed_state, "row_changed");
+    lua_call(on_row_changed_state, 0, 0);
 }
 
 ////////////////////////////////////////////////////////////
@@ -434,7 +434,7 @@ int LUA_API luaopen_modipulate(lua_State *L) {
         { "get_volume", get_volume },
         { "set_on_note_changed", set_on_note_changed },
         { "set_on_pattern_changed", set_on_pattern_changed },
-        { "set_on_beat_changed", set_on_beat_changed },
+        { "set_on_row_changed", set_on_row_changed },
         { NULL, NULL },
     };
     luaL_openlib (L, "modipulate", driver, 0);

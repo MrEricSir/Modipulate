@@ -795,8 +795,8 @@ BOOL HackedCSoundFile::ProcessEffects()
 		}
         
         if (m_nTickCount == 0) {
-            // Modipulate: beat change.
-            mod_stream->on_beat_changed();\
+            // Modipulate: row change.
+            mod_stream->on_row_changed();\
         }
 
 		// Handles note/instrument/volume changes
