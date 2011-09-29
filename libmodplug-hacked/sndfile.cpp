@@ -268,6 +268,16 @@ BOOL HackedCSoundFile::Create(LPCBYTE lpStream, DWORD dwMemLength)
 			}
 		}
 	}
+    
+    // Create reverse lookups for instruments and "samples."
+    if (Ins != NULL)
+        for (unsigned i = 0; i < m_nSamples; i++) {
+            samples_reversed[(void*) Ins[i].pSample] = i;
+        }
+    if (Headers != NULL)
+        for (unsigned i = 1; i <= m_nInstruments; i++)
+            Headers[i]->number = i;
+    
 	if (m_nType)
 	{
 		UINT maxpreamp = 0x10+(m_nChannels*8);

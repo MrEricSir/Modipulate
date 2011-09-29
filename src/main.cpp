@@ -337,7 +337,7 @@ static int set_on_note_changed(lua_State *L) {
     if (argc != 1) {
         DPRINT("ERROR: Function parameters incorrect.");
         DPRINT("bool set_on_note_changed(function)");
-        DPRINT("  function: void your_func(int channel, int note)");
+        DPRINT("  function: void your_func(int channel, int note, int instrument, int sample)");
         return 0;
     }
     
@@ -346,14 +346,17 @@ static int set_on_note_changed(lua_State *L) {
     return 0;
 }
 
-void call_note_changed(unsigned channel, int note) {
+void call_note_changed(unsigned channel, int note, int instrument, int sample) {
     if (on_note_changed == -1)
         return;
     
     lua_getglobal(on_note_changed_state, "note_changed");
     lua_pushnumber(on_note_changed_state, channel);
     lua_pushnumber(on_note_changed_state, note);
-    lua_call(on_note_changed_state, 2, 0);
+    lua_pushnumber(on_note_changed_state, instrument);
+    lua_pushnumber(on_note_changed_state, sample);
+    
+    lua_call(on_note_changed_state, 4, 0);
 }
 
 

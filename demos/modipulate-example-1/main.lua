@@ -125,8 +125,8 @@ function love.draw()
 	love.graphics.print('Play/pause: space', 20, 60)
 end
 
-function note_changed(channel, note) 
-   print("Note changed (channel, note)", channel, note)
+function note_changed(channel, note, instrument, sample) 
+   print("Note changed (channel, note, instrument, sample)", channel, note, instrument, sample)
 end
 
 function pattern_changed(pattern) 

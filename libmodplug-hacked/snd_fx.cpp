@@ -417,7 +417,7 @@ void HackedCSoundFile::NoteChange(UINT nChn, int note, BOOL bPorta, BOOL bResetE
 //---------------------------------------------------------------------------
 {
 	// DPRINT("note change. channel: %u note: %i", nChn, note);
-    mod_stream->on_note_change(nChn, note);
+    
     
 	if (note < 1) return;
 	MODCHANNEL * const pChn = &Chn[nChn];
@@ -564,6 +564,19 @@ void HackedCSoundFile::NoteChange(UINT nChn, int note, BOOL bPorta, BOOL bResetE
 		if ((pChn->nCutOff < 0x7F) && (bFlt)) SetupChannelFilter(pChn, TRUE);
 #endif // NO_FILTER
 	}
+    
+    ////////////////////////////////////////////////////////
+    // Modipulate
+    ////////////////////////////////////////////////////////
+    int new_sample = -1;
+    if (samples_reversed.count(pChn->pSample) == 1)
+        new_sample = samples_reversed[pChn->pSample];
+        
+    mod_stream->on_note_change(nChn,                               // Channel #
+        note,                                                      // Note ID
+        pChn->pHeader != NULL? pChn->pHeader->number : -1,         // Instrument # (or -1)
+        new_sample                                                 // Sample # (or -1)
+    );
 }
 
 

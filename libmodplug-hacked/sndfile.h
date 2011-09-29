@@ -12,6 +12,8 @@
 #define CONFIG_H_INCLUDED 1
 #endif
 
+#include <map>
+
 #ifndef __SNDFILE_H
 #define __SNDFILE_H
 
@@ -371,6 +373,7 @@ typedef struct _INSTRUMENTHEADER
 	unsigned char nPPC;
 	CHAR name[32];
 	CHAR filename[12];
+    int number; // for modipulate
 } INSTRUMENTHEADER;
 
 
@@ -585,7 +588,9 @@ public:	// for Editing
 	char m_szNames[MAX_INSTRUMENTS][32];    // changed from CHAR
 	CHAR CompressionTable[16];
     
+    // Modipulate.
     bool enabled_channels[MAX_CHANNELS];
+    std::map<void*, int> samples_reversed;
 
 public:
 	HackedCSoundFile();

@@ -22,6 +22,8 @@
 struct NoteChange {
     unsigned channel;
     int note;
+    int instrument;
+    int sample;
 };
 
 class ModStream {
@@ -76,7 +78,7 @@ public:
     void set_volume(double vol);
     
 protected:
-    void on_note_change(unsigned channel, int note);
+    void on_note_change(unsigned channel, int note, int instrument, int sample);
     void on_pattern_changed(unsigned pattern);
     void on_beat_changed();
     

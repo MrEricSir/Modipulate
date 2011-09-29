@@ -14,7 +14,7 @@
 
 using namespace std;
 
-extern void call_note_changed(unsigned channel, int note);
+extern void call_note_changed(unsigned channel, int note, int instrument, int sample);
 extern void call_pattern_changed(unsigned pattern);
 extern void call_beat_changed();
 
@@ -263,7 +263,7 @@ void ModStream::perform_callbacks() {
         list<NoteChange>::iterator it;
         
         for (it = cache_note_change.begin(); it != cache_note_change.end(); it++) {
-            call_note_changed(it->channel, it->note);
+            call_note_changed(it->channel, it->note, it->instrument, it->sample);
         }
         cache_note_change.clear();
     }
@@ -274,10 +274,12 @@ void ModStream::perform_callbacks() {
     }
 }
 
-void ModStream::on_note_change(unsigned channel, int note) {
+void ModStream::on_note_change(unsigned channel, int note, int instrument, int sample) {
     NoteChange n;
     n.channel = channel;
     n.note = note;
+    n.instrument = instrument;
+    n.sample = sample;
     cache_note_change.push_back(n);
 }
 
