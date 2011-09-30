@@ -9,7 +9,8 @@ function love.load()
 	math.randomseed(os.time() / 3)
 
 	-- Libraries and source files
-	require('audio')
+	require('modipulate')
+--	require('audio')
 	require('callbacks')
 	require('piece')
 	require('grid')
@@ -20,14 +21,21 @@ function love.load()
 	-- Timing
 	tempo = 140 -- Beats per minute
 	period = 60 / tempo -- Beat interval in seconds
-	-- Beat counters
-	t_beat = 0 -- Timer for 1/4 notes; always start at 0
-	t_eighth = 0 -- Timer for 1/8 notes
-	t_sixteenth = 0 -- Timer for 1/16 notes
-	-- For display
-	beat_text = ' '
-	eighth_text = ' '
-	sixteenth_text = ' '
+	-- Count rows; 1 beat = 4 rows
+	row_counter = 0
+
+	-- Modipulate
+	modipulate.load()
+	modipulate.open_file('media/vhiiula-inventio_in_4k.it')
+	modipulate.set_playing(true)
+	modipulate.set_volume(1)
+	modipulate.set_on_row_changed(exe_row)
+	modipulate.set_on_pattern_changed(exe_pattern)
+
+	-- TEST: Start in play mode
+	level_in_progress = true
+	init_cycle = true -- TODO: make this automatic from some init_play()
+
 
 	-- Functions -- move later
 
@@ -81,55 +89,13 @@ function love.load()
 		return new_t
 	end
 
-	-- TEST: Start in play mode
-	level_in_progress = true
-	init_cycle = true -- TODO: make this automatic from some init_play()
-
 end
 
 ----------------
 
 function love.update(dt)
 
-	-- The beat
-	t_beat = t_beat + dt
-	t_eighth = t_eighth + dt
-	t_sixteenth = t_sixteenth + dt
-	-- Trigger the 1/4 note callback
-	if t_beat >= period then
-		exe_beat()
-		-- Beat display
-		beat_text = 'x'
-		-- Reset the timers
-		t_beat = 0
-		t_eighth = 0
-		t_sixteenth = 0
-	else
-		beat_text = ' '
-	end
-	-- Trigger the 1/8 note callback
-	if t_eighth == 0 or t_eighth >= period / 2 then
-		exe_eighth()
-		-- Eighth note display
-		eighth_text = 'x'
-		-- Reset the timers
-		t_eighth = 0
-		t_sixteenth = 0
-	else
-		eighth_text = ' '
-	end
-	-- Trigger the 1/16th note callback
-	-- Just for demonstration purposes
-	-- This implementation inside LOVE obviously won't work too well
-	if t_sixteenth == 0 or t_sixteenth >= period / 4 then
-		exe_sixteenth()
-		-- Sixteenth note display
-		sixteenth_text = 'x'
-		-- Reset the timer
-		t_sixteenth = 0
-	else
-		sixteenth_text = ' '
-	end
+	modipulate.update()
 
 end
 
@@ -175,17 +141,13 @@ function love.draw()
 	-- Draw the active piece
 	if active_piece then
 		for i,v in ipairs(active_piece) do
-			love.graphics.draw(tile_images[v.color],
-					grid_x + (v.x - 1) * tile_size,
-					grid_y + (v.y - 1) * tile_size)
+			if v then
+				love.graphics.draw(tile_images[v.color],
+						grid_x + (v.x - 1) * tile_size,
+						grid_y + (v.y - 1) * tile_size)
+			end
 		end
 	end
-
-	-- TEST: print the beat
-	love.graphics.print('Beat:', 20, 20)
-	love.graphics.print(sixteenth_text, 60, 20)
-	love.graphics.print(eighth_text, 70, 20)
-	love.graphics.print(beat_text, 80, 20)
 
 end
 
@@ -198,6 +160,8 @@ function love.keypressed(k)
 		slide_queue = k
 	elseif k == 'down' then
 		-- TODO: accelerate piece descent? May not work well in this system
+		-- Perhaps it can move the drop callback to the 8th note callback
+		-- and switch it back to quarter note at the end of the round
 		local dummy = nil
 	-- Rotate piece
 	elseif k == 'up'
@@ -222,6 +186,8 @@ end
 ----------------
 
 function love.quit()
+
+	modipulate.quit()
 
 end
 
