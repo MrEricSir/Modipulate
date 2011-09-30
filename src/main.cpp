@@ -38,6 +38,7 @@ extern "C" {
     static int get_channel_enabled(lua_State *L);
     static int get_current_pattern(lua_State *L);
     static int get_current_row(lua_State *L);
+    static int get_rows_in_pattern(lua_State *L);
     static int set_volume(lua_State *L);
     static int get_volume(lua_State *L);
     static int set_on_note_changed(lua_State *L);
@@ -359,6 +360,22 @@ static int get_current_row(lua_State *L) {
     return 1;
 }
 
+static int get_rows_in_pattern(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 1) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("int get_rows_in_pattern(int pattern)");
+        DPRINT("returns: total rows in the pattern given");
+        return 0;
+    }
+    
+    int pattern = (int) lua_tonumber(L, 1);
+    lua_pushnumber(L, mod.get_rows_in_pattern(pattern));
+    
+    return 1;
+}
+
 
 // Callbacks.
 
@@ -468,6 +485,7 @@ int LUA_API luaopen_modipulate(lua_State *L) {
         { "get_current_row", get_current_row },
         { "set_volume", set_volume },
         { "get_volume", get_volume },
+        { "get_rows_in_pattern", get_rows_in_pattern },
         { "set_on_note_changed", set_on_note_changed },
         { "set_on_pattern_changed", set_on_pattern_changed },
         { "set_on_row_changed", set_on_row_changed },

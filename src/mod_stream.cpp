@@ -360,3 +360,11 @@ int ModStream::get_current_row() {
 int ModStream::get_current_pattern() {
     return ModPlug_GetCurrentPattern(modplug_file);
 }
+
+int ModStream::get_rows_in_pattern(int pattern) {
+    unsigned int num_rows = 0;
+    if (NULL == ModPlug_GetPattern(modplug_file, pattern, &num_rows))
+        return -1;
+    
+    return (int) num_rows;
+}

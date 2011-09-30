@@ -84,6 +84,9 @@ public:
     // Gets the current pattern #.
     int get_current_pattern();
     
+    // Gets the total rows in a given pattern.
+    int get_rows_in_pattern(int pattern);
+    
 protected:
     void on_note_change(unsigned channel, int note, int instrument, int sample);
     void on_pattern_changed(unsigned pattern);
