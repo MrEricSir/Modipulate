@@ -39,7 +39,7 @@ function love.load()
 	
 	modipulate.set_on_note_changed(note_changed)
 	modipulate.set_on_pattern_changed(pattern_changed)
-	modipulate.set_on_beat_changed(beat_changed)
+	modipulate.set_on_row_changed(row_changed)
 end
 
 
@@ -133,7 +133,7 @@ function pattern_changed(pattern)
     print("Pattern changed ", pattern)
 end
 
-function beat_changed()
+function row_changed()
    print("Beat")
 end
 
