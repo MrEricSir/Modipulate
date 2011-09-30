@@ -352,3 +352,11 @@ std::string ModStream::get_sample_name(unsigned number) {
     delete [] buffer;
     return ret;
 }
+
+int ModStream::get_current_row() {
+    return ModPlug_GetCurrentRow(modplug_file);
+}
+
+int ModStream::get_current_pattern() {
+    return ModPlug_GetCurrentPattern(modplug_file);
+}

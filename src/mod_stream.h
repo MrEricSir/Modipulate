@@ -77,6 +77,13 @@ public:
     double get_volume();
     void set_volume(double vol);
     
+    
+    // Gets the current row #.
+    int get_current_row();
+    
+    // Gets the current pattern #.
+    int get_current_pattern();
+    
 protected:
     void on_note_change(unsigned channel, int note, int instrument, int sample);
     void on_pattern_changed(unsigned pattern);

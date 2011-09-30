@@ -36,6 +36,8 @@ extern "C" {
     static int get_num_channels(lua_State *L);
     static int set_channel_enabled(lua_State *L);
     static int get_channel_enabled(lua_State *L);
+    static int get_current_pattern(lua_State *L);
+    static int get_current_row(lua_State *L);
     static int set_volume(lua_State *L);
     static int get_volume(lua_State *L);
     static int set_on_note_changed(lua_State *L);
@@ -327,6 +329,37 @@ static int get_volume(lua_State *L) {
 }
 
 
+static int get_current_pattern(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 0) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("int get_current_pattern()");
+        DPRINT("returns: current pattern number in the playing song");
+        return 0;
+    }
+    
+    lua_pushnumber(L, mod.get_current_pattern());
+    
+    return 1;
+}
+
+static int get_current_row(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 0) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("int get_current_row()");
+        DPRINT("returns: current row number in the playing song");
+        return 0;
+    }
+    
+    lua_pushnumber(L, mod.get_current_row());
+    
+    return 1;
+}
+
+
 // Callbacks.
 
 
@@ -390,7 +423,7 @@ static int set_on_row_changed(lua_State *L) {
     if (argc != 1) {
         DPRINT("ERROR: Function parameters incorrect.");
         DPRINT("bool set_on_row_changed(function)");
-        DPRINT("  function: void your_func()");
+        DPRINT("  function: void your_func(int row)");
         return 0;
     }
     
@@ -404,7 +437,8 @@ void call_row_changed() {
         return;
     
     lua_getglobal(on_row_changed_state, "row_changed");
-    lua_call(on_row_changed_state, 0, 0);
+    lua_pushnumber(on_row_changed_state, mod.get_current_row());
+    lua_call(on_row_changed_state, 1, 0);
 }
 
 ////////////////////////////////////////////////////////////
@@ -430,6 +464,8 @@ int LUA_API luaopen_modipulate(lua_State *L) {
         { "get_num_channels", get_num_channels },
         { "set_channel_enabled", set_channel_enabled },
         { "get_channel_enabled", get_channel_enabled },
+        { "get_current_pattern", get_current_pattern },
+        { "get_current_row", get_current_row },
         { "set_volume", set_volume },
         { "get_volume", get_volume },
         { "set_on_note_changed", set_on_note_changed },

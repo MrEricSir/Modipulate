@@ -119,10 +119,20 @@ function love.keyreleased(k)
 end
 
 function love.draw()
+    row_number = -1
+    pattern_number = -1
+    
+    if (modipulate) then
+        row_number = modipulate.get_current_row()
+        pattern_number = modipulate.get_current_pattern()
+    end
+    
 	love.graphics.setFont(12)
 	love.graphics.print('Loaded file: ' .. mod_file, 20, 20)
 	love.graphics.print(playing_text, 20, 40)
 	love.graphics.print('Play/pause: space', 20, 60)
+	love.graphics.print('Pattern:' .. pattern_number, 20, 80)
+	love.graphics.print('Row:' .. row_number, 20, 100)
 end
 
 function note_changed(channel, note, instrument, sample) 
@@ -133,7 +143,7 @@ function pattern_changed(pattern)
     print("Pattern changed ", pattern)
 end
 
-function row_changed()
-   print("Beat")
+function row_changed(row)
+   print("Row", row)
 end
 
