@@ -400,7 +400,7 @@ void call_note_changed(unsigned channel, int note, int instrument, int sample) {
     if (on_note_changed == -1)
         return;
     
-    lua_getglobal(on_note_changed_state, "note_changed");
+    lua_rawgeti(on_note_changed_state, LUA_REGISTRYINDEX, on_note_changed);
     lua_pushnumber(on_note_changed_state, channel);
     lua_pushnumber(on_note_changed_state, note);
     lua_pushnumber(on_note_changed_state, instrument);
@@ -429,7 +429,7 @@ void call_pattern_changed(unsigned pattern) {
     if (on_pattern_changed == -1)
         return;
     
-    lua_getglobal(on_pattern_changed_state, "pattern_changed");
+    lua_rawgeti(on_pattern_changed_state, LUA_REGISTRYINDEX, on_pattern_changed);
     lua_pushnumber(on_pattern_changed_state, pattern);
     lua_call(on_pattern_changed_state, 1, 0);
 }
@@ -453,7 +453,7 @@ void call_row_changed() {
     if (on_row_changed == -1)
         return;
     
-    lua_getglobal(on_row_changed_state, "row_changed");
+    lua_rawgeti(on_row_changed_state, LUA_REGISTRYINDEX, on_row_changed);
     lua_pushnumber(on_row_changed_state, mod.get_current_row());
     lua_call(on_row_changed_state, 1, 0);
 }
