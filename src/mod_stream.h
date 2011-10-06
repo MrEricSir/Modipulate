@@ -90,7 +90,7 @@ public:
 protected:
     void on_note_change(unsigned channel, int note, int instrument, int sample);
     void on_pattern_changed(unsigned pattern);
-    void on_row_changed();
+    void on_row_changed(int row);
     
 private:
     bool stream(ALuint buffer);
@@ -102,16 +102,17 @@ private:
     unsigned long file_length;  // length of file
     char* buffer; // file data
     const static int sampling_rate = 44100; // don't change this directly, need to call modplug for that
+    const static int NUM_BUFFERS = 8;
     bool playing;
 
-    ALuint buffers[2];
+    ALuint buffers[NUM_BUFFERS];
     ALuint source;
     ALenum format;
     
     // Cached callback data.
     long cache_pattern_change;
     std::list<NoteChange> cache_note_change;
-    bool cache_row_change;
+    std::list<int> cache_row_change;
     
     friend class HackedCSoundFile;
 };

@@ -793,11 +793,6 @@ BOOL HackedCSoundFile::ProcessEffects()
 				}
 			}
 		}
-        
-        if (m_nTickCount == 0) {
-            // Modipulate: row change.
-            mod_stream->on_row_changed();\
-        }
 
 		// Handles note/instrument/volume changes
 		if (m_nTickCount == nStartTick) // can be delayed by a note delay effect

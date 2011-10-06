@@ -10,24 +10,28 @@ pattern_number = -1
 rows_in_pattern =-1
 
 function love.load()
-	modipulate.load()
+    modipulate.load()
 
-	if arg[2] then
-		mod_file = arg[2]
-	else
-		mod_file = 'v-cf.it'
-	end
-	modipulate.open_file(mod_file)
+    if arg[2] then
+        mod_file = arg[2]
+    else
+        mod_file = 'v-cf.it'
+    end
+    modipulate.open_file(mod_file)
+    
+    modipulate.set_on_note_changed(note_changed)
+    modipulate.set_on_pattern_changed(pattern_changed)
+    modipulate.set_on_row_changed(row_changed)
 
-	playing = true
-	playing_text = 'Playing'
-	modipulate.set_playing(playing)
-	modipulate.set_volume(1);
-	
-	print("Song title", modipulate.get_title())
-	print("Song message", modipulate.get_message())
-	
-	print("# Instruments", modipulate.get_num_instruments())
+    playing = true
+    playing_text = 'Playing'
+    modipulate.set_playing(playing)
+    modipulate.set_volume(1);
+    
+    print("Song title", modipulate.get_title())
+    print("Song message", modipulate.get_message())
+    
+    print("# Instruments", modipulate.get_num_instruments())
     for i = 0, modipulate.get_num_instruments() do
         print("Instrument:", i, modipulate.get_instrument_name(i))
     end
@@ -36,42 +40,38 @@ function love.load()
     for i = 0, modipulate.get_num_samples() do
         print("Sample:", i, modipulate.get_sample_name(i))
     end
-	
-	c = modipulate.get_num_channels()
-	print("Number of channels", c)
-	
-	modipulate.set_on_note_changed(note_changed)
-	modipulate.set_on_pattern_changed(pattern_changed)
-	modipulate.set_on_row_changed(row_changed)
+    
+    c = modipulate.get_num_channels()
+    print("Number of channels", c)
 end
 
 
 function love.quit()
-	modipulate.quit()
+    modipulate.quit()
 end
 
 
 function love.update(dt)
-	modipulate.update()
+    modipulate.update()
 end
 
 
 function love.keypressed(k)
-	if k == ' ' then
-		playing = not playing
-		modipulate.set_playing(playing)
-		if not playing then
-			playing_text = 'Paused'
-		else
-			playing_text = 'Playing'
-		end
-	elseif k == 'escape' or k == 'q' then
-		love.event.push('q')
-	elseif k == '0' then
-	    modipulate.set_channel_enabled(0, false)
-	elseif k == '1' then
-	    modipulate.set_channel_enabled(1, false)
-	elseif k == '2' then
+    if k == ' ' then
+        playing = not playing
+        modipulate.set_playing(playing)
+        if not playing then
+            playing_text = 'Paused'
+        else
+            playing_text = 'Playing'
+        end
+    elseif k == 'escape' or k == 'q' then
+        love.event.push('q')
+    elseif k == '0' then
+        modipulate.set_channel_enabled(0, false)
+    elseif k == '1' then
+        modipulate.set_channel_enabled(1, false)
+    elseif k == '2' then
         modipulate.set_channel_enabled(2, false)
     elseif k == '3' then
         modipulate.set_channel_enabled(3, false)
@@ -87,7 +87,7 @@ function love.keypressed(k)
         modipulate.set_channel_enabled(8, false)
     elseif k == '9' then
         modipulate.set_channel_enabled(9, false)
-	end
+    end
 end
 
 function love.keyreleased(k)
@@ -121,19 +121,20 @@ function love.keyreleased(k)
     end
 end
 
-function love.draw()love.graphics.setFont(12)
-	love.graphics.print('Loaded file: ' .. mod_file, 20, 20)
-	love.graphics.print(playing_text, 20, 40)
-	love.graphics.print('Play/pause: space', 20, 60)
-	love.graphics.print('Pattern:' .. pattern_number, 20, 80)
-	love.graphics.print('Row:' .. row_number .. '/' .. rows_in_pattern, 20, 100)
+function love.draw()
+    love.graphics.setFont(12)
+    love.graphics.print('Loaded file: ' .. mod_file, 20, 20)
+    love.graphics.print(playing_text, 20, 40)
+    love.graphics.print('Play/pause: space', 20, 60)
+    love.graphics.print('Pattern:' .. pattern_number, 20, 80)
+    love.graphics.print('Row:' .. row_number .. '/' .. rows_in_pattern, 20, 100)
 end
 
 function note_changed(channel, note, instrument, sample) 
-   print("Note changed (channel, note, instrument, sample)", channel, note, instrument, sample)
+    print("Note changed (channel, note, instrument, sample)", channel, note, instrument, sample)
 end
 
-function pattern_changed(pattern) 
+function pattern_changed(pattern)
     print("Pattern changed ", pattern)
 end
 

@@ -364,6 +364,10 @@ BOOL HackedCSoundFile::ProcessRow()
 		m_nFrameDelay = 0;
 		m_nTickCount = 0;
 		m_nRow = m_nNextRow;
+        
+        // Modipulate: row change.
+        mod_stream->on_row_changed(m_nRow);
+        
 		// Reset Pattern Loop Effect
 		if (m_nCurrentPattern != m_nNextPattern) {
 				m_nCurrentPattern = m_nNextPattern;

@@ -16,13 +16,12 @@ using namespace std;
 
 extern void call_note_changed(unsigned channel, int note, int instrument, int sample);
 extern void call_pattern_changed(unsigned pattern);
-extern void call_row_changed();
+extern void call_row_changed(int row);
 
 ModStream::ModStream() {
     modplug_file = NULL;
     file_length = 0;
     cache_pattern_change = -1;
-    cache_row_change = false;
 }
 
 ModStream::~ModStream() {
@@ -69,7 +68,7 @@ void ModStream::open(string path) {
     format = AL_FORMAT_STEREO16;
     
     // Initialize buffers.
-    alGenBuffers(2, buffers);
+    alGenBuffers(NUM_BUFFERS, buffers);
     check_error(__LINE__);
     alGenSources(1, &source);
     check_error(__LINE__);
@@ -90,7 +89,7 @@ void ModStream::close() {
     alSourceStop(source);
     check_error(__LINE__);
     empty();
-    alDeleteBuffers(2, buffers);
+    alDeleteBuffers(NUM_BUFFERS, buffers);
     check_error(__LINE__);
     alDeleteSources(1, &source);
     check_error(__LINE__);
@@ -105,13 +104,11 @@ bool ModStream::playback() {
     if (is_playing())
         return true;
     
-    if (!stream(buffers[0]))
-        return false;
+    for (int i = 0; i < NUM_BUFFERS; i++)
+        if (!stream(buffers[i]))
+            return false;
     
-    if(!stream(buffers[1]))
-        return false;
-    
-    alSourceQueueBuffers(source, 2, buffers);
+    alSourceQueueBuffers(source, NUM_BUFFERS, buffers);
     alSourcePlay(source);
     
     return true;
@@ -147,6 +144,7 @@ bool ModStream::update() {
         return true;
     in_update = true;
     alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
+    if (processed > 2) processed = 2;
     while (processed--) {
         ALuint buffer;
         
@@ -268,9 +266,14 @@ void ModStream::perform_callbacks() {
         cache_note_change.clear();
     }
     
-    if (cache_row_change) {
-        call_row_changed();
-        cache_row_change = false;
+    // Row change.
+    if (cache_row_change.size() > 0) {
+        list<int>::iterator it;
+        
+        for (it = cache_row_change.begin(); it != cache_row_change.end(); it++) {
+            call_row_changed(*it);
+        }
+        cache_row_change.clear();
     }
 }
 
@@ -287,8 +290,9 @@ void ModStream::on_pattern_changed(unsigned pattern) {
     cache_pattern_change = pattern;
 }
 
-void ModStream::on_row_changed() {
-    cache_row_change = true;
+void ModStream::on_row_changed(int row) {
+    cache_row_change.clear();
+    cache_row_change.push_back(row);
 }
 
 std::string ModStream::get_title() {

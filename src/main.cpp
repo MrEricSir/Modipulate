@@ -449,12 +449,12 @@ static int set_on_row_changed(lua_State *L) {
     return 0;
 }
 
-void call_row_changed() {
+void call_row_changed(int row) {
     if (on_row_changed == -1)
         return;
     
     lua_rawgeti(on_row_changed_state, LUA_REGISTRYINDEX, on_row_changed);
-    lua_pushnumber(on_row_changed_state, mod.get_current_row());
+    lua_pushnumber(on_row_changed_state, row);
     lua_call(on_row_changed_state, 1, 0);
 }
 
