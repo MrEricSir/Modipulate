@@ -66,7 +66,8 @@ function freeze(p)
 	if not p then return end
 	print('Freezing piece...')
 	for i,v in ipairs(p) do
-		level_grid[v.y][v.x] = v.color
+		-- Don't freeze "false" values
+		if v then level_grid[v.y][v.x] = v.color end
 	end
 end
 
