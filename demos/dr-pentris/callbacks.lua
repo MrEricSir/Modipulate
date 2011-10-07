@@ -136,36 +136,30 @@ function exe_row(row)
 			end
 
 			-- Attempt to rotate piece array clockwise or counterclockwise
-			if rotate_queue == 'clockwise' then
-				local copy = {}
-				for i,v in ipairs(active_piece) do
-					local dummy = nil
+			if rotate_queue == 'clockwise'
+			or rotate_queue == 'counterclockwise' then
+				if rotate_queue == 'counterclockwise' then
+					local ccw = true
 				end
-				
-				active_piece = rotate(active_piece)
-				
-				
-				-- TODO: check ok
-				-- if ok...
-					-- TODO: rotate piece
-					-- Play rotate sfx
---					play(sfx_rotate)
-				-- end
-				-- Empty the queue
-				rotate_queue = nil
-			elseif rotate_queue == 'counterclockwise' then
-
-
-				active_piece = rotate(active_piece, true)
-
-
-				-- TODO: check ok
-				-- if ok...
-					-- TODO: rotate piece
-					-- Play rotate sfx
---					play(sfx_rotate)
-				-- end
-				-- Empty the queue
+				local copy = rotate(active_piece, ccw)
+				-- We use a rotated test copy
+				for i,v in ipairs(copy) do
+					if v.color then
+						-- A tile or the wall occupies this space
+						if v.x < 1
+						or v.x > level_grid.cols
+						or v.y > level_grid.rows then
+							rotate_queue = nil
+						elseif level_grid[v.y] and level_grid[v.y][v.x] then
+							rotate_queue = nil
+						end
+					end
+				end
+				-- If all went well
+				if rotate_queue then
+					active_piece = copy
+				end
+--				play(sfx_rotate)
 				rotate_queue = nil
 			end
 
