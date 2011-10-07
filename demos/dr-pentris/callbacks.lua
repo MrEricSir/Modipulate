@@ -28,22 +28,22 @@ function exe_row(row)
 	-- Time to play the game
 	if level_in_progress then
 
+		-- Number of rows between drops
+		if love.keyboard.isDown('down') then
+			descent_interval = 2
+		else
+			descent_interval = 4
+		end
+
 		---------------
 		-- Every 4 rows
 		---------------
-		if row % 4 == 0 then
+		if row % descent_interval == 0 then
 
 			-- No active piece: start a cycle
 			if not active_piece then
 				-- Create a new piece
 				active_piece = new_piece()
-				-- Put the piece on the cycle grid
---				local xoffset = 3
---				local yoffset = 0
---				for i,v in ipairs(active_piece) do
---					v.x = v.x + xoffset
---					v.y = v.y + yoffset
---				end
 				local start_x = 4
 				local start_y = 1
 				move(active_piece, start_x, start_y)
