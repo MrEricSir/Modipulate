@@ -8,9 +8,9 @@ level_grid.rows = 14
 level_grid.cols = 8
 -- One temporary one for each drop cycle
 cycle_grid = {}
--- Fill out the grids
+-- Fill out the grid (plus a little extra)
 local grid = level_grid
-for row=1,level_grid.rows do
+for row=1,level_grid.rows + 2 do
 	-- Initialize
 	grid[row] = {}
 	cycle_grid[row] = {}

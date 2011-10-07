@@ -168,7 +168,7 @@ function rotate(p, ccw)
 	copy.w = p.h
 	copy.h = p.w
 	if ccw then
-		print('Rotating counterclockwise...')
+--		print('Rotating counterclockwise...')
 		for i,v in ipairs(p) do
 			copy[i] = {}
 			copy[i].row = p.w - (v.col - 1)
@@ -178,7 +178,7 @@ function rotate(p, ccw)
 			copy[i].color = v.color
 		end
 	else
-		print('Rotating clockwise...')
+--		print('Rotating clockwise...')
 		for i,v in ipairs(p) do
 			copy[i] = {}
 			copy[i].row = v.col
@@ -190,5 +190,63 @@ function rotate(p, ccw)
 	end
 	return copy
 end
+
+------------
+
+-- Look at the colors of surrounding tiles
+-- Add colors to a chain
+-- args:
+---- x, y: the coordinates whose neighbors should be checked
+---- chain: the chain to add to (otherwise start new chain)
+-- returns: ????
+function check_neighbors(x, y, chain)
+	local chain = chain or {size=1}
+	chain[tostring(x .. '_' .. y)] = true
+	local color = level_grid[y][x]
+	if not color then return chain end
+	-- To the left
+	if level_grid[y]
+	and level_grid[y][x - 1] == color then
+		local loc = tostring(x - 1 .. '_' .. y)
+		if not chain[loc] then
+			chain[loc] = true
+			chain.size = chain.size + 1
+			chain = check_neighbors(x - 1, y, chain)
+		end
+	end
+	-- To the right
+	if level_grid[y]
+	and level_grid[y][x + 1] == color then
+		local loc = tostring(x + 1 .. '_' .. y)
+		if not chain[loc] then
+			chain[loc] = true
+			chain.size = chain.size + 1
+			chain = check_neighbors(x + 1, y, chain)
+		end
+	end
+	-- Above
+	if level_grid[y - 1]
+	and level_grid[y - 1][x] == color then
+		local loc = tostring(x .. '_' .. y - 1)
+		if not chain[loc] then
+			chain[loc] = true
+			chain.size = chain.size + 1
+			chain = check_neighbors(x, y - 1, chain)
+		end
+	end
+	-- Below
+	if level_grid[y + 1]
+	and level_grid[y + 1][x] == color then
+		local loc = tostring(x .. '_' .. y + 1)
+		if not chain[loc] then
+			chain[loc] = true
+			chain.size = chain.size + 1
+			chain = check_neighbors(x, y + 1, chain)
+		end
+	end
+	return chain
+end
+
+------------
 
 

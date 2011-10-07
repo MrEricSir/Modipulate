@@ -9,7 +9,7 @@ require('piece')
 
 function exe_pattern(pattern)
 
-	print('Pattern: ' .. pattern)
+--	print('Pattern: ' .. pattern)
 
 end
 
@@ -23,7 +23,7 @@ function exe_row(row)
 	-- Metronome
 --	play(sfx_metronome)
 
-	print('Row: ' .. row)
+--	print('Row: ' .. row)
 
 	-- Time to play the game
 	if level_in_progress then
@@ -65,7 +65,6 @@ function exe_row(row)
 
 				-- Time to freeze the piece on the board
 				if freeze_flag then
-					-- TODO: Process color sequences
 					--
 					-- For every colored tile, perform a check against adjacent tiles (UDLR).
 					-- If a tile matches, perform a check against it too after the first one
@@ -87,6 +86,22 @@ function exe_row(row)
 
 					-- Do the freezing
 					freeze(active_piece)
+
+					-- Process color sequences
+					for i,v in ipairs(active_piece) do
+						local chain = check_neighbors(v.x, v.y)
+						-- Check the chain
+						if chain.size >= 5 then
+							print('Chain of ' .. chain.size)
+							-- TODO: destroy this chain before looping
+							-- This will prevent re-processing the same colors
+						end
+					end
+										
+					
+
+
+					-- This round is OVER
 					active_piece = nil
 				-- Not time to freeze; continue cycle
 				else
@@ -150,7 +165,8 @@ function exe_row(row)
 						or v.x > level_grid.cols
 						or v.y > level_grid.rows then
 							rotate_queue = nil
-						elseif level_grid[v.y] and level_grid[v.y][v.x] then
+						elseif level_grid[v.y]
+						and level_grid[v.y][v.x] then
 							rotate_queue = nil
 						end
 					end
