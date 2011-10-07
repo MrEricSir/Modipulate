@@ -26,7 +26,7 @@ function love.load()
 
 	-- Modipulate
 	modipulate.load()
-	modipulate.open_file('media/vhiiula-inventio_in_4k.it')
+	modipulate.open_file('media/cerror_-_pigs_go_oink.xm')
 	modipulate.set_playing(true)
 	modipulate.set_volume(1)
 	modipulate.set_on_row_changed(exe_row)
@@ -47,47 +47,31 @@ function love.load()
 		return x, y
 	end
 
-	-- Shift the values in a 2D table down 1 step
-	-- args:
-	---- t: table to move
-	function shift(t)
-		-- For each column between the second to last row
-		-- and the first, in reverse...
-		for row=(#t-1),1,-1 do
-			for col=1,#t[row] do
-				-- ...give the next highest row the current value
-				t[row + 1][col] = t[row][col]
-				t[row][col] = false -- So nothing is left behind
-			end
-		end
-		-- The last row is skipped to avoid increasing the table's length.
-	end
-
-	-- Rotate a 2D table
-	-- args:
-	---- t: table to rotate
-	---- x: first column of section to rotate
-	---- y: first row of section to rotate
-	---- w: number of columns in section to rotate
-	---- h: number of rows in section to rotate
-	---- ccw: any value means counterclockwise; otherwise clockwise
-	function rotate(t, x, y, w, h, ccw)
-		-- Total rows & columns of original table
-		local trows = #t
-		local tcols = #t[1] -- WONT WORK WITH NIL --- fix
-		-- Initialize an array with inverted dimensions
-		local new_t = {}
-		for col in ipairs(t[1]) do new_t[col] = {} end
-		-- Rotate the values
-		for rowi,rowk in ipairs(t) do
-			for coli,colk in ipairs(rowk) do
-				if ccw then new_row = tcols + 1 - coli else new_row = coli end
-				if ccw then new_col = rowi else new_col = trows + 1 - rowi end
-				new_t[new_row][new_col] = colk
-			end
-		end
-		return new_t
-	end
+--	-- Rotate a 2D table
+--	-- args:
+--	---- t: table to rotate
+--	---- x: first column of section to rotate
+--	---- y: first row of section to rotate
+--	---- w: number of columns in section to rotate
+--	---- h: number of rows in section to rotate
+--	---- ccw: any value means counterclockwise; otherwise clockwise
+--	function rotate(t, x, y, w, h, ccw)
+--		-- Total rows & columns of original table
+--		local trows = #t
+--		local tcols = #t[1] -- WONT WORK WITH NIL --- fix
+--		-- Initialize an array with inverted dimensions
+--		local new_t = {}
+--		for col in ipairs(t[1]) do new_t[col] = {} end
+--		-- Rotate the values
+--		for rowi,rowk in ipairs(t) do
+--			for coli,colk in ipairs(rowk) do
+--				if ccw then new_row = tcols + 1 - coli else new_row = coli end
+--				if ccw then new_col = rowi else new_col = trows + 1 - rowi end
+--				new_t[new_row][new_col] = colk
+--			end
+--		end
+--		return new_t
+--	end
 
 end
 
@@ -141,7 +125,10 @@ function love.draw()
 	-- Draw the active piece
 	if active_piece then
 		for i,v in ipairs(active_piece) do
-			if v then
+--			love.graphics.draw(tile_images[v.color],
+--					grid_x + (v.x - 1) * tile_size,
+--					grid_y + (v.y - 1) * tile_size)
+			if v.color then
 				love.graphics.draw(tile_images[v.color],
 						grid_x + (v.x - 1) * tile_size,
 						grid_y + (v.y - 1) * tile_size)
@@ -165,10 +152,10 @@ function love.keypressed(k)
 		local dummy = nil
 	-- Rotate piece
 	elseif k == 'up'
-	or k == 'x'
-	or k == ' ' then
+	or k == 'x' then
 		rotate_queue = 'clockwise'
-	elseif k == 'z' then
+	elseif k == 'z'
+	or k == ' ' then
 		rotate_queue = 'counterclockwise'
 	-- Quit the game
 	elseif k == 'escape' then

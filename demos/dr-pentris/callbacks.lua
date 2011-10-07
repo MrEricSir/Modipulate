@@ -38,23 +38,28 @@ function exe_row(row)
 				-- Create a new piece
 				active_piece = new_piece()
 				-- Put the piece on the cycle grid
-				local xoffset = 3
-				local yoffset = 0
-				for i,v in ipairs(active_piece) do
-					v.x = v.x + xoffset
-					v.y = v.y + yoffset
-				end
+--				local xoffset = 3
+--				local yoffset = 0
+--				for i,v in ipairs(active_piece) do
+--					v.x = v.x + xoffset
+--					v.y = v.y + yoffset
+--				end
+				local start_x = 4
+				local start_y = 1
+				move(active_piece, start_x, start_y)
 			-- Active piece is on the board: continue the cycle
 			else
 				local freeze_flag = false
 				-- Check if the tiles below are clear; else freeze it
 				for i,v in ipairs(active_piece) do
-					-- Reached the bottom
-					if v.y >= level_grid.rows then
-						freeze_flag = true
-					-- There is another tile below
-					elseif level_grid[v.y + 1][v.x] then
-						freeze_flag = true
+					if v.color then
+						-- Reached the bottom
+						if v.y >= level_grid.rows then
+							freeze_flag = true
+						-- There is another tile below
+						elseif level_grid[v.y + 1][v.x] then
+							freeze_flag = true
+						end
 					end
 				end
 
@@ -103,18 +108,22 @@ function exe_row(row)
 			-- Attempt to slide the piece left or right
 			if slide_queue == 'right' then
 				for i,v in ipairs(active_piece) do
-					-- The level wall or a tile is to the right
-					if v.x >= level_grid.cols
-					or level_grid[v.y][v.x + 1] then
-						slide_queue = nil
+					if v.color then
+						-- The level wall or a tile is to the right
+						if v.x >= level_grid.cols
+						or level_grid[v.y][v.x + 1] then
+							slide_queue = nil
+						end
 					end
 				end
 			elseif slide_queue == 'left' then
 				for i,v in ipairs(active_piece) do
-					-- The level wall or a tile is to the right
-					if v.x <= 1
-					or level_grid[v.y][v.x - 1] then
-						slide_queue = nil
+					if v.color then
+						-- The level wall or a tile is to the right
+						if v.x <= 1
+						or level_grid[v.y][v.x - 1] then
+							slide_queue = nil
+						end
 					end
 				end
 			else
@@ -132,6 +141,10 @@ function exe_row(row)
 				for i,v in ipairs(active_piece) do
 					local dummy = nil
 				end
+				
+				active_piece = rotate(active_piece)
+				
+				
 				-- TODO: check ok
 				-- if ok...
 					-- TODO: rotate piece
@@ -141,6 +154,11 @@ function exe_row(row)
 				-- Empty the queue
 				rotate_queue = nil
 			elseif rotate_queue == 'counterclockwise' then
+
+
+				active_piece = rotate(active_piece, true)
+
+
 				-- TODO: check ok
 				-- if ok...
 					-- TODO: rotate piece
