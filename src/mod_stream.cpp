@@ -18,10 +18,28 @@ extern void call_note_changed(unsigned channel, int note, int instrument, int sa
 extern void call_pattern_changed(unsigned pattern);
 extern void call_row_changed(int row);
 
+
+ModStreamRow::ModStreamRow() {
+    change_tempo = -1;
+    change_pattern = -1;
+}
+
+void ModStreamRow::add_note(ModStreamNote* n) {
+    notes.push_back(n);
+}
+
+
+ModStreamNote::ModStreamNote() {
+    channel = 0;
+    note = -1;
+    instrument = -1;
+    sample = -1;
+}
+
+
 ModStream::ModStream() {
     modplug_file = NULL;
     file_length = 0;
-    cache_pattern_change = -1;
 }
 
 ModStream::~ModStream() {
@@ -81,6 +99,9 @@ void ModStream::open(string path) {
     
     // Save pointer.
     modplug_file->mSoundFile.mod_stream = this;
+    
+    // Allocate the current row.
+    current_row = new ModStreamRow();
     
     set_playing(true);
 }
@@ -250,49 +271,58 @@ int ModStream::get_num_channels() {
 }
 
 void ModStream::perform_callbacks() {
-    // Pattern change.
-    if (cache_pattern_change >= 0) {
-        call_pattern_changed((unsigned) cache_pattern_change);
-        cache_pattern_change = -1;
-    }
+    // Make sure there's something to do!
+    if (rows.empty())
+        return;
     
-    // Note change.
-    if (cache_note_change.size() > 0) {
-        list<NoteChange>::iterator it;
-        
-        for (it = cache_note_change.begin(); it != cache_note_change.end(); it++) {
-            call_note_changed(it->channel, it->note, it->instrument, it->sample);
-        }
-        cache_note_change.clear();
-    }
+    // TODO: pay attention to time.
     
-    // Row change.
-    if (cache_row_change.size() > 0) {
-        list<int>::iterator it;
+    while (!rows.empty()) {
+        // Process callbacks from row data.
+        ModStreamRow* r = rows.front();
+        rows.pop();
         
-        for (it = cache_row_change.begin(); it != cache_row_change.end(); it++) {
-            call_row_changed(*it);
+        // 1. Pattern change callback.
+        if (r->change_pattern != -1)
+            call_pattern_changed(r->change_pattern);
+        
+        // 2. Row change callback.
+        call_row_changed(r->row);
+        
+        // 3. Note change callbacks.
+        if (r->notes.size() > 0) {
+            list<ModStreamNote*>::iterator it;
+            
+            for (it = r->notes.begin(); it != r->notes.end(); it++) {
+                ModStreamNote* n = (*it);
+                
+                call_note_changed(n->channel, n->note, n->instrument, n->sample);
+                
+                delete n;
+            }
         }
-        cache_row_change.clear();
+        
+        delete r;
     }
 }
 
 void ModStream::on_note_change(unsigned channel, int note, int instrument, int sample) {
-    NoteChange n;
-    n.channel = channel;
-    n.note = note;
-    n.instrument = instrument;
-    n.sample = sample;
-    cache_note_change.push_back(n);
+    ModStreamNote* n = new ModStreamNote();
+    n->channel = channel;
+    n->note = note;
+    n->instrument = instrument;
+    n->sample = sample;
+    current_row->add_note(n);
 }
 
 void ModStream::on_pattern_changed(unsigned pattern) {
-    cache_pattern_change = pattern;
+    current_row->change_pattern = (int) pattern;
 }
 
 void ModStream::on_row_changed(int row) {
-    cache_row_change.clear();
-    cache_row_change.push_back(row);
+    rows.push(current_row);
+    current_row = new ModStreamRow();
+    current_row->row = row;
 }
 
 std::string ModStream::get_title() {

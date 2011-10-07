@@ -12,19 +12,40 @@
 
 #include <string>
 #include <list>
+#include <queue>
 #include <AL/al.h>
 #include "libmodplug-hacked/modplug.h"
 
-// Uses modplug-hacked to stream audio via OpenAL.
-// Same pattern as the ogg_stream class from: 
-//    http://www.devmaster.net/articles/openal-tutorials/lesson8.php
 
-struct NoteChange {
+class ModStreamNote {
+public:
+    ModStreamNote();
     unsigned channel;
     int note;
     int instrument;
     int sample;
 };
+
+class ModStreamRow {
+public:
+    ModStreamRow();
+    void add_note(ModStreamNote* n);
+    
+    int row;                         // Row #
+    
+    unsigned time;                   // TODO (placeholder, type may change)
+    
+    int change_tempo;                // Positive on tempo change: represents new tempo.
+    int change_pattern;              // Positive on pattern change: represents new pattern number.
+    
+    std::list<ModStreamNote*> notes;  // List of notes for this row.
+};
+
+
+
+// Uses modplug-hacked to stream audio via OpenAL.
+// Same pattern as the ogg_stream class from: 
+//    http://www.devmaster.net/articles/openal-tutorials/lesson8.php
 
 class ModStream {
 
@@ -109,10 +130,11 @@ private:
     ALuint source;
     ALenum format;
     
-    // Cached callback data.
-    long cache_pattern_change;
-    std::list<NoteChange> cache_note_change;
-    std::list<int> cache_row_change;
+    // Current row for building data structures. 
+    ModStreamRow* current_row;
+    
+    // Cached data for upcoming callbacks.
+    std::queue<ModStreamRow*> rows;
     
     friend class HackedCSoundFile;
 };
