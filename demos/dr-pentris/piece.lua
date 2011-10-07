@@ -129,7 +129,7 @@ function drop(p)
 	for i,v in ipairs(p) do
 		v.y = v.y + 1
 	end
-	p.y = p[1].y
+	p.y = p.y + 1
 end
 
 ------------
@@ -150,7 +150,7 @@ function slide(p, dir)
 	for i,v in ipairs(p) do
 		v.x = v.x + dir
 	end
-	p.x = p[1].x
+	p.x = p.x + dir
 end
 
 ------------

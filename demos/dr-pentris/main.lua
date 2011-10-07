@@ -26,7 +26,7 @@ function love.load()
 
 	-- Modipulate
 	modipulate.load()
-	modipulate.open_file('media/cerror_-_pigs_go_oink.xm')
+	modipulate.open_file('media/vhiiula-inventio_in_4k.it')
 	modipulate.set_playing(true)
 	modipulate.set_volume(1)
 	modipulate.set_on_row_changed(exe_row)
