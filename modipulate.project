@@ -58,8 +58,9 @@
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g;-Wall;-nostdlib" Required="yes" PreCompiledHeader="">
+      <Compiler Options="-g;-Wall;-nostdlib;" Required="yes" PreCompiledHeader="">
         <IncludePath Value="."/>
+        <Preprocessor Value="DEBUG"/>
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
