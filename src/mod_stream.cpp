@@ -16,7 +16,7 @@
 
 using namespace std;
 
-extern void call_note_changed(unsigned channel, int note, int instrument, int sample);
+extern void call_note_changed(unsigned channel, int note, int instrument, int sample, int volume);
 extern void call_pattern_changed(unsigned pattern);
 extern void call_row_changed(int row);
 extern void call_tempo_changed(int tempo);
@@ -38,6 +38,7 @@ ModStreamNote::ModStreamNote() {
     note = -1;
     instrument = -1;
     sample = -1;
+    volume = -1;
 }
 
 
@@ -330,7 +331,7 @@ void ModStream::perform_callbacks() {
             for (it = r->notes.begin(); it != r->notes.end(); it++) {
                 ModStreamNote* n = (*it);
                 
-                call_note_changed(n->channel, n->note, n->instrument, n->sample);
+                call_note_changed(n->channel, n->note, n->instrument, n->sample, n->volume);
                 
                 delete n;
             }
@@ -340,12 +341,13 @@ void ModStream::perform_callbacks() {
     }
 }
 
-void ModStream::on_note_change(unsigned channel, int note, int instrument, int sample) {
+void ModStream::on_note_change(unsigned channel, int note, int instrument, int sample, int volume) {
     ModStreamNote* n = new ModStreamNote();
     n->channel = channel;
     n->note = note;
     n->instrument = instrument;
     n->sample = sample;
+    n->volume = volume;
     current_row->add_note(n);
 }
 

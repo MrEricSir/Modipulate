@@ -439,7 +439,7 @@ static int set_on_note_changed(lua_State *L) {
     return 0;
 }
 
-void call_note_changed(unsigned channel, int note, int instrument, int sample) {
+void call_note_changed(unsigned channel, int note, int instrument, int sample, int volume) {
     if (on_note_changed == -1)
         return;
     
@@ -448,8 +448,9 @@ void call_note_changed(unsigned channel, int note, int instrument, int sample) {
     lua_pushnumber(on_note_changed_state, note);
     lua_pushnumber(on_note_changed_state, instrument);
     lua_pushnumber(on_note_changed_state, sample);
+    lua_pushnumber(on_note_changed_state, volume);
     
-    lua_call(on_note_changed_state, 4, 0);
+    lua_call(on_note_changed_state, 5, 0);
 }
 
 

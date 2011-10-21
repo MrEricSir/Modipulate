@@ -16,7 +16,7 @@ function love.load()
     if arg[2] then
         mod_file = arg[2]
     else
-        mod_file = 'v-cf.it'
+        mod_file = 'sponge1.it'
     end
     modipulate.open_file(mod_file)
     
@@ -137,8 +137,8 @@ function love.draw()
     love.graphics.print('Tempo:' .. tempo, 20, 120)
 end
 
-function note_changed(channel, note, instrument, sample) 
-    print("Note changed (channel, note, instrument, sample)", channel, note, instrument, sample)
+function note_changed(channel, note, instrument, sample, volume)
+    print("Note changed (channel, note, instrument, sample, volume)", channel, note, instrument, sample, volume)
 end
 
 function pattern_changed(pattern)

@@ -25,6 +25,7 @@ public:
     int note;
     int instrument;
     int sample;
+    int volume;
 };
 
 class ModStreamRow {
@@ -114,7 +115,7 @@ public:
     int get_tempo_override();
     
 protected:
-    void on_note_change(unsigned channel, int note, int instrument, int sample);
+    void on_note_change(unsigned channel, int note, int instrument, int sample, int volume);
     void on_pattern_changed(unsigned pattern);
     void on_row_changed(int row);
     void increase_sample_count(int add);

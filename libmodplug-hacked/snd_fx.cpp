@@ -576,7 +576,8 @@ void HackedCSoundFile::NoteChange(UINT nChn, int note, BOOL bPorta, BOOL bResetE
     mod_stream->on_note_change(nChn,                               // Channel #
         note,                                                      // Note ID
         pChn->pHeader != NULL? pChn->pHeader->number : -1,         // Instrument # (or -1)
-        new_sample                                                 // Sample # (or -1)
+        new_sample,                                                // Sample # (or -1)
+        pChn->nVolume                                              // Volume
     );
 }
 
