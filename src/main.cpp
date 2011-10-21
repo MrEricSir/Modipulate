@@ -521,7 +521,7 @@ static int set_on_tempo_changed(lua_State *L) {
 
 void call_tempo_changed(int tempo) {
     current_tempo = tempo;
-    if (on_row_changed == -1)
+    if (on_tempo_changed == -1)
         return;
     
     lua_rawgeti(on_tempo_changed_state, LUA_REGISTRYINDEX, on_tempo_changed);
