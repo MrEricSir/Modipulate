@@ -2,6 +2,7 @@
 #include "modipulate_common.h"
 #include "libmodplug-hacked/modplug.h"
 
+#include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
@@ -300,13 +301,15 @@ void ModStream::perform_callbacks() {
     
     // Convert time to sample number.
     unsigned long long samples_since_start = since_start.tv_sec * sampling_rate + 
-        (unsigned long long) (((double) (since_start.tv_nsec * sampling_rate)) / 1000000000.0); // 1 / one billion = 1 ns
+        (unsigned long long) ( ((double) (since_start.tv_nsec) * ((double)sampling_rate) / 1000000000.0)); // 1 / one billion = 1 ns
     
     while (!rows.empty()) {
         // Process callbacks from row data.
         ModStreamRow* r = rows.front();
         
         unsigned long long sample_counter = samples_played + r->samples_since_last;
+		cout << "Sample counter: " << sample_counter << endl;
+		cout << "Samples since start: " << samples_since_start << endl;
         if (sample_counter > samples_since_start)
             break; // done (for now!)
         
