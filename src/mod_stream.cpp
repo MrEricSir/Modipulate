@@ -43,7 +43,6 @@ ModStreamNote::ModStreamNote() {
 ModStream::ModStream() {
     modplug_file = NULL;
     file_length = 0;
-    timing_start_flag = false;
 }
 
 ModStream::~ModStream() {
@@ -109,9 +108,6 @@ void ModStream::open(string path) {
     current_row = new ModStreamRow();
     
     samples_played = 0;
-    timing_start_flag = true;
-    if (clock_gettime(CLOCK_MONOTONIC, &song_start) == -1)
-        DPRINT("Error getting time: %d", errno);
     
     set_playing(true);
 }
@@ -141,6 +137,11 @@ bool ModStream::playback() {
     
     alSourceQueueBuffers(source, NUM_BUFFERS, buffers);
     alSourcePlay(source);
+    
+    if (clock_gettime(CLOCK_MONOTONIC, &song_start) == -1)
+        DPRINT("Error getting time: %d", errno);
+    
+    perform_callbacks();
     
     return true;
 }
@@ -182,13 +183,6 @@ bool ModStream::update() {
         check_error(__LINE__);
 
         active = stream(buffer);
-        
-        if (timing_start_flag) {
-            if (clock_gettime(CLOCK_MONOTONIC, &song_start) == -1)
-                DPRINT("Error getting time: %d", errno);
-            
-            timing_start_flag = false;
-        }
         
         alSourceQueueBuffers(source, 1, &buffer);
         check_error(__LINE__);

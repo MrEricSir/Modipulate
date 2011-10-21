@@ -130,8 +130,7 @@ private:
     bool playing;
     unsigned long long samples_played; // Samples played thus far.
     timespec song_start; // Time the song started.
-    bool timing_start_flag; // Set to true when playback starts for accuracy.
-
+    
     ALuint buffers[NUM_BUFFERS];
     ALuint source;
     ALenum format;
