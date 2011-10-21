@@ -302,8 +302,6 @@ void ModStream::perform_callbacks() {
         ModStreamRow* r = rows.front();
         
         unsigned long long sample_counter = samples_played + r->samples_since_last;
-		cout << "Sample counter: " << sample_counter << endl;
-		cout << "Samples since start: " << samples_since_start << endl;
         if (sample_counter > samples_since_start)
             break; // done (for now!)
         
