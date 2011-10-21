@@ -6,5 +6,5 @@ function love.conf(t)
     t.modules.audio = false
     t.modules.sound = false
     t.screen.width = 300
-    t.screen.height = 120
+    t.screen.height = 140
 end

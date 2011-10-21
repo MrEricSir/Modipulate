@@ -38,12 +38,15 @@ extern "C" {
     static int get_channel_enabled(lua_State *L);
     static int get_current_pattern(lua_State *L);
     static int get_current_row(lua_State *L);
+    static int get_current_tempo(lua_State *L);
     static int get_rows_in_pattern(lua_State *L);
     static int set_volume(lua_State *L);
     static int get_volume(lua_State *L);
+    static int set_tempo_override(lua_State *L);
     static int set_on_note_changed(lua_State *L);
     static int set_on_pattern_changed(lua_State *L);
     static int set_on_row_changed(lua_State *L);
+    static int set_on_tempo_changed(lua_State *L);
 }
 
 ////////////////////////////////////////////////////////////
@@ -63,8 +66,12 @@ lua_State *on_pattern_changed_state = NULL;
 int on_row_changed = - 1;
 lua_State *on_row_changed_state = NULL;
 
+int on_tempo_changed = - 1;
+lua_State *on_tempo_changed_state = NULL;
+
 int current_pattern = 0;
 int current_row = 0;
+int current_tempo = 0;
 
 ////////////////////////////////////////////////////////////
 
@@ -363,6 +370,24 @@ static int get_current_row(lua_State *L) {
     return 1;
 }
 
+static int get_current_tempo(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 0) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("int get_current_tempo()");
+        DPRINT("returns: current tempo number in the playing song");
+        return 0;
+    }
+    
+    if (mod.get_tempo_override() != -1)
+        lua_pushnumber(L, mod.get_tempo_override());
+    else
+        lua_pushnumber(L, current_tempo);
+    
+    return 1;
+}
+
 static int get_rows_in_pattern(lua_State *L) {
     int argc = lua_gettop(L);
     
@@ -379,6 +404,21 @@ static int get_rows_in_pattern(lua_State *L) {
     return 1;
 }
 
+
+static int set_tempo_override(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 1) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("set_tempo_override(int tempo)");
+        DPRINT("  tempo: tempo to override. -1 disables override");
+        return 0;
+    }
+    
+    mod.set_tempo_override(lua_tonumber(L, 1));
+    
+    return 0;
+}
 
 // Callbacks.
 
@@ -418,7 +458,7 @@ static int set_on_pattern_changed(lua_State *L) {
     
     if (argc != 1) {
         DPRINT("ERROR: Function parameters incorrect.");
-        DPRINT("bool set_on_pattern_changed(function)");
+        DPRINT("void set_on_pattern_changed(function)");
         DPRINT("  function: void your_func(int pattern)");
         return 0;
     }
@@ -443,7 +483,7 @@ static int set_on_row_changed(lua_State *L) {
     
     if (argc != 1) {
         DPRINT("ERROR: Function parameters incorrect.");
-        DPRINT("bool set_on_row_changed(function)");
+        DPRINT("void set_on_row_changed(function)");
         DPRINT("  function: void your_func(int row)");
         return 0;
     }
@@ -462,6 +502,32 @@ void call_row_changed(int row) {
     lua_pushnumber(on_row_changed_state, row);
     lua_call(on_row_changed_state, 1, 0);
 }
+
+static int set_on_tempo_changed(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 1) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("void set_on_tempo_changed(function)");
+        DPRINT("  function: void your_func(int tempo)");
+        return 0;
+    }
+    
+    on_tempo_changed = luaL_ref(L, LUA_REGISTRYINDEX);
+    on_tempo_changed_state = L;
+    return 0;
+}
+
+void call_tempo_changed(int tempo) {
+    current_tempo = tempo;
+    if (on_row_changed == -1)
+        return;
+    
+    lua_rawgeti(on_tempo_changed_state, LUA_REGISTRYINDEX, on_tempo_changed);
+    lua_pushnumber(on_tempo_changed_state, tempo);
+    lua_call(on_tempo_changed_state, 1, 0);
+}
+
 
 ////////////////////////////////////////////////////////////
 
@@ -488,12 +554,15 @@ int LUA_API luaopen_modipulate(lua_State *L) {
         { "get_channel_enabled", get_channel_enabled },
         { "get_current_pattern", get_current_pattern },
         { "get_current_row", get_current_row },
+        { "get_current_tempo", get_current_tempo },
+        { "set_tempo_override", set_tempo_override },
         { "set_volume", set_volume },
         { "get_volume", get_volume },
         { "get_rows_in_pattern", get_rows_in_pattern },
         { "set_on_note_changed", set_on_note_changed },
         { "set_on_pattern_changed", set_on_pattern_changed },
         { "set_on_row_changed", set_on_row_changed },
+        { "set_on_tempo_changed", set_on_tempo_changed },
         { NULL, NULL },
     };
     luaL_openlib (L, "modipulate", driver, 0);

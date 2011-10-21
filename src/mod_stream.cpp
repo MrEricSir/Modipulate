@@ -19,6 +19,7 @@ using namespace std;
 extern void call_note_changed(unsigned channel, int note, int instrument, int sample);
 extern void call_pattern_changed(unsigned pattern);
 extern void call_row_changed(int row);
+extern void call_tempo_changed(int tempo);
 
 
 ModStreamRow::ModStreamRow() {
@@ -43,6 +44,8 @@ ModStreamNote::ModStreamNote() {
 ModStream::ModStream() {
     modplug_file = NULL;
     file_length = 0;
+    last_tempo_read = -1;
+    tempo_override = -1;
 }
 
 ModStream::~ModStream() {
@@ -75,6 +78,14 @@ void ModStream::open(string path) {
     
     DPRINT("Loaded mod! File length is: %lu", file_length);
     
+    // Save pointer.
+    modplug_file->mSoundFile.mod_stream = this;
+    
+    // Allocate the current row.
+    current_row = new ModStreamRow();
+    
+    samples_played = 0;
+    
     modplug_file = HackedModPlug_Load(buffer, file_length + 1);
     if (modplug_file == NULL)
         throw("File was loaded, modplug couldn't parse it.");
@@ -100,14 +111,6 @@ void ModStream::open(string path) {
     alSource3f(source, AL_DIRECTION,       0.0, 0.0, 0.0);
     alSourcef (source, AL_ROLLOFF_FACTOR,  0.0          );
     alSourcei (source, AL_SOURCE_RELATIVE, AL_TRUE      );
-    
-    // Save pointer.
-    modplug_file->mSoundFile.mod_stream = this;
-    
-    // Allocate the current row.
-    current_row = new ModStreamRow();
-    
-    samples_played = 0;
     
     set_playing(true);
 }
@@ -316,7 +319,11 @@ void ModStream::perform_callbacks() {
         // 2. Row change callback.
         call_row_changed(r->row);
         
-        // 3. Note change callbacks.
+        // 3. Tempo change callback.
+        if (r->change_tempo != -1)
+            call_tempo_changed(r->change_tempo);
+        
+        // 4. Note change callbacks.
         if (r->notes.size() > 0) {
             list<ModStreamNote*>::iterator it;
             
@@ -350,6 +357,13 @@ void ModStream::on_row_changed(int row) {
     rows.push(current_row);
     current_row = new ModStreamRow();
     current_row->row = row;
+}
+
+void ModStream::on_tempo_changed(int tempo) {
+    if (tempo != last_tempo_read) {
+        current_row->change_tempo = tempo;
+        last_tempo_read = tempo;
+    }
 }
 
 void ModStream::increase_sample_count(int add) {
@@ -432,6 +446,14 @@ int ModStream::get_rows_in_pattern(int pattern) {
         return -1;
     
     return (int) num_rows;
+}
+
+void ModStream::set_tempo_override(int tempo) {
+    tempo_override = tempo;
+}
+
+int ModStream::get_tempo_override() {
+    return tempo_override;
 }
 
 // Based on code from here:

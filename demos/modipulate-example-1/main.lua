@@ -8,6 +8,7 @@ require('modipulate')
 row_number = -1
 pattern_number = -1
 rows_in_pattern =-1
+tempo = -1
 
 function love.load()
     modipulate.load()
@@ -22,6 +23,7 @@ function love.load()
     modipulate.set_on_note_changed(note_changed)
     modipulate.set_on_pattern_changed(pattern_changed)
     modipulate.set_on_row_changed(row_changed)
+    modipulate.set_on_tempo_changed(tempo_changed)
 
     playing = true
     playing_text = 'Playing'
@@ -87,6 +89,8 @@ function love.keypressed(k)
         modipulate.set_channel_enabled(8, false)
     elseif k == '9' then
         modipulate.set_channel_enabled(9, false)
+    elseif k == 't' then
+        modipulate.set_tempo_override(modipulate.get_current_tempo() * 2)
     end
 end
 
@@ -118,6 +122,8 @@ function love.keyreleased(k)
     elseif k == '=' then
         modipulate.set_volume(modipulate.get_volume() + VOL_STEP)
         print("Volume is", modipulate.get_volume())
+    elseif k == 't' then
+        modipulate.set_tempo_override(-1) -- unset override
     end
 end
 
@@ -128,6 +134,7 @@ function love.draw()
     love.graphics.print('Play/pause: space', 20, 60)
     love.graphics.print('Pattern:' .. pattern_number, 20, 80)
     love.graphics.print('Row:' .. row_number .. '/' .. rows_in_pattern, 20, 100)
+    love.graphics.print('Tempo:' .. tempo, 20, 120)
 end
 
 function note_changed(channel, note, instrument, sample) 
@@ -143,5 +150,10 @@ function row_changed(row)
     row_number = modipulate.get_current_row()
     pattern_number = modipulate.get_current_pattern()
     rows_in_pattern = modipulate.get_rows_in_pattern(pattern_number)
+    tempo = modipulate.get_current_tempo()
+end
+
+function tempo_changed(tempo)
+    print("Tempo changed", tempo)
 end
 

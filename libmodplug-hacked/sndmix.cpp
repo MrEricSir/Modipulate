@@ -395,6 +395,7 @@ BOOL HackedCSoundFile::ProcessRow()
 					{
 						m_nMusicSpeed = m_nDefaultSpeed;
 						m_nMusicTempo = m_nDefaultTempo;
+                        mod_stream->on_tempo_changed(m_nMusicTempo);
 						m_nGlobalVolume = m_nDefaultGlobalVolume;
 						for (UINT i=0; i<MAX_CHANNELS; i++)
 						{
@@ -494,7 +495,10 @@ BOOL HackedCSoundFile::ReadNote()
 	////////////////////////////////////////////////////////////////////////////////////
 	m_nTotalCount++;
 	if (!m_nMusicTempo) return FALSE;
-	m_nBufferCount = (gdwMixingFreq * 5 * m_nTempoFactor) / (m_nMusicTempo << 8);
+    int tempo = m_nMusicTempo;
+    if (mod_stream->get_tempo_override() != -1)
+        tempo = mod_stream->get_tempo_override();
+	m_nBufferCount = (gdwMixingFreq * 5 * m_nTempoFactor) / (tempo << 8);
 	// Master Volume + Pre-Amplification / Attenuation setup
 	DWORD nMasterVol;
 	{

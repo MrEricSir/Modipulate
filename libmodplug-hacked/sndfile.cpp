@@ -8,6 +8,7 @@
 #include <math.h> //for GCCFIX
 #include "stdafx.h"
 #include "sndfile.h"
+#include "mod_stream.h"
 
 #include <iostream>
 
@@ -243,6 +244,7 @@ BOOL HackedCSoundFile::Create(LPCBYTE lpStream, DWORD dwMemLength)
 	if (!m_nDefaultSpeed) m_nDefaultSpeed = 6;
 	m_nMusicSpeed = m_nDefaultSpeed;
 	m_nMusicTempo = m_nDefaultTempo;
+    mod_stream->on_tempo_changed(m_nMusicTempo);
 	m_nGlobalVolume = m_nDefaultGlobalVolume;
 	m_nNextPattern = 0;
 	m_nCurrentPattern = 0;
@@ -649,6 +651,7 @@ void HackedCSoundFile::SetCurrentPos(UINT nPos)
 		}
 		m_nGlobalVolume = m_nDefaultGlobalVolume;
 		m_nMusicSpeed = m_nDefaultSpeed;
+        mod_stream->on_tempo_changed(m_nMusicTempo);
 		m_nMusicTempo = m_nDefaultTempo;
 	}
 	m_dwSongFlags &= ~(SONG_PATTERNLOOP|SONG_CPUVERYHIGH|SONG_FADINGSONG|SONG_ENDREACHED|SONG_GLOBALFADE);

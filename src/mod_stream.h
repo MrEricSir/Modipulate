@@ -109,11 +109,16 @@ public:
     // Gets the total rows in a given pattern.
     int get_rows_in_pattern(int pattern);
     
+    // Override the tempo.
+    void set_tempo_override(int tempo);
+    int get_tempo_override();
+    
 protected:
     void on_note_change(unsigned channel, int note, int instrument, int sample);
     void on_pattern_changed(unsigned pattern);
     void on_row_changed(int row);
     void increase_sample_count(int add);
+    void on_tempo_changed(int tempo);
     
 private:
     bool stream(ALuint buffer);
@@ -130,6 +135,8 @@ private:
     bool playing;
     unsigned long long samples_played; // Samples played thus far.
     timespec song_start; // Time the song started.
+    int last_tempo_read; // Last tempo we encountered.
+    int tempo_override; // tempo override (-1 means disabled)
     
     ALuint buffers[NUM_BUFFERS];
     ALuint source;

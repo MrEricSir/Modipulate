@@ -92,6 +92,7 @@ DWORD HackedCSoundFile::GetLength(BOOL bAdjust, BOOL bTotal)
 				{
 					m_nMusicSpeed = nMusicSpeed;
 					m_nMusicTempo = nMusicTempo;
+                    mod_stream->on_tempo_changed(m_nMusicTempo);
 				}
 				break;
 			}
@@ -2129,6 +2130,8 @@ void HackedCSoundFile::SetTempo(UINT param)
 	{
 		m_nMusicTempo = param;
 	}
+    
+    mod_stream->on_tempo_changed(m_nMusicTempo);
 }
 
 
