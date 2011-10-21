@@ -263,9 +263,9 @@ UINT HackedCSoundFile::Read(LPVOID lpDestBuffer, UINT cbBuffer)
 	else if (gnBitsPerSample == 24) { lSampleSize *= 3; pCvt = X86_Convert32To24; }
 	else if (gnBitsPerSample == 32) { lSampleSize *= 4; pCvt = X86_Convert32To32; }
 #endif
-	lMax = cbBuffer / lSampleSize;
+	lMax = cbBuffer / lSampleSize; // lMax is total # of samples for this buffer
 	if ((!lMax) || (!lpBuffer) || (!m_nChannels)) return 0;
-	lRead = lMax;
+	lRead = lMax; // lRead starts at max # samples
 	if (m_dwSongFlags & SONG_ENDREACHED) goto MixDone;
 	while (lRead > 0)
 	{
@@ -295,6 +295,10 @@ UINT HackedCSoundFile::Read(LPVOID lpDestBuffer, UINT cbBuffer)
 		if (lCount > MIXBUFFERSIZE) lCount = MIXBUFFERSIZE;
 		if (lCount > lRead) lCount = lRead;
 		if (!lCount) break;
+        
+        //DPRINT("lcount: %d", lCount);
+        mod_stream->increase_sample_count(lCount);
+        
 		lSampleCount = lCount;
 #ifndef MODPLUG_NO_REVERB
 		gnReverbSend = 0;
@@ -337,7 +341,8 @@ UINT HackedCSoundFile::Read(LPVOID lpDestBuffer, UINT cbBuffer)
 		// Buffer ready
 		lRead -= lCount;
 		m_nBufferCount -= lCount;
-	}
+        
+	} // end while()
 MixDone:
 	if (lRead) memset(lpBuffer, (gnBitsPerSample == 8) ? 0x80 : 0, lRead * lSampleSize);
 	// VU-Meter

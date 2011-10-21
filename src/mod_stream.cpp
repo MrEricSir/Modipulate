@@ -8,6 +8,7 @@
 #include <malloc.h>
 #include <sstream>
 #include <math.h>
+#include <errno.h>
 
 #include <AL/al.h>
 #include <ogg/ogg.h>
@@ -22,6 +23,7 @@ extern void call_row_changed(int row);
 ModStreamRow::ModStreamRow() {
     change_tempo = -1;
     change_pattern = -1;
+    samples_since_last = 0;
 }
 
 void ModStreamRow::add_note(ModStreamNote* n) {
@@ -40,6 +42,7 @@ ModStreamNote::ModStreamNote() {
 ModStream::ModStream() {
     modplug_file = NULL;
     file_length = 0;
+    timing_start_flag = false;
 }
 
 ModStream::~ModStream() {
@@ -80,6 +83,7 @@ void ModStream::open(string path) {
     ModPlug_Settings settings;
     ModPlug_GetSettings(&settings);
     settings.mFrequency = sampling_rate;
+    settings.mLoopCount = -1;
     ModPlug_SetSettings(&settings);
 
     // Stereo.
@@ -102,6 +106,11 @@ void ModStream::open(string path) {
     
     // Allocate the current row.
     current_row = new ModStreamRow();
+    
+    samples_played = 0;
+    timing_start_flag = true;
+    if (clock_gettime(CLOCK_MONOTONIC, &song_start) == -1)
+        DPRINT("Error getting time: %d", errno);
     
     set_playing(true);
 }
@@ -137,7 +146,6 @@ bool ModStream::playback() {
 
 void ModStream::set_playing(bool is_playing) {
     playing = is_playing;
-    //DPRINT("set playing: %d", (int) is_playing);
     if (is_playing)
         alSourcePlay(source);
     else
@@ -163,9 +171,9 @@ bool ModStream::update() {
     
     if (in_update)
         return true;
+    
     in_update = true;
     alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
-    if (processed > 2) processed = 2;
     while (processed--) {
         ALuint buffer;
         
@@ -173,7 +181,14 @@ bool ModStream::update() {
         check_error(__LINE__);
 
         active = stream(buffer);
-
+        
+        if (timing_start_flag) {
+            if (clock_gettime(CLOCK_MONOTONIC, &song_start) == -1)
+                DPRINT("Error getting time: %d", errno);
+            
+            timing_start_flag = false;
+        }
+        
         alSourceQueueBuffers(source, 1, &buffer);
         check_error(__LINE__);
     }
@@ -275,11 +290,28 @@ void ModStream::perform_callbacks() {
     if (rows.empty())
         return;
     
-    // TODO: pay attention to time.
+    // Check time since we started the music.
+    timespec current_time; // Current time.
+    timespec since_start;  // Time since start.
+    if (clock_gettime(CLOCK_MONOTONIC, &current_time) == -1)
+        DPRINT("Error getting time: %d", errno);
+    
+    time_diff(since_start, song_start, current_time);
+    
+    // Convert time to sample number.
+    unsigned long long samples_since_start = since_start.tv_sec * sampling_rate + 
+        (unsigned long long) (((double) (since_start.tv_nsec * sampling_rate)) / 1000000000.0); // 1 / one billion = 1 ns
     
     while (!rows.empty()) {
         // Process callbacks from row data.
         ModStreamRow* r = rows.front();
+        
+        unsigned long long sample_counter = samples_played + r->samples_since_last;
+        if (sample_counter > samples_since_start)
+            break; // done (for now!)
+        
+        samples_played += r->samples_since_last;
+        
         rows.pop();
         
         // 1. Pattern change callback.
@@ -323,6 +355,10 @@ void ModStream::on_row_changed(int row) {
     rows.push(current_row);
     current_row = new ModStreamRow();
     current_row->row = row;
+}
+
+void ModStream::increase_sample_count(int add) {
+    current_row->samples_since_last += add;
 }
 
 std::string ModStream::get_title() {
@@ -401,4 +437,16 @@ int ModStream::get_rows_in_pattern(int pattern) {
         return -1;
     
     return (int) num_rows;
+}
+
+// Based on code from here:
+// http://www.guyrutenberg.com/2007/09/22/profiling-code-using-clock_gettime/
+void ModStream::time_diff(timespec& result, const timespec& start, const timespec& end) {
+    if ((end.tv_nsec-start.tv_nsec)<0) {
+        result.tv_sec = end.tv_sec-start.tv_sec-1;
+        result.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+    } else {
+        result.tv_sec = end.tv_sec-start.tv_sec;
+        result.tv_nsec = end.tv_nsec-start.tv_nsec;
+    }
 }

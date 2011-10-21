@@ -10,6 +10,7 @@
 #ifndef MODSTREAM_H
 #define MODSTREAM_H
 
+#include <time.h>
 #include <string>
 #include <list>
 #include <queue>
@@ -33,7 +34,7 @@ public:
     
     int row;                         // Row #
     
-    unsigned time;                   // TODO (placeholder, type may change)
+    unsigned samples_since_last;     // # samples since last row change.
     
     int change_tempo;                // Positive on tempo change: represents new tempo.
     int change_pattern;              // Positive on pattern change: represents new pattern number.
@@ -112,19 +113,24 @@ protected:
     void on_note_change(unsigned channel, int note, int instrument, int sample);
     void on_pattern_changed(unsigned pattern);
     void on_row_changed(int row);
+    void increase_sample_count(int add);
     
 private:
     bool stream(ALuint buffer);
     void empty();
     void check_error(int line);
     void perform_callbacks();
+    void time_diff(timespec& result, const timespec& start, const timespec& end);
     
     HackedModPlugFile* modplug_file; // handle to file
     unsigned long file_length;  // length of file
     char* buffer; // file data
     const static int sampling_rate = 44100; // don't change this directly, need to call modplug for that
-    const static int NUM_BUFFERS = 8;
+    const static int NUM_BUFFERS = 2;
     bool playing;
+    unsigned long long samples_played; // Samples played thus far.
+    timespec song_start; // Time the song started.
+    bool timing_start_flag; // Set to true when playback starts for accuracy.
 
     ALuint buffers[NUM_BUFFERS];
     ALuint source;
