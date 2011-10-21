@@ -9,7 +9,7 @@ require('piece')
 
 function exe_pattern(pattern)
 
---	print('Pattern: ' .. pattern)
+	print('Pattern: ' .. pattern)
 
 end
 
@@ -87,15 +87,35 @@ function exe_row(row)
 					-- Do the freezing
 					freeze(active_piece)
 
-					-- Process color sequences
-					for i,v in ipairs(active_piece) do
-						local chain = check_neighbors(v.x, v.y)
-						-- Check the chain
-						if chain.size >= 5 then
-							print('Chain of ' .. chain.size)
-							-- TODO: destroy this chain before looping
-							-- This will prevent re-processing the same colors
+					-- Whether to process color chains
+					local process_chains_flag = true
+
+					-- Process color sequences, dropping pieces if necessary
+					while process_chains_flag do
+						-- Find color chains
+						for row in ipairs(level_grid) do
+							for col,v in ipairs(level_grid[row]) do
+								local chain = check_neighbors(col, row)
+								-- Check the chain
+								if chain.size >= 5 then
+									print('Chain of ' .. chain.size)
+									-- Destroy this chain before looping
+									-- This will prevent re-processing the same colors
+									for k,tile in pairs(chain.loc) do
+										print('Block to destroy', 'x: ' .. tile.x, 'y: ' .. tile.y)
+										level_grid[tile.y][tile.x] = false
+										drop_pieces_flag = true
+									end
+								end
+							end
 						end
+						-- Drop pieces that are hanging in the air
+--						while drop_pieces_flag do
+--							if 1 == 1 then
+--								drop_pieces_flag = false
+--							end
+--						end
+						process_chains_flag = false
 					end
 										
 					

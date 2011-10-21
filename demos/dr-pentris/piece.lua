@@ -200,16 +200,16 @@ end
 ---- chain: the chain to add to (otherwise start new chain)
 -- returns: ????
 function check_neighbors(x, y, chain)
-	local chain = chain or {size=1}
-	chain[tostring(x .. '_' .. y)] = true
+	local chain = chain or {size=1, loc={}}
+	chain.loc[tostring(x .. '_' .. y)] = {x=x, y=y}
 	local color = level_grid[y][x]
 	if not color then return chain end
 	-- To the left
 	if level_grid[y]
 	and level_grid[y][x - 1] == color then
 		local loc = tostring(x - 1 .. '_' .. y)
-		if not chain[loc] then
-			chain[loc] = true
+		if not chain.loc[loc] then
+			chain.loc[loc] = {x=x-1, y=y}
 			chain.size = chain.size + 1
 			chain = check_neighbors(x - 1, y, chain)
 		end
@@ -218,8 +218,8 @@ function check_neighbors(x, y, chain)
 	if level_grid[y]
 	and level_grid[y][x + 1] == color then
 		local loc = tostring(x + 1 .. '_' .. y)
-		if not chain[loc] then
-			chain[loc] = true
+		if not chain.loc[loc] then
+			chain.loc[loc] = {x=x+1, y=y}
 			chain.size = chain.size + 1
 			chain = check_neighbors(x + 1, y, chain)
 		end
@@ -228,8 +228,8 @@ function check_neighbors(x, y, chain)
 	if level_grid[y - 1]
 	and level_grid[y - 1][x] == color then
 		local loc = tostring(x .. '_' .. y - 1)
-		if not chain[loc] then
-			chain[loc] = true
+		if not chain.loc[loc] then
+			chain.loc[loc] = {x=x, y=y-1}
 			chain.size = chain.size + 1
 			chain = check_neighbors(x, y - 1, chain)
 		end
@@ -238,8 +238,8 @@ function check_neighbors(x, y, chain)
 	if level_grid[y + 1]
 	and level_grid[y + 1][x] == color then
 		local loc = tostring(x .. '_' .. y + 1)
-		if not chain[loc] then
-			chain[loc] = true
+		if not chain.loc[loc] then
+			chain.loc[loc] = {x=x, y=y+1}
 			chain.size = chain.size + 1
 			chain = check_neighbors(x, y + 1, chain)
 		end
