@@ -63,6 +63,9 @@ lua_State *on_pattern_changed_state = NULL;
 int on_row_changed = - 1;
 lua_State *on_row_changed_state = NULL;
 
+int current_pattern = 0;
+int current_row = 0;
+
 ////////////////////////////////////////////////////////////
 
 // Function calls.
@@ -340,7 +343,7 @@ static int get_current_pattern(lua_State *L) {
         return 0;
     }
     
-    lua_pushnumber(L, mod.get_current_pattern());
+    lua_pushnumber(L, current_pattern);
     
     return 1;
 }
@@ -355,7 +358,7 @@ static int get_current_row(lua_State *L) {
         return 0;
     }
     
-    lua_pushnumber(L, mod.get_current_row());
+    lua_pushnumber(L, current_row);
     
     return 1;
 }
@@ -426,6 +429,7 @@ static int set_on_pattern_changed(lua_State *L) {
 }
 
 void call_pattern_changed(unsigned pattern) {
+    current_pattern = pattern;
     if (on_pattern_changed == -1)
         return;
     
@@ -450,6 +454,7 @@ static int set_on_row_changed(lua_State *L) {
 }
 
 void call_row_changed(int row) {
+    current_row = row;
     if (on_row_changed == -1)
         return;
     
