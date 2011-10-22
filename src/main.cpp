@@ -42,6 +42,8 @@ extern "C" {
     static int get_rows_in_pattern(lua_State *L);
     static int set_volume(lua_State *L);
     static int get_volume(lua_State *L);
+    static int set_transposition(lua_State *L);
+    static int get_transposition(lua_State *L);
     static int set_tempo_override(lua_State *L);
     static int set_on_note_changed(lua_State *L);
     static int set_on_pattern_changed(lua_State *L);
@@ -216,7 +218,7 @@ static int get_channel_enabled(lua_State *L) {
     int c = (int) lua_tonumber(L, 1);
     
     lua_pushboolean(L, mod.get_channel_enabled(c));
-    lua_pushboolean(L, true);
+    
     return 1;
 }
 
@@ -336,6 +338,44 @@ static int get_volume(lua_State *L) {
     
     lua_pushnumber(L, mod.get_volume());
     
+    return 1;
+}
+
+
+static int set_transposition(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 2) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("void set_transposition(int channel, int offset)");
+        DPRINT("  channel: channel to set");
+        DPRINT("  offset: transposition offset (signed integeter)");
+        return 0;
+    }
+    
+    int c = (int) lua_tonumber(L, 1);
+    int t = (int) lua_tonumber(L, 2);
+    
+    mod.set_transposition(c, t);
+    
+    return 1;
+}
+
+
+static int get_transposition(lua_State *L) {
+    int argc = lua_gettop(L);
+    
+    if (argc != 1) {
+        DPRINT("ERROR: Function parameters incorrect.");
+        DPRINT("int get_transposition(int channel)");
+        DPRINT("  channel: channel to get");
+        DPRINT("returns: transposition offset (signed integeter)");
+        return 0;
+    }
+    
+    int c = (int) lua_tonumber(L, 1);
+    
+    lua_pushnumber(L, mod.get_transposition(c));
     return 1;
 }
 
@@ -559,6 +599,8 @@ int LUA_API luaopen_modipulate(lua_State *L) {
         { "set_tempo_override", set_tempo_override },
         { "set_volume", set_volume },
         { "get_volume", get_volume },
+        { "set_transposition", set_transposition },
+        { "get_transposition", get_transposition },
         { "get_rows_in_pattern", get_rows_in_pattern },
         { "set_on_note_changed", set_on_note_changed },
         { "set_on_pattern_changed", set_on_pattern_changed },

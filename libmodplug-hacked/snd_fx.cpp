@@ -455,7 +455,7 @@ void HackedCSoundFile::NoteChange(UINT nChn, int note, BOOL bPorta, BOOL bResetE
 	if (note > 132) note = 132;
 	pChn->nNote = note;
 	if ((!bPorta) || (m_nType & (MOD_TYPE_S3M|MOD_TYPE_IT))) pChn->nNewIns = 0;
-	UINT period = GetPeriodFromNote(note, pChn->nFineTune, pChn->nC4Speed);
+	UINT period = GetPeriodFromNote(note + transposition_offset[nChn], pChn->nFineTune, pChn->nC4Speed);
 	if (period)
 	{
 		if ((!bPorta) || (!pChn->nPeriod)) pChn->nPeriod = period;
@@ -1674,7 +1674,7 @@ void HackedCSoundFile::ExtendedMODCommands(UINT nChn, UINT param)
 					pChn->nFineTune = param*2;
 				else
 					pChn->nFineTune = MOD2XMFineTune(param);
-				if (pChn->nPeriod) pChn->nPeriod = GetPeriodFromNote(pChn->nNote, pChn->nFineTune, pChn->nC4Speed);
+				if (pChn->nPeriod) pChn->nPeriod = GetPeriodFromNote(pChn->nNote + transposition_offset[nChn], pChn->nFineTune, pChn->nC4Speed);
 				break;
 	// E6x: Pattern Loop
 	// E7x: Set Tremolo WaveForm
@@ -1712,7 +1712,7 @@ void HackedCSoundFile::ExtendedS3MCommands(UINT nChn, UINT param)
 	case 0x20:	if (m_nTickCount) break;
 				pChn->nC4Speed = S3MFineTuneTable[param & 0x0F];
 				pChn->nFineTune = MOD2XMFineTune(param);
-				if (pChn->nPeriod) pChn->nPeriod = GetPeriodFromNote(pChn->nNote, pChn->nFineTune, pChn->nC4Speed);
+				if (pChn->nPeriod) pChn->nPeriod = GetPeriodFromNote(pChn->nNote + transposition_offset[nChn], pChn->nFineTune, pChn->nC4Speed);
 				break;
 	// S3x: Set Vibrato WaveForm
 	case 0x30:	pChn->nVibratoType = param & 0x07; break;

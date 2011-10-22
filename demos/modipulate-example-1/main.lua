@@ -124,6 +124,14 @@ function love.keyreleased(k)
         print("Volume is", modipulate.get_volume())
     elseif k == 't' then
         modipulate.set_tempo_override(-1) -- unset override
+    elseif k == 'z' then
+        for i = 0, modipulate.get_num_channels(), 1 do
+            modipulate.set_transposition(i, modipulate.get_transposition(i) - 1)
+        end
+    elseif k == 'x' then
+        for i = 0, modipulate.get_num_channels(), 1 do
+            modipulate.set_transposition(i, modipulate.get_transposition(i) + 1)
+        end
     end
 end
 

@@ -78,8 +78,10 @@ HackedCSoundFile::HackedCSoundFile()
 	memset(m_MixPlugins, 0, sizeof(m_MixPlugins));
     
     // For mODIPULATIONs
-    for (int i = 0; i < MAX_CHANNELS; i++)
+    for (int i = 0; i < MAX_CHANNELS; i++) {
         enabled_channels[i] = true;
+        transposition_offset[i] = 0;
+    }
 }
 
 

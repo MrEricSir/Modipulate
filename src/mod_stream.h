@@ -114,6 +114,10 @@ public:
     void set_tempo_override(int tempo);
     int get_tempo_override();
     
+    // Transposition offset.
+    void set_transposition(int channel, int offset);
+    int get_transposition(int channel);
+    
 protected:
     void on_note_change(unsigned channel, int note, int instrument, int sample, int volume);
     void on_pattern_changed(unsigned pattern);

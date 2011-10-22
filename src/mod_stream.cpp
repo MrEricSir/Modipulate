@@ -458,6 +458,14 @@ int ModStream::get_tempo_override() {
     return tempo_override;
 }
 
+void ModStream::set_transposition(int channel, int offset) {
+    modplug_file->mSoundFile.transposition_offset[channel] = offset;
+}
+
+int ModStream::get_transposition(int channel) {
+    return modplug_file->mSoundFile.transposition_offset[channel];
+}
+
 // Based on code from here:
 // http://www.guyrutenberg.com/2007/09/22/profiling-code-using-clock_gettime/
 void ModStream::time_diff(timespec& result, const timespec& start, const timespec& end) {

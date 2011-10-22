@@ -591,6 +591,7 @@ public:	// for Editing
     // Modipulate.
     bool enabled_channels[MAX_CHANNELS];
     std::map<void*, int> samples_reversed;
+    int transposition_offset[MAX_CHANNELS];
 
 public:
 	HackedCSoundFile();

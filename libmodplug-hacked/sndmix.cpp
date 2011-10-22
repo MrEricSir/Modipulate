@@ -738,8 +738,8 @@ BOOL HackedCSoundFile::ReadNote()
 			{
 				switch(m_nTickCount % 3)
 				{
-				case 1:	period = GetPeriodFromNote(pChn->nNote + (pChn->nArpeggio >> 4), pChn->nFineTune, pChn->nC4Speed); break;
-				case 2:	period = GetPeriodFromNote(pChn->nNote + (pChn->nArpeggio & 0x0F), pChn->nFineTune, pChn->nC4Speed); break;
+				case 1:	period = GetPeriodFromNote(pChn->nNote + transposition_offset[nChn] + (pChn->nArpeggio >> 4), pChn->nFineTune, pChn->nC4Speed); break;
+				case 2:	period = GetPeriodFromNote(pChn->nNote + transposition_offset[nChn] + (pChn->nArpeggio & 0x0F), pChn->nFineTune, pChn->nC4Speed); break;
 				}
 			}
 
