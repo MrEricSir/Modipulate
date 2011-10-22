@@ -376,7 +376,6 @@ BOOL HackedCSoundFile::ProcessRow()
 		// Reset Pattern Loop Effect
 		if (m_nCurrentPattern != m_nNextPattern) {
 				m_nCurrentPattern = m_nNextPattern;
-				//DPRINT("pattern switch");
                 mod_stream->on_pattern_changed(m_nCurrentPattern);
 		}
 		// Check if pattern is valid
@@ -389,8 +388,11 @@ BOOL HackedCSoundFile::ProcessRow()
 				// End of song ?
 				if ((m_nPattern == 0xFF) || (m_nCurrentPattern >= MAX_ORDERS))
 				{
+                    DPRINT("end of song reached");
+                    
+                    // Always repeat.  Because we're that cool.
 					//if (!m_nRepeatCount)
-						return FALSE;     //never repeat entire song
+					//	return FALSE;
 					if (!m_nRestartPos)
 					{
 						m_nMusicSpeed = m_nDefaultSpeed;
@@ -423,7 +425,7 @@ BOOL HackedCSoundFile::ProcessRow()
 							}
 						}
 					}
-//					if (m_nRepeatCount > 0) m_nRepeatCount--;
+					if (m_nRepeatCount > 0) m_nRepeatCount--;
 					m_nCurrentPattern = m_nRestartPos;
                     mod_stream->on_pattern_changed(m_nCurrentPattern);
 					m_nRow = 0;
@@ -431,7 +433,6 @@ BOOL HackedCSoundFile::ProcessRow()
 				} else
 				{
 					m_nCurrentPattern++;
-					//DPRINT("alt pattern switch");
                     mod_stream->on_pattern_changed(m_nCurrentPattern);
 				}
 				m_nPattern = (m_nCurrentPattern < MAX_ORDERS) ? Order[m_nCurrentPattern] : 0xFF;
