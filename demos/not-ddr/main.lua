@@ -63,10 +63,13 @@ function love.load()
 	-- Other stuff
 	bubble_spacing = 20
 	bubble_decay_rate = 0.85
+	transposition = 0
 	control_info = '-- Controls --\
 - / +    Change tempo\
 [ / ]    Change bubble spacing\
 , / .    Change decay rate\
+z / x    Transpose (semitone)\
+a / s    Transpose (octave)\
 (click)  Toggle channel'
 	love.graphics.setFont('Courier_New.ttf', 12)
 
@@ -122,9 +125,10 @@ function love.draw(dt)
 	love.graphics.print('Total bubbles: ' .. #bubbles, print_x, 20)
 	love.graphics.print('Bubble spacing: ' .. bubble_spacing, print_x, 35)
 	love.graphics.print('Decay rate: ' .. bubble_decay_rate, print_x, 50)
-	love.graphics.print('Tempo: ' .. modipulate.get_current_tempo(), print_x, 65)
+	love.graphics.print('Transpose: ' .. transposition, print_x, 65)
+	love.graphics.print('Tempo: ' .. modipulate.get_current_tempo(), print_x, 80)
 	-- Controls
-	love.graphics.print(control_info, print_x, 100)
+	love.graphics.print(control_info, print_x, 120)
 
 end
 
@@ -172,6 +176,26 @@ function love.keypressed(k)
 		if bubble_decay_rate < 1 then
 			bubble_decay_rate = bubble_decay_rate + 0.05
 		end
+	elseif k == 'z' then
+		transposition = transposition - 1
+		for i=1,no_channels-1 do
+			modipulate.set_transposition(i, transposition)
+		end
+	elseif k == 'x' then
+		transposition = transposition + 1
+		for i=1,no_channels-1 do
+			modipulate.set_transposition(i, transposition)
+		end
+	elseif k == 'a' then
+		transposition = transposition - 12
+		for i=1,no_channels-1 do
+			modipulate.set_transposition(i, transposition)
+		end
+	elseif k == 's' then
+		transposition = transposition + 12
+		for i=1,no_channels-1 do
+			modipulate.set_transposition(i, transposition)
+		end
 	end
 
 end
@@ -205,7 +229,7 @@ function exe_note(channel, note, instrument, sample, volume)
 				- ((frame_width / no_channels) / 2) + frame_x1,
 		y = frame_y1 + (channel_width / 1.9),
 		radius = (channel_width / 2) * (256 / volume) * 0.8,
-		color = {HSL((note * 4 - 128), 0x80, 0xa0)},
+		color = {HSL(((note + transposition) * 4 - 128), 0x80, 0xa0)},
 		first_row = true
 	}
 	table.insert(bubbles, new)
