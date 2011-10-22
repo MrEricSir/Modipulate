@@ -16,7 +16,7 @@ function love.load()
     if arg[2] then
         mod_file = arg[2]
     else
-        mod_file = 'sponge1.it'
+        mod_file = '../media/sponge1.it'
     end
     modipulate.open_file(mod_file)
     
