@@ -6,3 +6,6 @@ modipulate.mk
 Modipulate.tags
 Modipulate.workspace.session
 Modipulate_wsp.mk
+/demos/dr-pentris/modipulate.so
+/demos/modipulate-example-1/modipulate.so
+/demos/not-ddr/modipulate.so
