@@ -63,10 +63,10 @@ function love.load()
 	-- Other stuff
 	bubble_spacing = 20
 	bubble_decay_rate = 0.85
-	control_info = '-- Controls --\n\
+	control_info = '-- Controls --\
 - / +    Change tempo\
-[ / ]    Change bubble spacing\n\
-, / .    Change decay rate\n\
+[ / ]    Change bubble spacing\
+, / .    Change decay rate\
 (click)  Toggle channel'
 	love.graphics.setFont('Courier_New.ttf', 12)
 
@@ -122,7 +122,7 @@ function love.draw(dt)
 	love.graphics.print('Total bubbles: ' .. #bubbles, print_x, 20)
 	love.graphics.print('Bubble spacing: ' .. bubble_spacing, print_x, 35)
 	love.graphics.print('Decay rate: ' .. bubble_decay_rate, print_x, 50)
-	love.graphics.print('Tempo: ' .. '', print_x, 65)
+	love.graphics.print('Tempo: ' .. modipulate.get_current_tempo(), print_x, 65)
 	-- Controls
 	love.graphics.print(control_info, print_x, 100)
 
@@ -144,14 +144,18 @@ function love.keypressed(k)
 	or k == 'q' then
 		love.event.push('q')
 	elseif k == '+'
-	or k == '+'
+	or k == '='
 	or k == 'kp+' then
-		-- TODO: increase tempo by 5 BPM
-		local dummy = nil
+		local tempo = modipulate.get_current_tempo()
+		if tempo < 300 then
+			modipulate.set_tempo_override(tempo + 5)
+		end
 	elseif k == '-'
 	or k == 'kp-' then
-		-- TODO: decrease tempo by 5 BPM
-		local dummy = nil
+		local tempo = modipulate.get_current_tempo()
+		if tempo > 40 then
+			modipulate.set_tempo_override(tempo - 5)
+		end
 	elseif k == '[' then
 		if bubble_spacing > 2 then
 			bubble_spacing = bubble_spacing - 2
