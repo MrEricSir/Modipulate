@@ -33,7 +33,7 @@ function love.load()
 	end
 
 	require('modipulate')
-	modipulate.load()
+	modipulate.load(true)
 	modipulate.open_file('v-cf.it')
 	modipulate.set_playing(true)
 	modipulate.set_volume(1)
