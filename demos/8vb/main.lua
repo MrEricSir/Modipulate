@@ -12,6 +12,9 @@ Direction = {
 }
 SHIP_SPEED = 4
 ENEMY_SPEED = 4
+LOW_NOTE = 50
+HIGH_NOTE = 70
+EVIL_INSTRUMENT = 2
 
 -- Direction we're moving in.
 dir = Direction.NONE
@@ -44,9 +47,6 @@ function love.load()
 	ship.x = love.graphics.getWidth() / 2
 	ship.y = love.graphics.getHeight() - ship.h * 2
 
-	-- Etc.
-	evil_instrument = 2
-
 end
 
 ----
@@ -73,17 +73,17 @@ function love.update(dt)
 	-- Move ship
 	if dir == Direction.LEFT then
 		if ship.x > ship.w then
-			ship.x = ship.x - SHIP_SPEED
+			ship.x = ship.x - SHIP_SPEED * dt * 50
 		end
 	elseif dir == Direction.RIGHT then
 		if ship.x < love.graphics.getWidth() - ship.w then
-			ship.x = ship.x + SHIP_SPEED
+			ship.x = ship.x + SHIP_SPEED * dt * 50
 		end
 	end
 
 	-- Move enemies
 	for i,enemy in ipairs(enemies) do
-		enemy.y = enemy.y + ENEMY_SPEED
+		enemy.y = enemy.y + ENEMY_SPEED * dt * 50
 	end
 
 end
@@ -150,16 +150,14 @@ end
 
 function note_changed(channel, note, instrument, sample, volume)
 
-	if sample == evil_instrument then
+	if sample == EVIL_INSTRUMENT then
 		local a = newAnimation(imgs.mouse, 24, 44, 0.1, 0)
-		local x = (note * love.graphics.getWidth()) / 128
-		--x = x * 4 - 800
+		local x = ----> TODO - Use LOW_NOTE and HIGH_NOTE
 		if x < 0 then
 			x = 0
 		elseif x > love.graphics.getWidth() then
 			x = love.graphics.getWidth()
 		end
-		--print('note',note,'x',x)
 		local w = a:getWidth()
 		local h = a:getHeight()
 		table.insert(enemies, {anim = a, x = x, y = 0, w = w, h = h})
