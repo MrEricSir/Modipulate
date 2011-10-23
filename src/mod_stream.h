@@ -130,7 +130,10 @@ private:
     void empty();
     void check_error(int line);
     void perform_callbacks();
+    
+    void get_current_time(timespec& time);
     void time_diff(timespec& result, const timespec& start, const timespec& end);
+    void time_add(timespec& result, const timespec& time1, const timespec& time2);
     
     HackedModPlugFile* modplug_file; // handle to file
     unsigned long file_length;  // length of file
@@ -140,6 +143,7 @@ private:
     bool playing;
     unsigned long long samples_played; // Samples played thus far.
     timespec song_start; // Time the song started.
+    timespec pause_start; // Time when we started being paused.
     int last_tempo_read; // Last tempo we encountered.
     int tempo_override; // tempo override (-1 means disabled)
     
