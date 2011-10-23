@@ -168,19 +168,23 @@ end
 ----
 
 function pattern_changed(pattern)
-
 	-- Take a sec to clean up dead anims
+	if #enemies == 0 then
+	    return
+	end
+	
 	local dirty = true
 	while dirty do
+	    dirty = false
 		--print('checking enemy ' .. i)
 		--print('y = ' .. enemies[i].y)
 		for i,enemy in ipairs(enemies) do
 			if enemies[i].y > love.graphics.getHeight() + 50 then
 				--print('deleting...')
 				table.remove(enemies, i)
+				dirty = true
 				break
 			end
-			dirty = false
 		end
 	end
 
