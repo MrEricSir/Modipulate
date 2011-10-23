@@ -12,6 +12,7 @@ Direction = {
 }
 SHIP_SPEED = 4
 ENEMY_SPEED = 4
+LASER_SPEED = 6
 LOW_NOTE = 50
 HIGH_NOTE = 70
 EVIL_INSTRUMENT = 2
@@ -35,9 +36,13 @@ function love.load()
 	imgs = {}
 	imgs.bat = love.graphics.newImage('gfx/bat.png')
 	imgs.mouse = love.graphics.newImage('gfx/mouse.png')
+	imgs.laser = love.graphics.newImage('gfx/laser.png')
 
 	-- List of enemies
 	enemies = {}
+
+	-- List of lasers
+	lasers = {}
 
 	-- The ship
 	ship = {}
@@ -46,6 +51,9 @@ function love.load()
 	ship.h = ship.anim:getHeight()
 	ship.x = love.graphics.getWidth() / 2
 	ship.y = love.graphics.getHeight() - ship.h * 2
+
+	-- Font
+	love.graphics.setFont('Courier_New.ttf', 12)
 
 end
 
@@ -84,6 +92,11 @@ function love.update(dt)
 	-- Move enemies
 	for i,enemy in ipairs(enemies) do
 		enemy.y = enemy.y + ENEMY_SPEED * dt * 50
+	end
+
+	-- Move lasers
+	for i, laser in ipairs(lasers) do
+		laser.y = laser.y + LASER_SPEED * dt * 50
 	end
 
 end
@@ -132,10 +145,14 @@ function love.draw()
 	-- Reset foreground
 	love.graphics.setColor(0xff, 0xff, 0xff, 0xff)
 
+	-- Draw lasers
+	for i,laser in ipairs(lasers) do
+		laser.anim:draw(laser.x, laser.y, 0, 1, 1, laser.w / 2, laser.h / 2)
+	end
+
 	-- Draw enemies
 	for i,enemy in ipairs(enemies) do
-		anim = enemy.anim
-		anim:draw(enemy.x, enemy.y, 0, 1, 1, enemy.w / 2, enemy.h / 2)
+		enemy.anim:draw(enemy.x, enemy.y, 0, 1, 1, enemy.w / 2, enemy.h / 2)
 	end
 
 	-- Draw ship
@@ -143,7 +160,9 @@ function love.draw()
 
 	-- Debug
 	love.graphics.setColor(0x40, 0x40, 0x40)
-	love.graphics.print('Active enemy animations: ' .. #enemies, 10, 10)
+	love.graphics.print('Active animations\n'
+			.. '  Enemies:  ' #enemies
+			.. '  Lasers:   ' #lasers, 10, 10)
 end
 
 ---- Modipulate callbacks
@@ -169,7 +188,7 @@ end
 
 function pattern_changed(pattern)
 	-- Take a sec to clean up dead anims
-	if #enemies == 0 then
+	if #enemies == 0 and #lasers == 0 then
 	    return
 	end
 	
@@ -193,6 +212,12 @@ end
 ----
 
 function row_changed(row)
+
+	if row % 4 == 0 then
+		-- Make a new laser instance
+		local a = newAnimation(imgs.laser, 2, 12, 0.08, 0)
+		table.insert(lasers, {anim = a, x = ship.x, y = ship.y, w = 2, h = 12})
+	end
 
 end
 
