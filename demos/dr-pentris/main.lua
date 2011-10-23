@@ -25,8 +25,8 @@ function love.load()
 	row_counter = 0
 
 	-- Modipulate
-	modipulate.load()
-	modipulate.open_file('media/v-cf.it')
+	modipulate.load(true)
+	modipulate.open_file('../media/v-cf.it')
 	modipulate.set_playing(true)
 	modipulate.set_volume(1)
 	modipulate.set_on_row_changed(exe_row)

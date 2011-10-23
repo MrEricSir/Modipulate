@@ -142,8 +142,8 @@ bool ModStream::playback() {
     alSourceQueueBuffers(source, NUM_BUFFERS, buffers);
     alSourcePlay(source);
     
-    if (clock_gettime(CLOCK_MONOTONIC, &song_start) == -1)
-        DPRINT("Error getting time: %d", errno);
+    get_current_time(song_start);
+    get_current_time(pause_start);
     
     perform_callbacks();
     
@@ -152,10 +152,13 @@ bool ModStream::playback() {
 
 void ModStream::set_playing(bool is_playing) {
     playing = is_playing;
-    if (is_playing)
+    if (is_playing) {
         alSourcePlay(source);
-    else
+        time_add(song_start, song_start, pause_start); // add paused time to start
+    } else {
         alSourcePause(source);
+        get_current_time(pause_start);
+    }
     
     check_error(__LINE__);
 }
@@ -292,9 +295,7 @@ void ModStream::perform_callbacks() {
     // Check time since we started the music.
     timespec current_time; // Current time.
     timespec since_start;  // Time since start.
-    if (clock_gettime(CLOCK_MONOTONIC, &current_time) == -1)
-        DPRINT("Error getting time: %d", errno);
-    
+    get_current_time(current_time);
     time_diff(since_start, song_start, current_time);
     
     // Convert time to sample number.
@@ -435,11 +436,11 @@ std::string ModStream::get_sample_name(unsigned number) {
 }
 
 int ModStream::get_current_row() {
-    return ModPlug_GetCurrentRow(modplug_file);
+    return ModPlug_GetCurrentRow(modplug_file); // TODO: replace
 }
 
 int ModStream::get_current_pattern() {
-    return ModPlug_GetCurrentPattern(modplug_file);
+    return ModPlug_GetCurrentPattern(modplug_file); // TODO: replace
 }
 
 int ModStream::get_rows_in_pattern(int pattern) {
@@ -466,6 +467,13 @@ int ModStream::get_transposition(int channel) {
     return modplug_file->mSoundFile.transposition_offset[channel];
 }
 
+
+// Grabs current timespec val.
+void ModStream::get_current_time(timespec& time) {
+    if (clock_gettime(CLOCK_MONOTONIC, &time) == -1)
+        DPRINT("Error getting time: %d", errno);
+}
+
 // Based on code from here:
 // http://www.guyrutenberg.com/2007/09/22/profiling-code-using-clock_gettime/
 void ModStream::time_diff(timespec& result, const timespec& start, const timespec& end) {
@@ -475,5 +483,16 @@ void ModStream::time_diff(timespec& result, const timespec& start, const timespe
     } else {
         result.tv_sec = end.tv_sec-start.tv_sec;
         result.tv_nsec = end.tv_nsec-start.tv_nsec;
+    }
+}
+
+// Based on code from here:
+// http://www.geonius.com/software/libgpl/ts_util.html
+void ModStream::time_add(timespec& result, const timespec& time1, const timespec& time2) {
+    result.tv_sec = time1.tv_sec + time2.tv_sec;
+    result.tv_nsec = time1.tv_nsec + time2.tv_nsec;
+    if (result.tv_nsec >= 1000000000L) {
+        result.tv_sec++;
+        result.tv_nsec = result.tv_nsec - 1000000000L;
     }
 }

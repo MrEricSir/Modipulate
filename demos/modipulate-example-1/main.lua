@@ -10,6 +10,8 @@ pattern_number = -1
 rows_in_pattern =-1
 tempo = -1
 
+sound_effect = love.audio.newSource('rooster.ogg', 'static')
+
 function love.load()
     modipulate.load()
 
@@ -89,6 +91,8 @@ function love.keypressed(k)
         modipulate.set_channel_enabled(8, false)
     elseif k == '9' then
         modipulate.set_channel_enabled(9, false)
+    elseif k == 's' then
+        love.audio.play(sound_effect)
     elseif k == 't' then
         modipulate.set_tempo_override(modipulate.get_current_tempo() * 2)
     end
