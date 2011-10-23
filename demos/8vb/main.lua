@@ -45,6 +45,7 @@ function love.load()
 	imgs.bat = love.graphics.newImage('gfx/bat.png')
 	imgs.mouse = love.graphics.newImage('gfx/mouse.png')
 	imgs.laser = love.graphics.newImage('gfx/laser2.png')
+	imgs.explosion = love.graphics.newImage('gfx/explosion2.png')
 	-- Background pattern
 --	local bg = love.image.newImageData('gfx/bg1.png')
 --	local
@@ -52,11 +53,10 @@ function love.load()
 --	bg_repeat:paste(bg)
 --	imgs.bg = love.graphics.newImage('gfx/bg1.png')
 
-	-- List of enemies
+	-- Lists of things
 	enemies = {}
-
-	-- List of lasers
 	lasers = {}
+	explosions = {}
 
 	-- The ship
 	ship = {}
@@ -96,6 +96,13 @@ function love.update(dt)
 	for i,laser in ipairs(lasers) do
 		laser.anim:update(dt)
 	end
+	for i,explosion in ipairs(explosions) do
+		explosion.anim:update(dt)
+		if not explosion.anim.playing then
+			--remove
+			local dummy = nil
+		end
+	end
 
 	-- Move ship
 	if dir == Direction.LEFT then
@@ -127,6 +134,16 @@ function love.update(dt)
 			and laser.x + laser.w > enemy.x
 			and laser.y < enemy.y + enemy.h
 			and laser.y + laser.h > enemy.y then
+				-- Boom
+				-- Add an extra frame so it ends on a blank
+				local a = newAnimation(imgs.explosion, 32, 32, 0.1, 5)
+				a:setMode('once')
+				local w = a:getWidth()
+				local h = a:getHeight()
+				table.insert(explosions, {anim = a,
+						x = enemy.x + enemy.w / 2 - w / 2,
+						y = enemy.y + enemy.h / 2 - h / 2,
+						w = w, h = h})
 				-- Destroy the mouse and laser
 				table.remove(enemies, ei)
 				table.remove(lasers, li)
@@ -212,11 +229,23 @@ function love.draw()
 		love.graphics.setColor(0xff, 0xff, 0xff)
 	end
 
+	-- Draw explosions
+	for i,explosion in ipairs(explosions) do
+		explosion.anim:draw(explosion.x, explosion.y)
+		if SHOW_BOUNDING_BOXES then
+			love.graphics.setColor(0, 0xff, 0)
+			love.graphics.rectangle('line', explosion.x, explosion.y,
+					explosion.w, explosion.h)
+			love.graphics.setColor(0xff, 0xff, 0xff)
+		end
+	end
+
 	-- Debug
 	love.graphics.setColor(0x40, 0x40, 0x40)
 	love.graphics.print('Active animations\n'
-			.. '  Enemies:  ' .. #enemies .. '\n'
-			.. '  Lasers:   ' .. #lasers, 10, 10)
+			.. '  Enemies:    ' .. #enemies .. '\n'
+			.. '  Lasers:     ' .. #lasers .. '\n'
+			.. '  Explosions: ' .. #explosions, 10, 10)
 end
 
 ---- Modipulate callbacks
@@ -270,6 +299,14 @@ function pattern_changed(pattern)
 	    for i,laser in ipairs(lasers) do
 	    	if lasers[i].y < -20 then
 	    		table.remove(lasers, i)
+	    		dirty = true
+	    		break
+	    	end
+	    end
+	    -- Look for inactive explosion anims
+	    for i,explosion in ipairs(explosions) do
+	    	if not explosions[i].anim.playing then
+	    		table.remove(explosions, i)
 	    		dirty = true
 	    		break
 	    	end
