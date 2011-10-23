@@ -12,10 +12,14 @@ Direction = {
 }
 SHIP_SPEED = 4
 ENEMY_SPEED = 4
-LASER_SPEED = 6
+LASER_SPEED = 8
 LOW_NOTE = 85
 HIGH_NOTE = 92
 EVIL_INSTRUMENT = 2
+SCREEN_WIDTH = love.graphics.getWidth()
+PLAYFIELD_LEFT = 20
+PLAYFIELD_RIGHT = SCREEN_WIDTH - PLAYFIELD_LEFT
+PLAYFIELD_WIDTH = PLAYFIELD_RIGHT - PLAYFIELD_LEFT
 
 -- Direction we're moving in.
 dir = Direction.NONE
@@ -49,7 +53,7 @@ function love.load()
 	ship.anim = newAnimation(imgs.bat, 32, 20, 0.125, 0)
 	ship.w = ship.anim:getWidth()
 	ship.h = ship.anim:getHeight()
-	ship.x = love.graphics.getWidth() / 2
+	ship.x = SCREEN_WIDTH / 2
 	ship.y = love.graphics.getHeight() - ship.h * 2
 
 	-- Font
@@ -80,11 +84,11 @@ function love.update(dt)
 
 	-- Move ship
 	if dir == Direction.LEFT then
-		if ship.x > ship.w then
+		if ship.x > PLAYFIELD_LEFT then
 			ship.x = ship.x - SHIP_SPEED * dt * 50
 		end
 	elseif dir == Direction.RIGHT then
-		if ship.x < love.graphics.getWidth() - ship.w then
+		if ship.x < PLAYFIELD_RIGHT then
 			ship.x = ship.x + SHIP_SPEED * dt * 50
 		end
 	end
@@ -96,7 +100,7 @@ function love.update(dt)
 
 	-- Move lasers
 	for i, laser in ipairs(lasers) do
-		laser.y = laser.y + LASER_SPEED * dt * 50
+		laser.y = laser.y - LASER_SPEED * dt * 50
 	end
 
 end
@@ -161,8 +165,8 @@ function love.draw()
 	-- Debug
 	love.graphics.setColor(0x40, 0x40, 0x40)
 	love.graphics.print('Active animations\n'
-			.. '  Enemies:  ' #enemies
-			.. '  Lasers:   ' #lasers, 10, 10)
+			.. '  Enemies:  ' .. #enemies .. '\n'
+			.. '  Lasers:   ' .. #lasers, 10, 10)
 end
 
 ---- Modipulate callbacks
@@ -171,21 +175,20 @@ function note_changed(channel, note, instrument, sample, volume)
 
 	if sample == EVIL_INSTRUMENT then
 		local a = newAnimation(imgs.mouse, 24, 44, 0.1, 0)
-		
+
 		-- Adjust note value
 		if note > HIGH_NOTE then
 		    note = HIGH_NOTE
 		elseif note < LOW_NOTE then
 		    note = LOW_NOTE
-		end;
-		 
+		end
+
 		local p = ((note - LOW_NOTE) / (HIGH_NOTE - LOW_NOTE)) -- percentage
-		local x = p * love.graphics.getWidth() + 15 -- add an adjustment to keep 'em on screen.
-		
+		local x = p * PLAYFIELD_WIDTH + PLAYFIELD_LEFT -- add an adjustment to keep 'em on screen.
 		if x < 0 then
 			x = 0
-		elseif x > love.graphics.getWidth() then
-			x = love.graphics.getWidth()
+		elseif x > SCREEN_WIDTH then
+			x = SCREEN_WIDTH
 		end
 		local w = a:getWidth()
 		local h = a:getHeight()
@@ -197,24 +200,30 @@ end
 ----
 
 function pattern_changed(pattern)
+
 	-- Take a sec to clean up dead anims
 	if #enemies == 0 and #lasers == 0 then
-	    return
+		return
 	end
-	
 	local dirty = true
 	while dirty do
 	    dirty = false
-		--print('checking enemy ' .. i)
-		--print('y = ' .. enemies[i].y)
+	    -- Look for inactive enemy anims
 		for i,enemy in ipairs(enemies) do
 			if enemies[i].y > love.graphics.getHeight() + 50 then
-				--print('deleting...')
 				table.remove(enemies, i)
 				dirty = true
 				break
 			end
 		end
+	    -- Look for inactive laser anims
+	    for i,laser in ipairs(lasers) do
+	    	if lasers[i].y < -20 then
+	    		table.remove(lasers, i)
+	    		dirty = true
+	    		break
+	    	end
+	    end
 	end
 
 end
