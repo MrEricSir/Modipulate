@@ -59,6 +59,8 @@ extern "C" {
 
 ModStream mod;
 
+bool manage_openal = false;
+
 int on_note_changed = - 1;
 lua_State *on_note_changed_state = NULL;
 
@@ -84,10 +86,17 @@ int current_tempo = 0;
 // Initalizes Modipulate.
 // Call this from love.load()
 static int load(lua_State *L) {
-    DPRINT("Loading");
+    DPRINT("Loading Modipulate!");
     
-    // Init OpenAL.
-    alutInit(0, 0);
+    int argc = lua_gettop(L);
+    
+    if (argc == 1 && lua_toboolean(L, 1) == 1) {
+        // Init OpenAL.
+        alutInit(0, 0);
+        manage_openal = true;
+    }
+    
+    
     
     int error = alGetError();
     if (error != AL_NO_ERROR)
@@ -109,7 +118,8 @@ static int quit(lua_State *L) {
     } 
     
     // OpenAL cleanup.
-    alutExit();
+    if (manage_openal)
+        alutExit();
     
     return 0;
 }
@@ -165,7 +175,7 @@ static int set_playing(lua_State *L) {
         return 0;
     }
     
-    bool b = (bool) lua_toboolean(L, 1);;
+    bool b = (bool) lua_toboolean(L, 1);
     mod.set_playing(b);
     
     return 0;
