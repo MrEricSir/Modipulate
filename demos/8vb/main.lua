@@ -10,16 +10,20 @@ Direction = {
 	LEFT = 1,
 	RIGHT = 2
 }
-SHIP_SPEED = 4
-ENEMY_SPEED = 4
+SHIP_SPEED = 6
+ENEMY_SPEED = 3
 LASER_SPEED = 8
+BG_SPEED = 0.5
 LOW_NOTE = 85
 HIGH_NOTE = 92
 EVIL_INSTRUMENT = 2
 SCREEN_WIDTH = love.graphics.getWidth()
+-- Playfield bounds not quite symmetrical
+-- Compensating for images' origin being upper-left instead of center
 PLAYFIELD_LEFT = 20
-PLAYFIELD_RIGHT = SCREEN_WIDTH - PLAYFIELD_LEFT
+PLAYFIELD_RIGHT = SCREEN_WIDTH - 50
 PLAYFIELD_WIDTH = PLAYFIELD_RIGHT - PLAYFIELD_LEFT
+SHOW_BOUNDING_BOXES = false
 
 -- Direction we're moving in.
 dir = Direction.NONE
@@ -40,7 +44,13 @@ function love.load()
 	imgs = {}
 	imgs.bat = love.graphics.newImage('gfx/bat.png')
 	imgs.mouse = love.graphics.newImage('gfx/mouse.png')
-	imgs.laser = love.graphics.newImage('gfx/laser.png')
+	imgs.laser = love.graphics.newImage('gfx/laser2.png')
+	-- Background pattern
+--	local bg = love.image.newImageData('gfx/bg1.png')
+--	local
+--	local bg_repeat = love.image.newImageData()
+--	bg_repeat:paste(bg)
+--	imgs.bg = love.graphics.newImage('gfx/bg1.png')
 
 	-- List of enemies
 	enemies = {}
@@ -58,6 +68,8 @@ function love.load()
 
 	-- Font
 	love.graphics.setFont('Courier_New.ttf', 12)
+
+	--love.timer.sleep(500)
 
 end
 
@@ -81,6 +93,9 @@ function love.update(dt)
 	for i,enemy in ipairs(enemies) do
 		enemy.anim:update(dt)
 	end
+	for i,laser in ipairs(lasers) do
+		laser.anim:update(dt)
+	end
 
 	-- Move ship
 	if dir == Direction.LEFT then
@@ -102,6 +117,24 @@ function love.update(dt)
 	for i, laser in ipairs(lasers) do
 		laser.y = laser.y - LASER_SPEED * dt * 50
 	end
+
+	-- Detect collision with lasers
+	for li,laser in ipairs(lasers) do
+		for ei,enemy in ipairs(enemies) do
+			-- Help with collision taken from:
+			-- https://github.com/STRd6/gamelib/blob/pixie/src/collision.coffee#L82
+			if laser.x < enemy.x + enemy.w
+			and laser.x + laser.w > enemy.x
+			and laser.y < enemy.y + enemy.h
+			and laser.y + laser.h > enemy.y then
+				-- Destroy the mouse and laser
+				table.remove(enemies, ei)
+				table.remove(lasers, li)
+			end
+		end
+	end
+
+	-- Slide background image
 
 end
 
@@ -145,22 +178,39 @@ function love.draw()
 
 	-- Background
 	love.graphics.setBackgroundColor(0xa0, 0xa0, 0xa0)
+	--love.graphics.draw(imgs.bg, 
 
 	-- Reset foreground
 	love.graphics.setColor(0xff, 0xff, 0xff, 0xff)
 
 	-- Draw lasers
 	for i,laser in ipairs(lasers) do
-		laser.anim:draw(laser.x, laser.y, 0, 1, 1, laser.w / 2, laser.h / 2)
+		laser.anim:draw(laser.x, laser.y)
+		if SHOW_BOUNDING_BOXES then
+			love.graphics.setColor(0, 0xff, 0)
+			love.graphics.rectangle('line', laser.x, laser.y, laser.w, laser.h)
+			love.graphics.setColor(0xff, 0xff, 0xff)
+		end
 	end
 
 	-- Draw enemies
 	for i,enemy in ipairs(enemies) do
-		enemy.anim:draw(enemy.x, enemy.y, 0, 1, 1, enemy.w / 2, enemy.h / 2)
+		enemy.anim:draw(enemy.x, enemy.y)
+		if SHOW_BOUNDING_BOXES then
+			love.graphics.setColor(0, 0xff, 0)
+			love.graphics.rectangle('line', enemy.x, enemy.y, enemy.w, enemy.h)
+			love.graphics.setColor(0xff, 0xff, 0xff)
+		end
 	end
 
 	-- Draw ship
-	ship.anim:draw(ship.x, ship.y, 0, 1, 1, ship.w / 2, ship.h / 2)
+	--ship.anim:draw(ship.x, ship.y, 0, 1, 1, ship.w / 2, ship.h / 2)
+	ship.anim:draw(ship.x, ship.y)
+	if SHOW_BOUNDING_BOXES then
+		love.graphics.setColor(0, 0xff, 0)
+		love.graphics.rectangle('line', ship.x, ship.y, ship.w, ship.h)
+		love.graphics.setColor(0xff, 0xff, 0xff)
+	end
 
 	-- Debug
 	love.graphics.setColor(0x40, 0x40, 0x40)
@@ -234,8 +284,9 @@ function row_changed(row)
 
 	if row % 4 == 0 then
 		-- Make a new laser instance
-		local a = newAnimation(imgs.laser, 2, 12, 0.08, 0)
-		table.insert(lasers, {anim = a, x = ship.x, y = ship.y, w = 2, h = 12})
+		local a = newAnimation(imgs.laser, 4, 12, 0.08, 0)
+		table.insert(lasers, {anim = a, x = ship.x + ship.w / 2, y = ship.y,
+				w = a:getWidth(), h = a:getHeight()})
 	end
 
 end
