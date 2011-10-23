@@ -12,8 +12,10 @@ Direction = {
 }
 SHIP_SPEED = 6
 ENEMY_SPEED = 3
+POWERUP_SPEED = ENEMY_SPEED
 LASER_SPEED = 8
 BG_SPEED = 0.5
+NORMAL_RATE_OF_FIRE = 4 -- Fire every n rows
 LOW_NOTE = 85
 HIGH_NOTE = 92
 EVIL_INSTRUMENT = 2
@@ -25,8 +27,9 @@ PLAYFIELD_RIGHT = SCREEN_WIDTH - 50
 PLAYFIELD_WIDTH = PLAYFIELD_RIGHT - PLAYFIELD_LEFT
 SHOW_BOUNDING_BOXES = false
 
--- Direction we're moving in.
+-- These change
 dir = Direction.NONE
+rate_of_fire = NORMAL_RATE_OF_FIRE
 
 ---- Modipulate callbacks
 
@@ -46,6 +49,9 @@ function love.load()
 	imgs.mouse = love.graphics.newImage('gfx/mouse.png')
 	imgs.laser = love.graphics.newImage('gfx/laser2.png')
 	imgs.explosion = love.graphics.newImage('gfx/explosion2.png')
+	imgs.cherry = love.graphics.newImage('gfx/cherry.png')
+	imgs.clock = love.graphics.newImage('gfx/clock.png')
+	imgs.candy = love.graphics.newImage('gfx/candy.png')
 	-- Background pattern
 --	local bg = love.image.newImageData('gfx/bg1.png')
 --	local
@@ -57,6 +63,7 @@ function love.load()
 	enemies = {}
 	lasers = {}
 	explosions = {}
+	powerups = {}
 
 	-- The ship
 	ship = {}
@@ -121,11 +128,16 @@ function love.update(dt)
 	end
 
 	-- Move lasers
-	for i, laser in ipairs(lasers) do
+	for i,laser in ipairs(lasers) do
 		laser.y = laser.y - LASER_SPEED * dt * 50
 	end
 
-	-- Detect collision with lasers
+	-- Move powerups
+	for i,candy in ipairs(powerups) do
+		candy.y = candy.y + POWERUP_SPEED * dt * 50
+	end
+
+	-- Detect collision between enemies and lasers
 	for li,laser in ipairs(lasers) do
 		for ei,enemy in ipairs(enemies) do
 			-- Help with collision taken from:
@@ -148,6 +160,27 @@ function love.update(dt)
 				table.remove(enemies, ei)
 				table.remove(lasers, li)
 			end
+		end
+	end
+
+	-- Detect collision between ship and powerups
+	for pi,powerup in ipairs(powerups) do
+		if powerup.x < ship.x + ship.w
+		and powerup.x + powerup.w > ship.x
+		and powerup.y < ship.y + ship.h
+		and powerup.y + powerup.h > ship.y then
+			if powerup.type == 'clock' then
+				-- Slow music + enemies
+				modipulate.set_tempo_override(-1)
+				modipulate.set_tempo_override(modipulate.get_current_tempo() / 2)
+				-- Compensate for slowed tempo
+				--rate_of_fire = math.floor(rate_of_fire / 2)
+			elseif powerup.type == 'candy' then
+				-- Speed up fire
+				rate_of_fire = math.floor(NORMAL_RATE_OF_FIRE / 2)
+			end
+			-- Remove the powerup
+			table.remove(powerups, pi)
 		end
 	end
 
@@ -200,6 +233,16 @@ function love.draw()
 	-- Reset foreground
 	love.graphics.setColor(0xff, 0xff, 0xff, 0xff)
 
+	-- Draw powerups
+	for i,candy in ipairs(powerups) do
+		love.graphics.draw(candy.anim, candy.x, candy.y)
+		if SHOW_BOUNDING_BOXES then
+			love.graphics.setColor(0, 0xff, 0)
+			love.graphics.rectangle('line', candy.x, candy.y, candy.w, candy.h)
+			love.graphics.setColor(0xff, 0xff, 0xff)
+		end
+	end
+
 	-- Draw lasers
 	for i,laser in ipairs(lasers) do
 		laser.anim:draw(laser.x, laser.y)
@@ -244,6 +287,7 @@ function love.draw()
 	love.graphics.setColor(0x40, 0x40, 0x40)
 	love.graphics.print('Active animations\n'
 			.. '  Enemies:    ' .. #enemies .. '\n'
+			.. '  Powerups:   ' .. #powerups .. '\n'
 			.. '  Lasers:     ' .. #lasers .. '\n'
 			.. '  Explosions: ' .. #explosions, 10, 10)
 end
@@ -280,6 +324,22 @@ end
 
 function pattern_changed(pattern)
 
+	-- Every 4th pattern + 1, generate a candy
+	if pattern % 4 == 1 then
+		local x = math.random(PLAYFIELD_LEFT, PLAYFIELD_RIGHT)
+		local powerup = {type = 'candy', anim = imgs.candy, x = x, y = 0,
+				w = imgs.candy:getWidth(), h = imgs.candy:getHeight()}
+		table.insert(powerups, powerup)
+	end
+
+	-- Every 4th pattern + 3, generate a clock
+	if pattern % 4 == 3 then
+		local x = math.random(PLAYFIELD_LEFT, PLAYFIELD_RIGHT)
+		local powerup = {type = 'clock', anim = imgs.clock, x = x, y = 0,
+				w = imgs.clock:getWidth(), h = imgs.clock:getHeight()}
+		table.insert(powerups, powerup)
+	end
+
 	-- Take a sec to clean up dead anims
 	if #enemies == 0 and #lasers == 0 then
 		return
@@ -311,6 +371,14 @@ function pattern_changed(pattern)
 	    		break
 	    	end
 	    end
+	    -- Look for inactive powerups (not animated
+	    for i,powerup in ipairs(powerups) do
+	    	if powerups[i].y > love.graphics.getHeight() + 50 then
+	    		table.remove(powerups, i)
+	    		dirty = true
+	    		break
+	    	end
+	    end
 	end
 
 end
@@ -319,7 +387,7 @@ end
 
 function row_changed(row)
 
-	if row % 4 == 0 then
+	if row % rate_of_fire == 0 then
 		-- Make a new laser instance
 		local a = newAnimation(imgs.laser, 4, 12, 0.08, 0)
 		table.insert(lasers, {anim = a, x = ship.x + ship.w / 2, y = ship.y,
