@@ -20,6 +20,7 @@ LOW_NOTE = 85
 HIGH_NOTE = 92
 EVIL_INSTRUMENT = 2
 SCREEN_WIDTH = love.graphics.getWidth()
+SCREEN_HEIGHT = love.graphics.getHeight()
 -- Playfield bounds not quite symmetrical
 -- Compensating for images' origin being upper-left instead of center
 PLAYFIELD_LEFT = 20
@@ -53,11 +54,31 @@ function love.load()
 	imgs.clock = love.graphics.newImage('gfx/clock.png')
 	imgs.candy = love.graphics.newImage('gfx/candy.png')
 	-- Background pattern
---	local bg = love.image.newImageData('gfx/bg1.png')
---	local
---	local bg_repeat = love.image.newImageData()
---	bg_repeat:paste(bg)
---	imgs.bg = love.graphics.newImage('gfx/bg1.png')
+	local bg_sprite = love.image.newImageData('gfx/bg1.png')
+	local sprite_w = bg_sprite:getWidth()
+	local sprite_h = bg_sprite:getHeight()
+	local new_h = sprite_h
+	while new_h < SCREEN_HEIGHT * 2 do
+		new_h = new_h + sprite_h
+	end
+	local bg_repeat = love.image.newImageData(SCREEN_WIDTH, new_h)
+	for x=0,(SCREEN_WIDTH / sprite_w - 1) do
+		for y=0,((SCREEN_HEIGHT / sprite_h) * 2) do
+			local dx = x * sprite_w
+			local dy = y * sprite_h
+			--print('dx',dx,'dy',dy)
+			--local sx = 0
+			--local sy = 0
+			--local sw = sprite_w
+			--local sh = sprite_h
+			bg_repeat:paste(bg_sprite, dx, dy)
+		end
+	end
+	imgs.bg = love.graphics.newImage(bg_repeat)
+	bg = {}
+	bg.w = imgs.bg:getWidth()
+	bg.h = imgs.bg:getHeight()
+	bg.y = -(bg.h / 2)
 
 	-- Lists of things
 	enemies = {}
@@ -185,6 +206,8 @@ function love.update(dt)
 	end
 
 	-- Slide background image
+	bg.y = bg.y + BG_SPEED
+	if bg.y > 0 then bg.y = -(bg.h / 2) end
 
 end
 
@@ -226,12 +249,12 @@ end
 
 function love.draw()
 
+	-- Reset pen
+	love.graphics.setColor(0xff, 0xff, 0xff, 0xff)
+
 	-- Background
 	love.graphics.setBackgroundColor(0xa0, 0xa0, 0xa0)
-	--love.graphics.draw(imgs.bg, 
-
-	-- Reset foreground
-	love.graphics.setColor(0xff, 0xff, 0xff, 0xff)
+	love.graphics.draw(imgs.bg, 0, bg.y)
 
 	-- Draw powerups
 	for i,candy in ipairs(powerups) do
