@@ -16,8 +16,8 @@ POWERUP_SPEED = ENEMY_SPEED
 LASER_SPEED = 8
 BG_SPEED = 0.5
 NORMAL_RATE_OF_FIRE = 4 -- Fire every n rows
-LOW_NOTE = 85
-HIGH_NOTE = 92
+LOW_NOTE = 58
+HIGH_NOTE = 94
 EVIL_INSTRUMENT = 2
 SCREEN_WIDTH = love.graphics.getWidth()
 SCREEN_HEIGHT = love.graphics.getHeight()
@@ -38,7 +38,7 @@ function love.load()
 
 	-- Modipulate
 	modipulate.load(true)
-	modipulate.open_file('../media/sponge1.it')
+	modipulate.open_file('../media/8vb1.it')
 	modipulate.set_on_note_changed(note_changed)
 	modipulate.set_on_pattern_changed(pattern_changed)
 	modipulate.set_on_row_changed(row_changed)
