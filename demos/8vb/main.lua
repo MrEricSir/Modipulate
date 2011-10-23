@@ -21,7 +21,7 @@ dir = Direction.NONE
 function love.load()
 
 	-- Modipulate
-	modipulate.load()
+	modipulate.load(true)
 	modipulate.open_file('../media/sponge1.it')
 	modipulate.set_on_note_changed(note_changed)
 	modipulate.set_on_pattern_changed(pattern_changed)
