@@ -13,8 +13,8 @@ Direction = {
 SHIP_SPEED = 4
 ENEMY_SPEED = 4
 LASER_SPEED = 6
-LOW_NOTE = 50
-HIGH_NOTE = 70
+LOW_NOTE = 85
+HIGH_NOTE = 92
 EVIL_INSTRUMENT = 2
 
 -- Direction we're moving in.
@@ -171,7 +171,17 @@ function note_changed(channel, note, instrument, sample, volume)
 
 	if sample == EVIL_INSTRUMENT then
 		local a = newAnimation(imgs.mouse, 24, 44, 0.1, 0)
-		local x = ----> TODO - Use LOW_NOTE and HIGH_NOTE
+		
+		-- Adjust note value
+		if note > HIGH_NOTE then
+		    note = HIGH_NOTE
+		elseif note < LOW_NOTE then
+		    note = LOW_NOTE
+		end;
+		 
+		local p = ((note - LOW_NOTE) / (HIGH_NOTE - LOW_NOTE)) -- percentage
+		local x = p * love.graphics.getWidth() + 15 -- add an adjustment to keep 'em on screen.
+		
 		if x < 0 then
 			x = 0
 		elseif x > love.graphics.getWidth() then
