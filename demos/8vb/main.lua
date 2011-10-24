@@ -193,7 +193,7 @@ function love.update(dt)
 			if powerup.type == 'clock' then
 				-- Slow music + enemies
 				modipulate.set_tempo_override(-1)
-				modipulate.set_tempo_override(modipulate.get_current_tempo() / 2)
+				modipulate.set_tempo_override(modipulate.get_current_tempo() * 0.75)
 				-- Compensate for slowed tempo
 				--rate_of_fire = math.floor(rate_of_fire / 2)
 			elseif powerup.type == 'candy' then
