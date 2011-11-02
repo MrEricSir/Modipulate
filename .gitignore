@@ -7,6 +7,8 @@ Modipulate.tags
 Modipulate.workspace.session
 Modipulate_wsp.mk
 /demos/dr-pentris/modipulate.so
-/demos/modipulate-example-1/modipulate.so
+/demos/console/modipulate.so
 /demos/not-ddr/modipulate.so
 /demos/8vb/modipulate.so
+/.waf-1.6.8-3e3391c5f23fbabad81e6d17c63a1b1e
+modipulate.so
