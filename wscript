@@ -4,6 +4,14 @@ import os.path
 VERSION = '0.0.0+trunk'
 APPNAME = 'modipulate'
 
+# Where to copy final file.
+results = [
+    'modipulate.so',
+    'demos/8vb/modipulate.so',
+    'demos/dr-pentris/modipulate.so',
+    'demos/console/modipulate.so',
+    'demos/not-ddr/modipulate.so' ]
+
 def options(opt):
     opt.load('compiler_cxx')
 
@@ -48,16 +56,16 @@ def build(bld):
         source    = bld.path.ant_glob(['**/*.c', '**/*.cpp']),
         target    = 'modipulate',
         use       = 'lua openal alut alure')
+    
+    if bld.cmd == 'clean':
+        for i in results:
+            if os.path.isfile(i) :
+                os.remove(i)
 
 def post_build(bld):
     # Copy results.
     modipulate_path = 'build/libmodipulate.so'
-    
     if os.path.isfile(modipulate_path) :
-        shutil.copy2(modipulate_path, 'modipulate.so')
-        shutil.copy2(modipulate_path, 'demos/8vb/modipulate.so')
-        shutil.copy2(modipulate_path, 'demos/dr-pentris/modipulate.so')
-        shutil.copy2(modipulate_path, 'demos/console/modipulate.so')
-        shutil.copy2(modipulate_path, 'demos/not-ddr/modipulate.so')
-
+        for i in results:
+            shutil.copy2(modipulate_path, i)
 
