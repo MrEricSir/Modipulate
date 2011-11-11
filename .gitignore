@@ -1,6 +1,7 @@
 /Debug
 /Release
 /build
+/.build-debug
 /.build-release
 modipulate.mk
 Modipulate.tags
@@ -11,4 +12,6 @@ Modipulate_wsp.mk
 /demos/not-ddr/modipulate.so
 /demos/8vb/modipulate.so
 /.waf-1.6.8-3e3391c5f23fbabad81e6d17c63a1b1e
+/.lock-waf_linux2_build
 modipulate.so
+modipulate.txt
