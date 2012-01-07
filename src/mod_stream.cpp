@@ -12,7 +12,6 @@
 #include <errno.h>
 
 #include <AL/al.h>
-#include <ogg/ogg.h>
 
 using namespace std;
 
