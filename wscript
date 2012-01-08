@@ -20,18 +20,21 @@ def configure(conf):
     
     conf.check_cfg(
         package='openal',
+        args='--libs --cflags',
         uselib_store='openal',
         atleast_version='1.1',
         mandatory=1)
     
     conf.check_cfg(
         package='freealut',
+        args='--libs --cflags',
         uselib_store='alut',
         atleast_version='1.1',
         mandatory=1)
         
     conf.check_cfg(
         package='alure',
+        args='--libs --cflags',
         uselib_store='alure',
         atleast_version='1.0',
         mandatory=1)
@@ -48,14 +51,14 @@ def build(bld):
     bld.add_post_fun(post_build)
     
     bld.env.append_value('CFLAGS', ['-O2', '-g', '-fPIC'])
-    bld.env.append_value('LINKFLAGS', ['-O2', '-g', '-fPIC', '-lalut', '-lalure'])
+    bld.env.append_value('LINKFLAGS', ['-O2', '-g', '-fPIC', '-lalut'])
     
     bld.shlib(
         features  = 'c cxx cxxshlib cshlib',
         includes  = ['.', 'src', 'libmodplug-hacked'],
         source    = bld.path.ant_glob(['**/*.c', '**/*.cpp']),
         target    = 'modipulate',
-        use       = 'lua openal alut alure')
+        use       = 'lua alure openal alut')
     
     if bld.cmd == 'clean':
         for i in results:
