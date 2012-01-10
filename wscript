@@ -19,24 +19,10 @@ def configure(conf):
     conf.load('compiler_cxx')
     
     conf.check_cfg(
-        package='openal',
+        package='portaudio-2.0',
         args='--libs --cflags',
-        uselib_store='openal',
-        atleast_version='1.1',
-        mandatory=1)
-    
-    conf.check_cfg(
-        package='freealut',
-        args='--libs --cflags',
-        uselib_store='alut',
-        atleast_version='1.1',
-        mandatory=1)
-        
-    conf.check_cfg(
-        package='alure',
-        args='--libs --cflags',
-        uselib_store='alure',
-        atleast_version='1.0',
+        uselib_store='portaudio',
+        atleast_version='19',
         mandatory=1)
     
     # Eventually we'll move Lua this into another (optional) library.
@@ -51,14 +37,14 @@ def build(bld):
     bld.add_post_fun(post_build)
     
     bld.env.append_value('CFLAGS', ['-O2', '-g', '-fPIC'])
-    bld.env.append_value('LINKFLAGS', ['-O2', '-g', '-fPIC', '-lalut'])
+    bld.env.append_value('LINKFLAGS', ['-O2', '-g', '-fPIC'])
     
     bld.shlib(
         features  = 'c cxx cxxshlib cshlib',
         includes  = ['.', 'src', 'libmodplug-hacked'],
         source    = bld.path.ant_glob(['**/*.c', '**/*.cpp']),
         target    = 'modipulate',
-        use       = 'lua alure openal alut')
+        use       = 'lua portaudio')
     
     if bld.cmd == 'clean':
         for i in results:

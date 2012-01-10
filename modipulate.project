@@ -123,9 +123,7 @@
       </Compiler>
       <Linker Options="-fPIC">
         <LibraryPath Value="."/>
-        <Library Value="openal"/>
-        <Library Value="alut"/>
-        <Library Value="alure"/>
+        <Library Value="portaudio-2.0"/>
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>

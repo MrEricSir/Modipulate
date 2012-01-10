@@ -14,7 +14,7 @@
 #include <string>
 #include <list>
 #include <queue>
-#include <AL/al.h>
+#include <portaudio.h>
 #include "libmodplug-hacked/modplug.h"
 
 
@@ -118,6 +118,8 @@ public:
     void set_transposition(int channel, int offset);
     int get_transposition(int channel);
     
+    void perform_callbacks();
+    
 protected:
     void on_note_change(unsigned channel, int note, int instrument, int sample, int volume);
     void on_pattern_changed(unsigned pattern);
@@ -126,10 +128,12 @@ protected:
     void on_tempo_changed(int tempo);
     
 private:
-    bool stream(ALuint buffer);
-    void empty();
-    void check_error(int line);
-    void perform_callbacks();
+    void check_error(int line, PaError err);
+    
+    int audio_callback(const void *input, void *output, unsigned long frameCount,
+        const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
+    
+    void stream_finished_callback();
     
     void get_current_time(timespec& time);
     void time_diff(timespec& result, const timespec& start, const timespec& end);
@@ -139,7 +143,6 @@ private:
     unsigned long file_length;  // length of file
     char* buffer; // file data
     const static int sampling_rate = 44100; // don't change this directly, need to call modplug for that
-    const static int NUM_BUFFERS = 2;
     bool playing;
     unsigned long long samples_played; // Samples played thus far.
     timespec song_start; // Time the song started.
@@ -147,9 +150,7 @@ private:
     int last_tempo_read; // Last tempo we encountered.
     int tempo_override; // tempo override (-1 means disabled)
     
-    ALuint buffers[NUM_BUFFERS];
-    ALuint source;
-    ALenum format;
+    PaStream *stream;
     
     // Current row for building data structures. 
     ModStreamRow* current_row;
@@ -158,6 +159,11 @@ private:
     std::queue<ModStreamRow*> rows;
     
     friend class HackedCSoundFile;
+    
+    friend int mod_stream_callback(const void *input, void *output, unsigned long frameCount, 
+        const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
+    
+    friend void mod_stream_callback_finished(void* userData);
 };
 
 #endif // MODSTREAM_H

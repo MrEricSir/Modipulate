@@ -11,7 +11,7 @@
 #include <math.h>
 #include <errno.h>
 
-#include <AL/al.h>
+#include <portaudio.h>
 
 using namespace std;
 
@@ -19,6 +19,16 @@ extern void call_note_changed(unsigned channel, int note, int instrument, int sa
 extern void call_pattern_changed(unsigned pattern);
 extern void call_row_changed(int row);
 extern void call_tempo_changed(int tempo);
+
+// Callback helper functions.
+int mod_stream_callback(const void *input, void *output, unsigned long frameCount, 
+    const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
+    return ((ModStream*) userData)->audio_callback(input, output, frameCount, timeInfo, statusFlags);
+}
+
+void mod_stream_callback_finished(void* userData) {
+    ((ModStream*) userData)->stream_finished_callback();
+}
 
 
 ModStreamRow::ModStreamRow() {
@@ -95,179 +105,99 @@ void ModStream::open(string path) {
     ModPlug_GetSettings(&settings);
     settings.mFrequency = sampling_rate;
     settings.mLoopCount = -1;
+    settings.mBits = 32;
+    settings.mChannels = 1;
     ModPlug_SetSettings(&settings);
-
-    // Stereo.
-    format = AL_FORMAT_STEREO16;
     
-    // Initialize buffers.
-    alGenBuffers(NUM_BUFFERS, buffers);
-    check_error(__LINE__);
-    alGenSources(1, &source);
-    check_error(__LINE__);
+    PaStreamParameters outputParameters;
+    outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
+    if (outputParameters.device == paNoDevice) {
+        DPRINT("Error: No default output device.");
+    }
+    outputParameters.channelCount = 1;
+    outputParameters.sampleFormat = paInt32;
+    outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
+    outputParameters.hostApiSpecificStreamInfo = NULL;
     
-    alSource3f(source, AL_POSITION,        0.0, 0.0, 0.0);
-    alSource3f(source, AL_VELOCITY,        0.0, 0.0, 0.0);
-    alSource3f(source, AL_DIRECTION,       0.0, 0.0, 0.0);
-    alSourcef (source, AL_ROLLOFF_FACTOR,  0.0          );
-    alSourcei (source, AL_SOURCE_RELATIVE, AL_TRUE      );
+    check_error(__LINE__, Pa_OpenStream(
+              &stream,
+              NULL, /* no input */
+              &outputParameters,
+              sampling_rate,
+              paFramesPerBufferUnspecified,
+              paClipOff,      /* we won't output out of range samples so don't bother clipping them */
+              mod_stream_callback,
+              this));
     
-    set_playing(true);
+    check_error(__LINE__, Pa_SetStreamFinishedCallback(stream, &mod_stream_callback_finished));
+    
+    check_error(__LINE__, Pa_StartStream(stream));
+    
+    // TODO: move call to Pa_StartStream to set_playing
+    //set_playing(true);
 }
 
+
+
 void ModStream::close() {
-    alSourceStop(source);
-    check_error(__LINE__);
-    empty();
-    alDeleteBuffers(NUM_BUFFERS, buffers);
-    check_error(__LINE__);
-    alDeleteSources(1, &source);
-    check_error(__LINE__);
+    check_error(__LINE__, Pa_StopStream(stream));
+    check_error(__LINE__, Pa_CloseStream(stream));
     
     ModPlug_Unload(modplug_file);
 }
 
-bool ModStream::playback() {
-    if (!playing)
-        return true;
+
+void ModStream::set_playing(bool is_playing) {
+    // TODO
+    playing = is_playing;
+    if (is_playing) {
+        //alSourcePlay(source);
+        time_add(song_start, song_start, pause_start); // add paused time to start
+    } else {
+        //alSourcePause(source);
+        get_current_time(pause_start);
+    }
     
-    if (is_playing())
-        return true;
-    
-    for (int i = 0; i < NUM_BUFFERS; i++)
-        if (!stream(buffers[i]))
-            return false;
-    
-    alSourceQueueBuffers(source, NUM_BUFFERS, buffers);
-    alSourcePlay(source);
-    
-    get_current_time(song_start);
-    get_current_time(pause_start);
-    
-    perform_callbacks();
+   // check_error(__LINE__);
+}
+
+bool ModStream::is_playing() {
+    // TODO
+    //ALenum state;
+    //alGetSourcei(source, AL_SOURCE_STATE, &state);
+    //check_error(__LINE__);
+    //return AL_PLAYING == state && playing;
     
     return true;
 }
 
-void ModStream::set_playing(bool is_playing) {
-    playing = is_playing;
-    if (is_playing) {
-        alSourcePlay(source);
-        time_add(song_start, song_start, pause_start); // add paused time to start
-    } else {
-        alSourcePause(source);
-        get_current_time(pause_start);
-    }
+int ModStream::audio_callback(const void *input, void *output, unsigned long frameCount,
+    const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags) {
     
-    check_error(__LINE__);
-}
-
-bool ModStream::is_playing() {
-    ALenum state;
-    alGetSourcei(source, AL_SOURCE_STATE, &state);
-    check_error(__LINE__);
-    return AL_PLAYING == state && playing;
-}
-
-bool ModStream::update() {
-    static bool in_update = false; // anti-reentrancy hack
-    int processed;
-    bool active = true;
-    
-    if (!is_playing())
-        return false;
-    
-    if (in_update)
-        return true;
-    
-    in_update = true;
-    alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
-    while (processed--) {
-        ALuint buffer;
-        
-        alSourceUnqueueBuffers(source, 1, &buffer);
-        check_error(__LINE__);
-
-        active = stream(buffer);
-        
-        alSourceQueueBuffers(source, 1, &buffer);
-        check_error(__LINE__);
-    }
-    
-    // Activate cached callbacks.
-    perform_callbacks();
-    
-    in_update = false;
-    return active;
-}
-
-bool ModStream::stream(ALuint buffer) {
-    if (!playing)
-        return false;
-    char data[BUFFER_SIZE];
-    
-    int size = HackedModPlug_Read(modplug_file, data, BUFFER_SIZE);
+    int size = HackedModPlug_Read(modplug_file, output, frameCount*4);
     if (size < 0) {
         stringstream ss;
         ss << "Error reading from modplug " << size;
         throw string(ss.str());
     } else if (size == 0)
-        return false; // end of stream
+        return paAbort; // end of stream
     
-    alBufferData(buffer, format, data, size, sampling_rate);
-    check_error(__LINE__);
-    
-    return true;
+    return paContinue;
 }
 
-void ModStream::empty() {
-    int queued;
-    
-    alGetSourcei(source, AL_BUFFERS_QUEUED, &queued);
-    
-    while(queued--) {
-        ALuint buffer;
-    
-        alSourceUnqueueBuffers(source, 1, &buffer);
-        check_error(__LINE__);
-    }
+
+void ModStream::stream_finished_callback() {
+    DPRINT("PA: Stream finished.");
 }
 
-void ModStream::check_error(int line) {
-    int error = alGetError();
-    string serror = "";
-    
-    switch(error) {
-        break;
 
-        case AL_INVALID_NAME:
-            serror = "AL_INVALID_NAME";
-        break;
-
-        case AL_INVALID_ENUM:
-            serror = "AL_INVALID_ENUM";
-        break;
-
-        case AL_INVALID_VALUE:
-            serror = "AL_INVALID_VALUE";
-        break;
-
-        case AL_INVALID_OPERATION:
-            serror = "AL_INVALID_OPERATION";
-        break;
-
-        case AL_OUT_OF_MEMORY:
-            serror = "AL_OUT_OF_MEMORY";
-        break;
-    }
-    
-    if (error != AL_NO_ERROR) {
+void ModStream::check_error(int line, PaError err) {
+    if (err != paNoError) {
         stringstream ss;
-        ss << "OpenAL error was raised: ";
-        if (serror != "")
-            ss << serror;
-        else
-            ss << error;
+        ss << "PortAudio error #";
+        ss << err;
+        ss << " ";
+        ss << Pa_GetErrorText( err );
         ss << " at line " << line;
         throw string(ss.str());
     }
