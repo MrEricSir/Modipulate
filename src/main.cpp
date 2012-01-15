@@ -165,8 +165,12 @@ static int set_playing(lua_State *L) {
     }
 
     bool b = (bool) lua_toboolean(L, 1);
+    try {
     mod.set_playing(b);
-
+    } catch (std::string e) {
+        DPRINT("Error during set_playing(): %s", e.c_str())
+    }
+    
     return 0;
 }
 

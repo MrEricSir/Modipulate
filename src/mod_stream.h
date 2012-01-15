@@ -143,7 +143,7 @@ private:
     unsigned long file_length;  // length of file
     char* buffer; // file data
     const static int sampling_rate = 44100; // don't change this directly, need to call modplug for that
-    bool playing;
+    bool stream_started;
     unsigned long long samples_played; // Samples played thus far.
     timespec song_start; // Time the song started.
     timespec pause_start; // Time when we started being paused.

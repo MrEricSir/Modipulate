@@ -56,6 +56,7 @@ ModStream::ModStream() {
     file_length = 0;
     last_tempo_read = -1;
     tempo_override = -1;
+    stream_started = false;
 }
 
 ModStream::~ModStream() {
@@ -106,7 +107,7 @@ void ModStream::open(string path) {
     settings.mFrequency = sampling_rate;
     settings.mLoopCount = -1;
     settings.mBits = 32;
-    settings.mChannels = 1;
+    settings.mChannels = 2;
     ModPlug_SetSettings(&settings);
     
     PaStreamParameters outputParameters;
@@ -114,8 +115,8 @@ void ModStream::open(string path) {
     if (outputParameters.device == paNoDevice) {
         DPRINT("Error: No default output device.");
     }
-    outputParameters.channelCount = 1;
-    outputParameters.sampleFormat = paInt32;
+    outputParameters.channelCount = 2;
+    outputParameters.sampleFormat = paInt16;
     outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
     
@@ -131,10 +132,7 @@ void ModStream::open(string path) {
     
     check_error(__LINE__, Pa_SetStreamFinishedCallback(stream, &mod_stream_callback_finished));
     
-    check_error(__LINE__, Pa_StartStream(stream));
-    
-    // TODO: move call to Pa_StartStream to set_playing
-    //set_playing(true);
+    set_playing(true);
 }
 
 
@@ -148,27 +146,21 @@ void ModStream::close() {
 
 
 void ModStream::set_playing(bool is_playing) {
-    // TODO
-    playing = is_playing;
     if (is_playing) {
-        //alSourcePlay(source);
+        check_error(__LINE__, Pa_StartStream(stream));
         time_add(song_start, song_start, pause_start); // add paused time to start
-    } else {
-        //alSourcePause(source);
+        stream_started = true;
+    } else if (!is_playing) {
+        check_error(__LINE__, Pa_StopStream(stream));
         get_current_time(pause_start);
     }
-    
-   // check_error(__LINE__);
 }
 
 bool ModStream::is_playing() {
-    // TODO
-    //ALenum state;
-    //alGetSourcei(source, AL_SOURCE_STATE, &state);
-    //check_error(__LINE__);
-    //return AL_PLAYING == state && playing;
+    if (!stream_started)
+        return false;
     
-    return true;
+    return (Pa_IsStreamActive(stream) == 1);
 }
 
 int ModStream::audio_callback(const void *input, void *output, unsigned long frameCount,
@@ -218,7 +210,7 @@ int ModStream::get_num_channels() {
 
 void ModStream::perform_callbacks() {
     // Make sure there's something to do!
-    if (rows.empty())
+    if (rows.empty() || !is_playing())
         return;
     
     // Check time since we started the music.
