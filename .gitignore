@@ -11,7 +11,7 @@ Modipulate.tags
 Modipulate.workspace.session
 Modipulate_wsp.mk
 *.so
-/.waf-1.6.8-3e3391c5f23fbabad81e6d17c63a1b1e
+/.waf-*
 /.lock-waf_linux2_build
 modipulate.txt
 /cscope_file.list
