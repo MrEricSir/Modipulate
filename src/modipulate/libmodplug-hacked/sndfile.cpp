@@ -10,6 +10,8 @@
 #include "sndfile.h"
 #include "mod_stream.h"
 
+extern char* last_error;
+
 #include <iostream>
 
 using namespace std;

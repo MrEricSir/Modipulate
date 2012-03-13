@@ -6,18 +6,16 @@
  * This software is licensed under the GNU LGPL (version 3 or later).
  * See the COPYING.LESSER file in this distribution. 
  */
- 
+
+#ifndef MODIPULATE_COMMON_H
+#define MODIPULATE_COMMON_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h> 
-
-#ifndef __MODIPULATE_H__
-#define __MODIPULATE_H__
-
-
-// Size of audio buffer.
-#define MIN_BUFFER_SIZE 4096
-#define BUFFER_SIZE (MIN_BUFFER_SIZE * 8)
+#include "modipulate.h"
+#include <string>
+#include <portaudio.h>
 
 // For printing. When release mode becomes available, this will likely do nothing.
 #ifdef DEBUG
@@ -29,5 +27,18 @@ printf("\n");\
 #else
 #define DPRINT(...)
 #endif
+
+
+
+// From the man page for snprintf
+char* modipulate_make_message(const char *fmt, ...);
+
+void modipulate_set_error_string(const char* fmt, ...);
+void modipulate_set_error_string_cpp(std::string err);
+
+// Checks for a PortAudio error, returns a Modipulate error and sets
+// the last error string.
+ModipulateErr modipulate_handle_pa_error(PaError err);
+
 
 #endif

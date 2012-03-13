@@ -1,5 +1,4 @@
 #include "mod_stream.h"
-#include "modipulate_common.h"
 #include "libmodplug-hacked/modplug.h"
 
 #include <iostream>
@@ -15,10 +14,6 @@
 
 using namespace std;
 
-extern void call_note_changed(unsigned channel, int note, int instrument, int sample, int volume);
-extern void call_pattern_changed(unsigned pattern);
-extern void call_row_changed(int row);
-extern void call_tempo_changed(int tempo);
 
 // Callback helper functions.
 int mod_stream_callback(const void *input, void *output, unsigned long frameCount, 
@@ -36,6 +31,7 @@ ModStreamRow::ModStreamRow() {
     change_pattern = -1;
     samples_since_last = 0;
 }
+
 
 void ModStreamRow::add_note(ModStreamNote* n) {
     notes.push_back(n);
@@ -57,10 +53,23 @@ ModStream::ModStream() {
     last_tempo_read = -1;
     tempo_override = -1;
     stream_started = false;
+    
+    pattern_cb = NULL;
+    pattern_user_data = NULL;
+    
+    row_cb = NULL;
+    row_user_data = NULL;
+    
+    note_cb = NULL;
+    note_user_data = NULL;
+    
+    stream = NULL;
 }
+
 
 ModStream::~ModStream() {
 }
+
 
 void ModStream::open(string path) {
     DPRINT("Opening: %s", path.c_str());
@@ -131,10 +140,7 @@ void ModStream::open(string path) {
               this));
     
     check_error(__LINE__, Pa_SetStreamFinishedCallback(stream, &mod_stream_callback_finished));
-    
-    set_playing(true);
 }
-
 
 
 void ModStream::close() {
@@ -145,12 +151,15 @@ void ModStream::close() {
 }
 
 
-void ModStream::set_playing(bool is_playing) {
-    if (is_playing) {
+void ModStream::set_playing(bool play) {
+    if (is_playing() == play) {
+        // Nothing to do.
+        return;
+    } else if (play) {
         check_error(__LINE__, Pa_StartStream(stream));
         time_add(song_start, song_start, pause_start); // add paused time to start
         stream_started = true;
-    } else if (!is_playing) {
+    } else if (!play) {
         check_error(__LINE__, Pa_StopStream(stream));
         get_current_time(pause_start);
     }
@@ -162,6 +171,7 @@ bool ModStream::is_playing() {
     
     return (Pa_IsStreamActive(stream) == 1);
 }
+
 
 int ModStream::audio_callback(const void *input, void *output, unsigned long frameCount,
     const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags) {
@@ -195,18 +205,87 @@ void ModStream::check_error(int line, PaError err) {
     }
 }
 
+
+void ModStream::get_info(ModipulateSongInfo** _info) {
+    ModipulateSongInfo* song_info = new ModipulateSongInfo;
+    
+    song_info->num_channels = get_num_channels();
+    song_info->num_instruments = get_num_instruments();
+    song_info->num_samples = get_num_samples();
+    song_info->num_patterns = get_num_patterns();
+    
+    song_info->title = modipulate_make_message("%s", get_title().c_str());
+    song_info->message = modipulate_make_message("%s", get_message().c_str());
+    
+    song_info->instrument_names = new char*[song_info->num_instruments];
+    song_info->sample_names = new char*[song_info->num_samples];
+    song_info->rows_per_pattern = new int[song_info->num_patterns];
+    
+    for (int instrument = 0; instrument < song_info->num_instruments; instrument++)
+        song_info->instrument_names[instrument] = modipulate_make_message("%s", 
+            get_instrument_name(instrument).c_str());
+    
+    for (int sample = 0; sample < song_info->num_samples; sample++)
+        song_info->sample_names[sample] = modipulate_make_message("%s", 
+            get_sample_name(sample).c_str());
+    
+    for (int pattern = 0; pattern < song_info->num_patterns; pattern++)
+        song_info->rows_per_pattern[pattern] = get_rows_in_pattern(pattern);
+    
+    // Return parameter.
+    *_info = song_info;
+}
+
+
+void ModStream::free_info(ModipulateSongInfo* info) {
+    for (int instrument = 0; instrument < info->num_instruments; instrument++)
+        delete info->instrument_names[instrument];
+    
+    for (int sample = 0; sample < info->num_samples; sample++)
+        delete info->sample_names[sample];
+    
+    delete info->instrument_names;
+    delete info->sample_names;
+    delete info->rows_per_pattern;
+    
+    delete info;
+}
+
+
 // Enable or disable channels.
 void ModStream::set_channel_enabled(int channel, bool is_enabled) {
     modplug_file->mSoundFile.enabled_channels[channel] = is_enabled;
 }
+
+
 bool ModStream::get_channel_enabled(int channel) {
     return modplug_file->mSoundFile.enabled_channels[channel];
 }
+
 
 // Returns the number of channels.
 int ModStream::get_num_channels() {
     return (int) ModPlug_NumChannels(modplug_file);
 }
+
+
+void ModStream::set_pattern_change_cb(modipulate_song_pattern_change_cb cb, void* user_data) {
+    pattern_cb = cb;
+    pattern_user_data = user_data;
+}
+
+
+void ModStream::set_row_change_cb(modipulate_song_row_change_cb cb, void* user_data) {
+    row_cb = cb;
+    row_user_data = user_data;
+}
+
+
+void ModStream::set_note_change_cb(modipulate_song_note_cb cb, void* user_data) {
+    note_cb = cb;
+    note_user_data = user_data;
+}
+
 
 void ModStream::perform_callbacks() {
     // Make sure there's something to do!
@@ -236,24 +315,25 @@ void ModStream::perform_callbacks() {
         rows.pop();
         
         // 1. Pattern change callback.
-        if (r->change_pattern != -1)
-            call_pattern_changed(r->change_pattern);
+        if (r->change_pattern != -1 && pattern_cb != NULL)
+            pattern_cb(this, r->change_pattern, pattern_user_data);
         
         // 2. Row change callback.
-        call_row_changed(r->row);
+        if (row_cb != NULL)
+            row_cb(this, r->row, row_user_data);
         
-        // 3. Tempo change callback.
-        if (r->change_tempo != -1)
-            call_tempo_changed(r->change_tempo);
-        
-        // 4. Note change callbacks.
+        // 3. Note change callbacks.
         if (r->notes.size() > 0) {
             list<ModStreamNote*>::iterator it;
             
             for (it = r->notes.begin(); it != r->notes.end(); it++) {
                 ModStreamNote* n = (*it);
                 
-                call_note_changed(n->channel, n->note, n->instrument, n->sample, n->volume);
+                if (note_cb != NULL)
+                    note_cb(this, n->channel, n->note, n->instrument, n->sample, 0, 0, 0, 0, note_user_data);
+                
+                // TODO: what is n->volume? do we need it?
+                //call_note_changed(n->channel, n->note, n->instrument, n->sample, n->volume);
                 
                 delete n;
             }
@@ -273,15 +353,18 @@ void ModStream::on_note_change(unsigned channel, int note, int instrument, int s
     current_row->add_note(n);
 }
 
+
 void ModStream::on_pattern_changed(unsigned pattern) {
     current_row->change_pattern = (int) pattern;
 }
+
 
 void ModStream::on_row_changed(int row) {
     rows.push(current_row);
     current_row = new ModStreamRow();
     current_row->row = row;
 }
+
 
 void ModStream::on_tempo_changed(int tempo) {
     if (tempo != last_tempo_read) {
@@ -294,19 +377,23 @@ void ModStream::increase_sample_count(int add) {
     current_row->samples_since_last += add;
 }
 
+
 std::string ModStream::get_title() {
     const char* name = ModPlug_GetName(modplug_file);
     return name != NULL ? string(name) : string("");
 }
+
 
 std::string ModStream::get_message() {
     const char* message = ModPlug_GetMessage(modplug_file);
     return (message != NULL) ? string(message) : string("");
 }
 
+
 double ModStream::get_volume() {
     return ((double) (ModPlug_GetMasterVolume(modplug_file) - 1)) / 511.0;
 }
+
 
 void ModStream::set_volume(double vol) {
     if (vol < 0.)
@@ -319,6 +406,7 @@ void ModStream::set_volume(double vol) {
 unsigned ModStream::get_num_instruments() {
     return ModPlug_NumInstruments(modplug_file);
 }
+
 
 std::string ModStream::get_instrument_name(unsigned number) {
     std::string ret = "";
@@ -336,9 +424,11 @@ std::string ModStream::get_instrument_name(unsigned number) {
     return ret;
 }
 
+
 unsigned ModStream::get_num_samples() {
     return ModPlug_NumSamples(modplug_file);
 }
+
 
 std::string ModStream::get_sample_name(unsigned number) {
     std::string ret = "";
@@ -356,13 +446,11 @@ std::string ModStream::get_sample_name(unsigned number) {
     return ret;
 }
 
-int ModStream::get_current_row() {
-    return ModPlug_GetCurrentRow(modplug_file); // TODO: replace
+
+int ModStream::get_num_patterns() {
+    return ModPlug_NumPatterns(modplug_file);
 }
 
-int ModStream::get_current_pattern() {
-    return ModPlug_GetCurrentPattern(modplug_file); // TODO: replace
-}
 
 int ModStream::get_rows_in_pattern(int pattern) {
     unsigned int num_rows = 0;
@@ -372,13 +460,16 @@ int ModStream::get_rows_in_pattern(int pattern) {
     return (int) num_rows;
 }
 
+
 void ModStream::set_tempo_override(int tempo) {
     tempo_override = tempo;
 }
 
+
 int ModStream::get_tempo_override() {
     return tempo_override;
 }
+
 
 void ModStream::set_transposition(int channel, int offset) {
     modplug_file->mSoundFile.transposition_offset[channel] = offset;
@@ -395,6 +486,7 @@ void ModStream::get_current_time(timespec& time) {
         DPRINT("Error getting time: %d", errno);
 }
 
+
 // Based on code from here:
 // http://www.guyrutenberg.com/2007/09/22/profiling-code-using-clock_gettime/
 void ModStream::time_diff(timespec& result, const timespec& start, const timespec& end) {
@@ -406,6 +498,7 @@ void ModStream::time_diff(timespec& result, const timespec& start, const timespe
         result.tv_nsec = end.tv_nsec-start.tv_nsec;
     }
 }
+
 
 // Based on code from here:
 // http://www.geonius.com/software/libgpl/ts_util.html

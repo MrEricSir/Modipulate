@@ -14,8 +14,10 @@
 #include <string>
 #include <list>
 #include <queue>
+#include "modipulate_common.h"
 #include <portaudio.h>
 #include "libmodplug-hacked/modplug.h"
+#include "modipulate.h"
 
 
 class ModStreamNote {
@@ -78,6 +80,9 @@ public:
     void set_channel_enabled(int channel, bool enabled);
     bool get_channel_enabled(int channel);
     
+    void get_info(ModipulateSongInfo** info);
+    void free_info(ModipulateSongInfo* info);
+    
     // Returns the number of channels.
     int get_num_channels();
     
@@ -95,17 +100,12 @@ public:
     unsigned get_num_samples();
     std::string get_sample_name(unsigned number);
     
-    
     // Get/set volume. Between 0 and 1.0
     double get_volume();
     void set_volume(double vol);
     
-    
-    // Gets the current row #.
-    int get_current_row();
-    
-    // Gets the current pattern #.
-    int get_current_pattern();
+    // Gets the # of patterns in this song.
+    int get_num_patterns();
     
     // Gets the total rows in a given pattern.
     int get_rows_in_pattern(int pattern);
@@ -117,6 +117,12 @@ public:
     // Transposition offset.
     void set_transposition(int channel, int offset);
     int get_transposition(int channel);
+    
+    void set_pattern_change_cb(modipulate_song_pattern_change_cb cb, void* user_data);
+    
+    void set_row_change_cb(modipulate_song_row_change_cb cb, void* user_data);
+    
+    void set_note_change_cb(modipulate_song_note_cb cb, void* user_data);
     
     void perform_callbacks();
     
@@ -149,6 +155,15 @@ private:
     timespec pause_start; // Time when we started being paused.
     int last_tempo_read; // Last tempo we encountered.
     int tempo_override; // tempo override (-1 means disabled)
+    
+    modipulate_song_pattern_change_cb pattern_cb;
+    void* pattern_user_data;
+    
+    modipulate_song_row_change_cb row_cb;
+    void* row_user_data;
+    
+    modipulate_song_note_cb note_cb;
+    void* note_user_data;
     
     PaStream *stream;
     

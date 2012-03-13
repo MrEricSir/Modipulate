@@ -7,13 +7,15 @@
   </Plugins>
   <Description/>
   <Dependencies/>
-  <VirtualDirectory Name="src">
-    <File Name="src/main.cpp"/>
-    <File Name="src/modipulate_common.h"/>
-    <File Name="src/mod_stream.cpp"/>
-    <File Name="src/mod_stream.h"/>
+  <VirtualDirectory Name="modipulate">
+    <File Name="modipulate_common.h"/>
+    <File Name="mod_stream.cpp"/>
+    <File Name="mod_stream.h"/>
+    <File Name="modipulate.cpp"/>
+    <File Name="modipulate.h"/>
+    <File Name="modipulate_common.cpp"/>
   </VirtualDirectory>
-  <VirtualDirectory Name="libmodipulate-hacked">
+  <VirtualDirectory Name="libmodplug-hacked">
     <File Name="libmodplug-hacked/config.h"/>
     <File Name="libmodplug-hacked/fastmix.cpp"/>
     <File Name="libmodplug-hacked/it_defs.h"/>
@@ -56,15 +58,16 @@
     <File Name="libmodplug-hacked/stdafx.h"/>
     <File Name="libmodplug-hacked/tables.h"/>
   </VirtualDirectory>
-  <Settings Type="Dynamic Library">
-    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g;-Wall;-nostdlib;" Required="yes" PreCompiledHeader="">
-        <IncludePath Value="."/>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
+  <Settings Type="Static Library">
+    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g;-Wall" Required="yes" PreCompiledHeader="">
         <Preprocessor Value="DEBUG"/>
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Debug" Command="" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/lib$(ProjectName).a" IntermediateDirectory="./Debug" Command="" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
         <PostConnectCommands/>
@@ -91,7 +94,7 @@
       <Compiler Options="-O2" Required="yes" PreCompiledHeader=""/>
       <Linker Options="-O2" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Release" Command="" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/lib$(ProjectName).a" IntermediateDirectory="./Release" Command="" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
         <PostConnectCommands/>
@@ -119,11 +122,10 @@
         <IncludePath Value="."/>
         <IncludePath Value="src"/>
         <IncludePath Value="libmodipulate-hacked"/>
-        <IncludePath Value="/usr/include/lua5.1"/>
       </Compiler>
       <Linker Options="-fPIC">
         <LibraryPath Value="."/>
-        <Library Value="portaudio-2.0"/>
+        <Library Value="libportaudio"/>
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>
