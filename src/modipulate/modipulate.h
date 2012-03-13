@@ -291,9 +291,9 @@ Returns the transposition offset for a given channel.
 ModipulateErr modipulate_song_get_transposition(ModipulateSong song, unsigned channel,
     int* offset);
 
-void modipulate_song_set_channel_enabled(ModipulateSong song, unsigned channel, bool enabled);
+void modipulate_song_set_channel_enabled(ModipulateSong song, unsigned channel, int enabled);
 
-bool modipulate_song_get_channel_enabled(ModipulateSong song, unsigned channel);
+int modipulate_song_get_channel_enabled(ModipulateSong song, unsigned channel);
 
 /**
 Sets a callback to be triggered on a pattern change.

@@ -1,0 +1,11 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+def build(bld):
+    bld.shlib(
+        features  = 'cxx cshlib',
+        includes  = ['.', '../modipulate/'],
+        source    = bld.path.ant_glob(['**/*.c', '**/*.cpp']),
+        target    = 'modipulatelua',
+        use       = 'modipulate-static portaudio lua'
+    )

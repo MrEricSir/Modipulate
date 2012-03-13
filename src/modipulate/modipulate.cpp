@@ -15,6 +15,9 @@
 #include <string.h>
 #include "portaudio.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 // Last error string.
 char* last_error = NULL;
@@ -112,14 +115,14 @@ ModipulateErr modipulate_song_info_free(ModipulateSongInfo* song_info) {
     return MODIPULATE_ERROR_NONE;
 }
 
-void modipulate_song_set_channel_enabled(ModipulateSong song, unsigned channel, bool enabled) {
+void modipulate_song_set_channel_enabled(ModipulateSong song, unsigned channel, int enabled) {
     DPRINT("Channel %d is set to %s", channel, enabled ? "Enabled" : "Disabled");
     
     mod.set_channel_enabled(channel, enabled);
 }
 
 
-bool modipulate_song_set_channel_enabled(ModipulateSong song, unsigned channel) {
+int modipulate_song_get_channel_enabled(ModipulateSong song, unsigned channel) {
     return mod.get_channel_enabled(channel);
 }
 
@@ -141,7 +144,7 @@ ModipulateErr modipulate_song_set_transposition(ModipulateSong song, unsigned ch
 }
 
 
-ModipulateErr modipulate_song_set_transposition(ModipulateSong song, unsigned channel, int *offset) {
+ModipulateErr modipulate_song_get_transposition(ModipulateSong song, unsigned channel, int *offset) {
     *offset = mod.get_transposition(channel);
     
     return MODIPULATE_ERROR_NONE;
@@ -208,3 +211,8 @@ ModipulateErr modipulate_song_on_note(ModipulateSong song,
 }
 
 
+
+
+#ifdef __cplusplus
+}
+#endif 

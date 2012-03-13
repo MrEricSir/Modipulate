@@ -82,7 +82,7 @@ static int modipulateLua_song_destroy(lua_State *L) {
 
 
 static int modipulateLua_song_play(lua_State *L) {
-    const char* usage = "Usage: setVolume(volume) where volume is from 0.0 to 1.0";
+    const char* usage = "Usage: play(bool) where bool is true to play the song, false to stop it";
     luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
     modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
     luaL_argcheck(L, lua_isboolean(L, 2), 2, usage);
@@ -130,13 +130,26 @@ static int modipulateLua_song_get_transposition(lua_State *L) {
 
 
 static int modipulateLua_song_get_channel_enabled(lua_State *L) {
-    // TODO
-    return 0;
+    const char* usage = "Usage: getChannelEnabled(int chan) where chan is the channel number between 0 and num_channels";
+    luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
+    
+    lua_pushboolean(L, (bool) modipulate_song_get_channel_enabled(&lua_song->song, (unsigned) lua_tointeger(L, 2)));
+    
+    return 1;
 }
 
 
 static int modipulateLua_song_set_channel_enabled(lua_State *L) {
-    // TODO
+    const char* usage = "Usage: setChannelEnabled(int chan, bool e) where chan is the channel number between 0 "
+                        "and num_channels and e is true to enable to channel or false to disable it";
+    luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
+    
+    modipulate_song_set_channel_enabled(&lua_song->song, (unsigned) lua_tointeger(L, 2), (int) lua_toboolean(L, 3));
+    
     return 0;
 }
 
