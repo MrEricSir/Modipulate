@@ -6,6 +6,7 @@
 require 'libmodipulatelua'
 
 sound_effect = love.audio.newSource('rooster.ogg', 'static')
+playing_text = 'Playing'
 
 function love.load()
     modipulate.init()
@@ -17,6 +18,14 @@ function love.load()
     end
     
     song = modipulate.loadSong(mod_file)
+    print('Song loaded')
+    print('Title: ', song.title)
+    print('Message: ', song.message)
+    print('Number of Channels: ', song.numChannels)
+    print('Number of Instruments: ', song.numInstruments)
+    print('Number of Samples: ', song.numSamples)
+    print('Number of Patterns: ', song.numPatterns)
+    
     song:play(true)
 end
 
@@ -113,8 +122,8 @@ end
 function love.draw()
     love.graphics.setFont(12)
     love.graphics.print('Loaded file: ' .. mod_file, 20, 20)
---    love.graphics.print(playing_text, 20, 40)
---    love.graphics.print('Play/pause: space', 20, 60)
+    love.graphics.print(playing_text, 20, 40)
+    love.graphics.print('Play/pause: space', 20, 60)
 --    love.graphics.print('Pattern:' .. pattern_number, 20, 80)
 --    love.graphics.print('Row:' .. row_number .. '/' .. rows_in_pattern, 20, 100)
 --    love.graphics.print('Tempo:' .. tempo, 20, 120)
