@@ -9,6 +9,7 @@
 
 #include <modipulate.h>
 #include <string>
+#include <cstring>
 #include "utils.h"
 
 extern "C" {
@@ -26,16 +27,22 @@ extern "C" {
     static int modipulateLua_loadSong(lua_State *L);
 }
 
+// Max length of our strings.
+#define MAX_LENGTH 256
+
+// Handles Modipulate error codes by relaying the erra to Lua.
 #define MODIPULATE_LUA_ERROR(state, err) if (!MODIPULATE_OK(err)) \
     return luaL_error(state, "Modipulate error: %d :: %s", err, modipulate_global_get_last_error_string());
 
+// Name of our song type in Lua.
 #define MODIPULATE_SONG_T "ModipulateLuaSongClass"
 
+// Struc to hold our song data in Lua.
 typedef struct {
     ModipulateSong      song;
     ModipulateSongInfo* song_info;
-    char*               title;
-    char*               message;
+    char                title[MAX_LENGTH];
+    char                message[MAX_LENGTH];
     int                 num_channels;
     int                 num_instruments;
     int                 num_samples;
@@ -321,9 +328,9 @@ static int modipulateLua_loadSong(lua_State *L) {
     
     lua_song->song = song;
     lua_song->song_info = song_info;
-    
-    lua_song->title = song_info->title;
-    lua_song->message = song_info->message;
+  
+    strcpy(lua_song->title, song_info->title);
+    strcpy(lua_song->message, song_info->message);
     lua_song->num_channels = song_info->num_channels;
     lua_song->num_instruments = song_info->num_instruments;
     lua_song->num_samples = song_info->num_samples;
