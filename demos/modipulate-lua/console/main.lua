@@ -101,20 +101,20 @@ function love.keyreleased(k)
     elseif k == '9' then
         song:setChannelEnabled(9, true)
     elseif k == '-' then
-        modipulate.setVolume(modipulate.get_volume() - VOL_STEP)
+        modipulate.setVolume(modipulate.getVolume() - VOL_STEP)
         print("Volume is", modipulate.getVolume())
     elseif k == '=' then
-        modipulate.setVolume(modipulate.get_volume() + VOL_STEP)
+        modipulate.setVolume(modipulate.getVolume() + VOL_STEP)
         print("Volume is", modipulate.getVolume())
     elseif k == 't' then
         modipulate.set_tempo_override(-1) -- unset override
     elseif k == 'z' then
-        for i = 0, modipulate.get_num_channels(), 1 do
-            modipulate.set_transposition(i, modipulate.get_transposition(i) - 1)
+        for i = 0, song.numChannels, 1 do
+            song:setTransposition(i, song:getTransposition(i) - 1)
         end
     elseif k == 'x' then
-        for i = 0, modipulate.get_num_channels(), 1 do
-            modipulate.set_transposition(i, modipulate.get_transposition(i) + 1)
+        for i = 0, song.numChannels, 1 do
+            song:setTransposition(i, song:getTransposition(i) + 1)
         end
     end
 end
