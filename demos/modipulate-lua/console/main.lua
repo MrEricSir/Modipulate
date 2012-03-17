@@ -8,6 +8,11 @@ require 'libmodipulatelua'
 sound_effect = love.audio.newSource('rooster.ogg', 'static')
 playing_text = 'Playing'
 
+pattern_number = 0
+row_number = 0
+tempo = 0
+rows_in_pattern = 0
+
 function love.load()
     modipulate.init()
 
@@ -18,6 +23,7 @@ function love.load()
     end
     
     song = modipulate.loadSong(mod_file)
+    
     print('Song loaded')
     print('Title: ', song.title)
     print('Message: ', song.message)
@@ -25,6 +31,10 @@ function love.load()
     print('Number of Instruments: ', song.numInstruments)
     print('Number of Samples: ', song.numSamples)
     print('Number of Patterns: ', song.numPatterns)
+    
+    song:onPatternChange(patternChanged)
+    song:onRowChange(rowChanged)
+    song:onNote(noteChanged)
     
     song:play(true)
 end
@@ -124,28 +134,28 @@ function love.draw()
     love.graphics.print('Loaded file: ' .. mod_file, 20, 20)
     love.graphics.print(playing_text, 20, 40)
     love.graphics.print('Play/pause: space', 20, 60)
---    love.graphics.print('Pattern:' .. pattern_number, 20, 80)
---    love.graphics.print('Row:' .. row_number .. '/' .. rows_in_pattern, 20, 100)
---    love.graphics.print('Tempo:' .. tempo, 20, 120)
+    love.graphics.print('Pattern:' .. pattern_number, 20, 80)
+    love.graphics.print('Row:' .. row_number .. '/' .. rows_in_pattern, 20, 100)
+    love.graphics.print('Tempo:' .. tempo, 20, 120)
 end
 
-function note_changed(channel, note, instrument, sample, volume)
-    print("Note changed (channel, note, instrument, sample, volume)", channel, note, instrument, sample, volume)
+function patternChanged(patternNum)
+    print('Pattern:', patternNum)
+    pattern_number = patternNum
 end
 
-function pattern_changed(pattern)
-    print("Pattern changed ", pattern)
+function rowChanged(rowNum)
+    print('Row:', rowNum)
+    row_number = rowNum
 end
 
-function row_changed(row)
-    print("Row", row)
-    row_number = modipulate.get_current_row()
-    pattern_number = modipulate.get_current_pattern()
-    rows_in_pattern = modipulate.get_rows_in_pattern(pattern_number)
-    tempo = modipulate.get_current_tempo()
-end
-
-function tempo_changed(tempo)
-    print("Tempo changed", tempo)
+function noteChanged(channel, note, instrument, sample, volumeVommand, volumeValue, effectCommand, effectValue)
+    print("Note changed (channel, note, instrument, sample)", channel, note, instrument, sample)
+    
+    -- TODO: a handy-dandy list of effect and volumeCommand values for Lua devs.
+    --       For now, you'll have to consult sndfile.h (in the modplug directory)
+    if effectCommand == 17 then
+        tempo = effectValue
+    end
 end
 

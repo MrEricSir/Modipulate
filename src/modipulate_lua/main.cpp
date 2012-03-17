@@ -47,6 +47,12 @@ typedef struct {
     int                 num_instruments;
     int                 num_samples;
     int                 num_patterns;
+    int                 on_pattern_changed;
+    lua_State*          on_pattern_changed_state;
+    int                 on_row_changed;
+    lua_State*          on_row_changed_state;
+    int                 on_note;
+    lua_State*          on_note_state;
 } modipulate_song_t;
 
 
@@ -180,20 +186,126 @@ static int modipulateLua_song_set_channel_enabled(lua_State *L) {
 }
 
 
+// Dispatch function for pattern change.
+void on_modipulate_song_pattern_change(ModipulateSong song, int pattern_number, void* user_data) {
+    modipulate_song_t* lua_song = (modipulate_song_t*) user_data;
+    
+    
+    lua_rawgeti(lua_song->on_pattern_changed_state, LUA_REGISTRYINDEX, lua_song->on_pattern_changed);
+    lua_pushnumber(lua_song->on_pattern_changed_state, pattern_number);
+
+    lua_call(lua_song->on_pattern_changed_state, 1, 0);
+}
+
+
 static int modipulateLua_song_on_pattern_change(lua_State *L) {
-    // TODO
+    const char* usage = "Usage: onPatternChange(func) where func is a function with the signature: \n"
+                        "function yourFunc(patternNum)\n"
+                        "Or pass 0 to disable.";
+    luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isfunction(L, 2) || lua_isnumber(L, 2), 2, usage);
+    
+    // Disable callback.  This takes care of clearing any existing callback.
+    MODIPULATE_LUA_ERROR(L, modipulate_song_on_pattern_change(lua_song->song, 0, 0)); 
+    lua_song->on_pattern_changed = -1;
+    lua_song->on_pattern_changed_state = 0;
+    
+    // If the user handed us a function, create a new callback.
+    if (lua_isfunction(L, 2)) {
+        MODIPULATE_LUA_ERROR(L, modipulate_song_on_pattern_change(lua_song->song, 
+            on_modipulate_song_pattern_change, lua_song));
+        
+        lua_song->on_pattern_changed = luaL_ref(L, LUA_REGISTRYINDEX);
+        lua_song->on_pattern_changed_state = L;
+    }
+    
     return 0;
+}
+
+
+// Dispatch function for row change.
+void on_modipulate_song_row_change(ModipulateSong song, int row_number, void* user_data) {
+    modipulate_song_t* lua_song = (modipulate_song_t*) user_data;
+    
+    
+    lua_rawgeti(lua_song->on_row_changed_state, LUA_REGISTRYINDEX, lua_song->on_row_changed);
+    lua_pushnumber(lua_song->on_row_changed_state, row_number);
+
+    lua_call(lua_song->on_row_changed_state, 1, 0);
 }
 
 
 static int modipulateLua_song_on_row_change(lua_State *L) {
-    // TODO
+    const char* usage = "Usage: onRowChange(func) where func is a function with the signature: \n"
+                        "function yourFunc(rowNum)\n"
+                        "Or pass 0 to disable.";
+    luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isfunction(L, 2) || lua_isnumber(L, 2), 2, usage);
+    
+    // Disable callback.  This takes care of clearing any existing callback.
+    MODIPULATE_LUA_ERROR(L, modipulate_song_on_row_change(lua_song->song, 0, 0)); 
+    lua_song->on_row_changed = -1;
+    lua_song->on_row_changed_state = 0;
+    
+    // If the user handed us a function, create a new callback.
+    if (lua_isfunction(L, 2)) {
+        MODIPULATE_LUA_ERROR(L, modipulate_song_on_row_change(lua_song->song, 
+            on_modipulate_song_row_change, lua_song));
+        
+        lua_song->on_row_changed = luaL_ref(L, LUA_REGISTRYINDEX);
+        lua_song->on_row_changed_state = L;
+    }
+    
     return 0;
 }
 
 
+// Dispatch function for note change.
+void on_modipulate_song_note(ModipulateSong song, unsigned channel, int note,
+    int instrument, int sample, int volume_command, int volume_value,
+    int effect_command, int effect_value, void* user_data) {
+    modipulate_song_t* lua_song = (modipulate_song_t*) user_data;
+    
+    
+    lua_rawgeti(lua_song->on_note_state, LUA_REGISTRYINDEX, lua_song->on_note);
+    lua_pushnumber(lua_song->on_note_state, channel);
+    lua_pushnumber(lua_song->on_note_state, note);
+    lua_pushnumber(lua_song->on_note_state, instrument);
+    lua_pushnumber(lua_song->on_note_state, sample);
+    lua_pushnumber(lua_song->on_note_state, volume_command);
+    lua_pushnumber(lua_song->on_note_state, volume_value);
+    lua_pushnumber(lua_song->on_note_state, effect_command);
+    lua_pushnumber(lua_song->on_note_state, effect_value);
+
+    lua_call(lua_song->on_note_state, 8, 0);
+}
+
+
 static int modipulateLua_song_on_note(lua_State *L) {
-    // TODO
+    const char* usage = "Usage: onNoteChange(func) where func is a function with the signature: \n"
+                        "function yourFunc(channel, note, instrument, sample, volumeVommand, "
+                        "volumeValue, effectCommand, effectValue)\n"
+                        "Or pass 0 to disable.";
+    luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isfunction(L, 2) || lua_isnumber(L, 2), 2, usage);
+    
+    // Disable callback.  This takes care of clearing any existing callback.
+    MODIPULATE_LUA_ERROR(L, modipulate_song_on_note(lua_song->song, 0, 0)); 
+    lua_song->on_note = -1;
+    lua_song->on_note_state = 0;
+    
+    // If the user handed us a function, create a new callback.
+    if (lua_isfunction(L, 2)) {
+        MODIPULATE_LUA_ERROR(L, modipulate_song_on_note(lua_song->song, 
+            on_modipulate_song_note, lua_song));
+        
+        lua_song->on_note = luaL_ref(L, LUA_REGISTRYINDEX);
+        lua_song->on_note_state = L;
+    }
+    
     return 0;
 }
 
@@ -354,6 +466,12 @@ static int modipulateLua_loadSong(lua_State *L) {
     lua_song->num_instruments = song_info->num_instruments;
     lua_song->num_samples = song_info->num_samples;
     lua_song->num_patterns = song_info->num_patterns;
+    lua_song->on_pattern_changed = - 1;
+    lua_song->on_pattern_changed_state = NULL;
+    lua_song->on_row_changed = - 1;
+    lua_song->on_row_changed_state = NULL;
+    lua_song->on_note = - 1;
+    lua_song->on_note_state = NULL;
     
     return 1;
 }
