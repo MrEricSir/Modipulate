@@ -140,6 +140,8 @@ void ModStream::open(string path) {
               this));
     
     check_error(__LINE__, Pa_SetStreamFinishedCallback(stream, &mod_stream_callback_finished));
+    
+    default_tempo = ModPlug_GetCurrentTempo(modplug_file);
 }
 
 
@@ -213,6 +215,7 @@ void ModStream::get_info(ModipulateSongInfo** _info) {
     song_info->num_instruments = get_num_instruments();
     song_info->num_samples = get_num_samples();
     song_info->num_patterns = get_num_patterns();
+    song_info->default_tempo = get_default_tempo();
     
     song_info->title = modipulate_make_message("%s", get_title().c_str());
     song_info->message = modipulate_make_message("%s", get_message().c_str());
@@ -268,6 +271,9 @@ int ModStream::get_num_channels() {
     return (int) ModPlug_NumChannels(modplug_file);
 }
 
+int ModStream::get_default_tempo() {
+    return default_tempo;
+}
 
 void ModStream::set_pattern_change_cb(modipulate_song_pattern_change_cb cb, void* user_data) {
     pattern_cb = cb;

@@ -47,6 +47,7 @@ typedef struct {
     int                 num_instruments;
     int                 num_samples;
     int                 num_patterns;
+    int                 default_tempo;
     int                 on_pattern_changed;
     lua_State*          on_pattern_changed_state;
     int                 on_row_changed;
@@ -340,6 +341,7 @@ static const Xet_reg_pre modipulate_song_getters[] = {
 {"numInstruments",  get_int,        offsetof(modipulate_song_t, num_instruments)},
 {"numSamples",      get_int,        offsetof(modipulate_song_t, num_samples)},
 {"numPatterns",     get_int,        offsetof(modipulate_song_t, num_patterns)},
+{"defaultTempo",    get_int,        offsetof(modipulate_song_t, default_tempo)},
 {0,0}
 };
 
@@ -466,6 +468,7 @@ static int modipulateLua_loadSong(lua_State *L) {
     lua_song->num_instruments = song_info->num_instruments;
     lua_song->num_samples = song_info->num_samples;
     lua_song->num_patterns = song_info->num_patterns;
+    lua_song->default_tempo = song_info->default_tempo;
     lua_song->on_pattern_changed = - 1;
     lua_song->on_pattern_changed_state = NULL;
     lua_song->on_row_changed = - 1;

@@ -92,6 +92,8 @@ public:
     // Gets the "message" text associated with the song.
     std::string get_message();
     
+    int get_default_tempo();
+    
     // Get instrument info.
     unsigned get_num_instruments();
     std::string get_instrument_name(unsigned number);
@@ -155,6 +157,8 @@ private:
     timespec pause_start; // Time when we started being paused.
     int last_tempo_read; // Last tempo we encountered.
     int tempo_override; // tempo override (-1 means disabled)
+    
+    int default_tempo;
     
     modipulate_song_pattern_change_cb pattern_cb;
     void* pattern_user_data;

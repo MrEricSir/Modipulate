@@ -135,6 +135,7 @@ int main(int argc, char **argv) {
     printf("Number of patterns: %d\n", song_info->num_patterns);
     printf("Number of samples: %d\n", song_info->num_samples);
     printf("Number of instruments: %d\n", song_info->num_instruments);
+    printf("Default tempo: %d\n", song_info->default_tempo);
     printf("***************************\n\n");
     
     channels = song_info->num_channels;

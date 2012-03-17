@@ -24,6 +24,8 @@ function love.load()
     
     song = modipulate.loadSong(mod_file)
     
+    defaultTempo = song.defaultTempo
+    
     print('Song loaded')
     print('Title: ', song.title)
     print('Message: ', song.message)
@@ -31,6 +33,7 @@ function love.load()
     print('Number of Instruments: ', song.numInstruments)
     print('Number of Samples: ', song.numSamples)
     print('Number of Patterns: ', song.numPatterns)
+    print('Default tempo: ', song.defaultTempo)
     
     song:onPatternChange(patternChanged)
     song:onRowChange(rowChanged)

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # encoding: utf-8
 
-bld(
+bld.program(
     features       = 'cxx cxxprogram',
     includes       = ['.', '../../../src/modipulate'],
     source         = bld.path.ant_glob(['**/*.c', '**/*.cpp']),

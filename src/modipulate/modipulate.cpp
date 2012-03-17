@@ -15,10 +15,6 @@
 #include <string.h>
 #include "portaudio.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif 
-
 // Last error string.
 char* last_error = NULL;
 
@@ -209,10 +205,3 @@ ModipulateErr modipulate_song_on_note(ModipulateSong song,
     
     return MODIPULATE_ERROR_NONE;
 }
-
-
-
-
-#ifdef __cplusplus
-}
-#endif 

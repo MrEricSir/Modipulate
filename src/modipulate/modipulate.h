@@ -94,6 +94,7 @@ typedef struct {
     int* rows_per_pattern;
     char* title;
     char* message;
+    int default_tempo;
     int num_channels;
     int num_instruments;
     int num_samples;
