@@ -107,6 +107,42 @@ static int modipulateLua_song_play(lua_State *L) {
 }
 
 
+static int modipulateLua_song_get_sample_name(lua_State *L) {
+    const char* usage = "Usage: getSampleName(sample) where sample is from 0 to numSamples - 1";
+    luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
+    
+    int num = lua_tointeger(L, 2);
+    if (num < 0 || num >= lua_song->num_samples) {
+        return luaL_error(L, "Not a valid sample number: %d.  "
+            "Sample number must be between 0 and numInstruments - 1", num);
+    }
+    
+    lua_pushstring(L, lua_song->song_info->sample_names[num]);
+    
+    return 1;
+}
+
+
+static int modipulateLua_song_get_instrument_name(lua_State *L) {
+    const char* usage = "Usage: getInstrumentName(instrument) where instrument is from 1 to numInstruments";
+    luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
+    
+    int num = lua_tointeger(L, 2);
+    if (num < 1 || num > lua_song->num_instruments) {
+        return luaL_error(L, "Not a valid instrument number: %d.  "
+            "Instrument number must be between 0 and numInstruments - 1", num);
+    }
+    
+    lua_pushstring(L, lua_song->song_info->instrument_names[num]);
+    
+    return 1;
+}
+
+
 static int modipulateLua_song_volume_command(lua_State *L) {
     // TODO
     return 0;
@@ -146,7 +182,7 @@ static int modipulateLua_song_set_transposition(lua_State *L) {
 
 
 static int modipulateLua_song_get_transposition(lua_State *L) {
-    const char* usage = "Usage: setTransposition(channel)";
+    const char* usage = "Usage: getTransposition(channel)";
     luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
     modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
     luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
@@ -319,6 +355,8 @@ static const luaL_reg modipulate_song_meta_methods[] = {
 
 static const luaL_reg modipulate_song_methods[] = {
 {"play",                   modipulateLua_song_play},
+{"getSampleName",          modipulateLua_song_get_sample_name},
+{"getInstrumentName",      modipulateLua_song_get_instrument_name}, 
 {"volumeCommand",          modipulateLua_song_volume_command},
 {"volumeIgnore",           modipulateLua_song_volume_ignore},
 {"effectCommand",          modipulateLua_song_effect_command},

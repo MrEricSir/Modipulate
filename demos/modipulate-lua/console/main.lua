@@ -34,6 +34,15 @@ function love.load()
     print('Number of Samples: ', song.numSamples)
     print('Number of Patterns: ', song.numPatterns)
     print('Default tempo: ', song.defaultTempo)
+    print('')
+    for i = 0, song.numSamples - 1 do
+        print('Sample: ', i, song:getSampleName(i))
+    end
+    print('')
+    for i = 1, song.numInstruments do
+        print('Instrument: ', i, song:getInstrumentName(i))
+    end
+    print('')
     
     song:onPatternChange(patternChanged)
     song:onRowChange(rowChanged)

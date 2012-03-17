@@ -89,16 +89,16 @@ typedef void (*modipulate_song_row_change_cb) (ModipulateSong song, int row, voi
 Song information struct.  Contains metadata for a song.
 */
 typedef struct {
-    char** instrument_names;
-    char** sample_names;
-    int* rows_per_pattern;
-    char* title;
-    char* message;
-    int default_tempo;
-    int num_channels;
-    int num_instruments;
-    int num_samples;
-    int num_patterns;
+    char** instrument_names; //!< Array of instrument names from 1 to numInstruments
+    char** sample_names;  //!< Array of samples names from 0 to numSamples - 1
+    int* rows_per_pattern;  //!< Array of rows per pattern.
+    char* title;  //!< Song title
+    char* message;  //!< Message string metadata
+    int default_tempo;  //!< Default tempo. Until a tempo command is issued, this will be the tempo
+    int num_channels;  //!< Number of channels.
+    int num_instruments;  //!< Number of instruments. For historical reasons, valid range is 1..numInstruments
+    int num_samples;  //!< Number of samples
+    int num_patterns; //!< Number of patterns
 } ModipulateSongInfo;
 
 
