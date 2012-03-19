@@ -149,8 +149,17 @@ static int modipulateLua_song_volume_command(lua_State *L) {
 }
 
 
-static int modipulateLua_song_volume_ignore(lua_State *L) {
-    // TODO
+static int modipulateLua_song_enable_volume(lua_State *L) {
+    const char* usage = "Usage: enableVolume(channel, volumeCommand, enable)";
+    luaL_argcheck(L, lua_gettop(L) == 4, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
+    luaL_argcheck(L, lua_isnumber(L, 3), 3, usage);
+    luaL_argcheck(L, lua_isboolean(L, 4), 4, usage);
+    
+    MODIPULATE_LUA_ERROR(L, modipulate_song_enable_volume(lua_song->song,
+        (unsigned) lua_tointeger(L, 2), (int) lua_tointeger(L, 3), (int) lua_toboolean(L, 4)));
+    
     return 0;
 }
 
@@ -161,8 +170,17 @@ static int modipulateLua_song_effect_command(lua_State *L) {
 }
 
 
-static int modipulateLua_song_effect_ignore(lua_State *L) {
-    // TODO
+static int modipulateLua_song_enable_effect(lua_State *L) {
+    const char* usage = "Usage: enableEffect(channel, effectCommand, enable)";
+    luaL_argcheck(L, lua_gettop(L) == 4, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
+    luaL_argcheck(L, lua_isnumber(L, 3), 3, usage);
+    luaL_argcheck(L, lua_isboolean(L, 4), 4, usage);
+    
+    MODIPULATE_LUA_ERROR(L, modipulate_song_enable_effect(lua_song->song,
+        (unsigned) lua_tointeger(L, 2), (int) lua_tointeger(L, 3), (int) lua_toboolean(L, 4)));
+    
     return 0;
 }
 
@@ -172,7 +190,7 @@ static int modipulateLua_song_set_transposition(lua_State *L) {
     luaL_argcheck(L, lua_gettop(L) == 3, 0, usage);
     modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
     luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
-    luaL_argcheck(L, lua_isnumber(L, 2), 3, usage);
+    luaL_argcheck(L, lua_isnumber(L, 3), 3, usage);
     
     MODIPULATE_LUA_ERROR(L, modipulate_song_set_transposition(lua_song->song,
         (unsigned) lua_tointeger(L, 2), (int) lua_tointeger(L, 3)));
@@ -358,9 +376,9 @@ static const luaL_reg modipulate_song_methods[] = {
 {"getSampleName",          modipulateLua_song_get_sample_name},
 {"getInstrumentName",      modipulateLua_song_get_instrument_name}, 
 {"volumeCommand",          modipulateLua_song_volume_command},
-{"volumeIgnore",           modipulateLua_song_volume_ignore},
+{"enableVolume",           modipulateLua_song_enable_volume},
 {"effectCommand",          modipulateLua_song_effect_command},
-{"effectIgnore",           modipulateLua_song_effect_ignore},
+{"enableEffect",           modipulateLua_song_enable_effect},
 {"setTransposition",       modipulateLua_song_set_transposition},
 {"getTransposition",       modipulateLua_song_get_transposition},
 {"getChannelEnabled",      modipulateLua_song_get_channel_enabled},

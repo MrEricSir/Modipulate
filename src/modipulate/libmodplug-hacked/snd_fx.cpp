@@ -762,13 +762,26 @@ BOOL HackedCSoundFile::ProcessEffects()
             continue;
         
 		UINT instr = pChn->nRowInstr;
-		UINT volcmd = pChn->nRowVolCmd;
-		UINT vol = pChn->nRowVolume;
-		UINT cmd = pChn->nRowCommand;
-		UINT param = pChn->nRowParam;
+		UINT volcmd = pChn->nRowVolCmd;  // volume command id, i.e. VOLCMD_
+		UINT vol = pChn->nRowVolume;     // volume command parameter
+		UINT cmd = pChn->nRowCommand;    // effect command id, i.e. CMD_
+		UINT param = pChn->nRowParam;    // effect command param
+        
+        // <MODIPULATE>
+        
+        // Check for volume command supression.
+        if (!mod_stream->is_volume_command_enabled(nChn, volcmd))
+            volcmd = 0;
+        
+        // Check for effect command suppression.
+        if (!mod_stream->is_effect_command_enabled(nChn, cmd))
+            cmd = 0;
+            
+        // </MODIPULATE>
+        
 		bool bPorta = ((cmd != CMD_TONEPORTAMENTO) && (cmd != CMD_TONEPORTAVOL) && (volcmd != VOLCMD_TONEPORTAMENTO)) ? FALSE : TRUE;
 		UINT nStartTick = 0;
-
+		
 		pChn->dwFlags &= ~CHN_FASTVOLRAMP;
 		// Process special effects (note delay, pattern delay, pattern loop)
 		if ((cmd == CMD_MODCMDEX) || (cmd == CMD_S3MCMDEX))

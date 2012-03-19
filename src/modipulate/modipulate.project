@@ -14,6 +14,7 @@
     <File Name="modipulate.cpp"/>
     <File Name="modipulate.h"/>
     <File Name="modipulate_common.cpp"/>
+    <File Name="Array2D.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libmodplug-hacked">
     <File Name="libmodplug-hacked/config.h"/>

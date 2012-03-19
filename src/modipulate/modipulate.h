@@ -238,11 +238,11 @@ Supresses effect commands on a given channel.
 @param song Song to change
 @param channel Channel to enable or disable effects on
 @param volume_command The specific volume command to supress.
-@param enable Whether to enable to disable effect supression for this channel
+@param enable Whether to enable volume commands on this channel. True (1) is default. False (0) disables commands.
 @return Error
 */
-ModipulateErr modipulate_song_volume_ignore(ModipulateSong song, unsigned channel,
-    int volume_command, bool enable);
+ModipulateErr modipulate_song_enable_volume(ModipulateSong song, unsigned channel,
+    int volume_command, int enable);
 
 /**
 Issues an effect command.
@@ -260,14 +260,16 @@ ModipulateErr modipulate_song_effect_command(ModipulateSong song, unsigned chann
 /**
 Supresses effect commands on a given channel.
 
+Note that commands issued by the user
+
 @param song Song to change
 @param channel Channel to enable or disable effects on
 @param effect_command The specific effect to supress.
-@param enable Whether to enable to disable effect supression for this channel
+@param enable Whether to enable effect commands on this channel. True (1) is default. False (0) disables commands.
 @return Error
 */
-ModipulateErr modipulate_song_effect_ignore(ModipulateSong song, unsigned channel,
-    int effect_command, bool enable);
+ModipulateErr modipulate_song_enable_effect(ModipulateSong song, unsigned channel,
+    int effect_command, int enable);
 
 /**
 Sets a transposition offset for a given channel.

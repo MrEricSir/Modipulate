@@ -18,6 +18,7 @@
 #include <portaudio.h>
 #include "libmodplug-hacked/modplug.h"
 #include "modipulate.h"
+#include "Array2D.h"
 
 
 class ModStreamNote {
@@ -116,6 +117,14 @@ public:
     void set_tempo_override(int tempo);
     int get_tempo_override();
     
+    // Enable or ignore a volume command on a given channel.
+    void enable_volume_command(int channel, int volume_command, bool enable);
+    bool is_volume_command_enabled(int channel, int volume_command);
+    
+    // Enable or ignore an effect command on a given channel.
+    void enable_effect_command(int channel, int effect_command, bool enable);
+    bool is_effect_command_enabled(int channel, int effect_command);
+    
     // Transposition offset.
     void set_transposition(int channel, int offset);
     int get_transposition(int channel);
@@ -168,6 +177,12 @@ private:
     
     modipulate_song_note_cb note_cb;
     void* note_user_data;
+    
+    // Volume commands to allow [channel][command] where command is 1..VOLCMD_PORTADOWN
+    Array2D<bool> volume_command_enabled;
+    
+    // Effect commands to allow [channel][command] where command is 1..CMD_MIDI
+    Array2D<bool> effect_command_enabled;
     
     PaStream *stream;
     

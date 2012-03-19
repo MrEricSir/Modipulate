@@ -155,11 +155,11 @@ ModipulateErr modipulate_song_volume_command(ModipulateSong song, unsigned chann
 }
 
 
-ModipulateErr modipulate_song_volume_ignore(ModipulateSong song, unsigned channel,
-    int volume_command, bool enable) {
+ModipulateErr modipulate_song_enable_volume(ModipulateSong song, unsigned channel,
+    int volume_command, int enable) {
     
-    // TODO
-    return MODIPULATE_ERROR_NOT_IMPLEMENTED;
+    mod.enable_volume_command(channel, volume_command, (bool) enable);
+    return MODIPULATE_ERROR_NONE;
 }
 
 
@@ -171,13 +171,12 @@ ModipulateErr modipulate_song_effect_command(ModipulateSong song, unsigned chann
 }
 
 
-ModipulateErr modipulate_song_effect_ignore(ModipulateSong song, unsigned channel,
-    int effect_command, bool enable) {
+ModipulateErr modipulate_song_enable_effect(ModipulateSong song, unsigned channel,
+    int effect_command, int enable) {
     
-    // TODO
-    return MODIPULATE_ERROR_NOT_IMPLEMENTED;
+    mod.enable_effect_command(channel, effect_command, (bool) enable);
+    return MODIPULATE_ERROR_NONE;
 }
-
 
 
 ModipulateErr modipulate_song_on_pattern_change(ModipulateSong song,

@@ -26,11 +26,11 @@ void mod_stream_callback_finished(void* userData) {
 }
 
 
-ModStreamRow::ModStreamRow() {
-    change_tempo = -1;
-    change_pattern = -1;
-    samples_since_last = 0;
-}
+ModStreamRow::ModStreamRow() :
+    samples_since_last(0),
+    change_tempo(-1),
+    change_pattern(-1)
+{}
 
 
 void ModStreamRow::add_note(ModStreamNote* n) {
@@ -38,32 +38,38 @@ void ModStreamRow::add_note(ModStreamNote* n) {
 }
 
 
-ModStreamNote::ModStreamNote() {
-    channel = 0;
-    note = -1;
-    instrument = -1;
-    sample = -1;
-    volume = -1;
-}
+ModStreamNote::ModStreamNote() :
+    channel(0),
+    note(-1),
+    instrument(-1),
+    sample(-1),
+    volume(-1)
+{}
 
-
-ModStream::ModStream() {
-    modplug_file = NULL;
-    file_length = 0;
-    last_tempo_read = -1;
-    tempo_override = -1;
-    stream_started = false;
+ModStream::ModStream() :
+    modplug_file(NULL),
+    file_length(0),
+    stream_started(false),
+    last_tempo_read(-1),
+    tempo_override(-1),
     
-    pattern_cb = NULL;
-    pattern_user_data = NULL;
+    pattern_cb(NULL),
+    pattern_user_data(NULL),
     
-    row_cb = NULL;
-    row_user_data = NULL;
+    row_cb(NULL),
+    row_user_data(NULL),
     
-    note_cb = NULL;
-    note_user_data = NULL;
+    note_cb(NULL),
+    note_user_data(NULL),
     
-    stream = NULL;
+    volume_command_enabled(MAX_CHANNELS, VOLCMD_PORTADOWN),
+    effect_command_enabled(MAX_CHANNELS, CMD_MIDI),
+    
+    stream(NULL)
+{
+    // Init vol and effect command enable/ignore arrays.
+    volume_command_enabled.setAll(true);
+    effect_command_enabled.setAll(true);
 }
 
 
@@ -485,6 +491,22 @@ int ModStream::get_transposition(int channel) {
     return modplug_file->mSoundFile.transposition_offset[channel];
 }
 
+
+void ModStream::enable_volume_command(int channel, int volume_command, bool enable) {
+    volume_command_enabled.set(channel, volume_command, enable);
+}
+
+bool ModStream::is_volume_command_enabled(int channel, int volume_command) {
+    return volume_command_enabled.get(channel, volume_command);
+}
+
+void ModStream::enable_effect_command(int channel, int effect_command, bool enable) {
+    effect_command_enabled.set(channel, effect_command, enable);
+}
+
+bool ModStream::is_effect_command_enabled(int channel, int effect_command) {
+    return effect_command_enabled.get(channel, effect_command);
+}
 
 // Grabs current timespec val.
 void ModStream::get_current_time(timespec& time) {

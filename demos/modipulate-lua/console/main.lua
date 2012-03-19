@@ -93,9 +93,13 @@ function love.keypressed(k)
         song:setChannelEnabled(8, false)
     elseif k == '9' then
         song:setChannelEnabled(9, false)
+    elseif k == 'e' then
+        -- Ignore an effect in the song.
+        print('Disabling effect');
+        song:enableEffect(4, 1, false)
     elseif k == 's' then
         love.audio.play(sound_effect)
-    elseif k == 't' then
+    elseif k == 't' then 
         modipulate.set_tempo_override(modipulate.get_current_tempo() * 2)
     end
 end
@@ -128,6 +132,10 @@ function love.keyreleased(k)
     elseif k == '=' then
         modipulate.setVolume(modipulate.getVolume() + VOL_STEP)
         print("Volume is", modipulate.getVolume())
+    elseif k == 'e' then
+        -- Re-enable the effect.
+        print('Enabling effect');
+        song:enableEffect(4, 1, true)
     elseif k == 't' then
         modipulate.set_tempo_override(-1) -- unset override
     elseif k == 'z' then
