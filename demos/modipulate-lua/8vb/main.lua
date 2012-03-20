@@ -1,7 +1,7 @@
 -- 8vb
 -- A shooter game to demo Modipulate
 
-require('modipulate')
+require('libmodipulatelua')
 require('AnAL')
 
 -- Constants
@@ -31,19 +31,20 @@ SHOW_BOUNDING_BOXES = false
 -- These change
 dir = Direction.NONE
 rate_of_fire = NORMAL_RATE_OF_FIRE
+tempo = 0
 
 ---- Modipulate callbacks
 
 function love.load()
-
+    modipulate.init()
+    
 	-- Modipulate
-	modipulate.load(true)
-	modipulate.open_file('../media/8vb1.it')
-	modipulate.set_on_note_changed(note_changed)
-	modipulate.set_on_pattern_changed(pattern_changed)
-	modipulate.set_on_row_changed(row_changed)
-	modipulate.set_on_tempo_changed(tempo_changed)
-
+	song = modipulate.loadSong('../../media/8vb1.it')
+    tempo = song.defaultTempo
+    song:onPatternChange(pattern_changed)
+    song:onRowChange(row_changed)
+    song:onNote(note_changed)
+    
 	-- Graphics
 	imgs = {}
 	imgs.bat = love.graphics.newImage('gfx/bat.png')
@@ -99,13 +100,14 @@ function love.load()
 
 	--love.timer.sleep(500)
 
+    song:play(true)
 end
 
 ----
 
 function love.quit()
 
-	modipulate.quit()
+	modipulate.deinit()
 
 end
 
@@ -114,7 +116,7 @@ end
 
 function love.update(dt)
 
-	modipulate.update(dt)
+	modipulate.update()
 
 	-- Update animations
 	ship.anim:update(dt)
@@ -191,9 +193,12 @@ function love.update(dt)
 		and powerup.y < ship.y + ship.h
 		and powerup.y + powerup.h > ship.y then
 			if powerup.type == 'clock' then
-				-- Slow music + enemies
-				modipulate.set_tempo_override(-1)
-				modipulate.set_tempo_override(modipulate.get_current_tempo() * 0.75)
+    			-- Ignore future tempo changes.
+				song:enableEffect(0, 17, false)
+				
+				-- Slow music + enemies.
+				tempo = tempo * 0.75
+				song:effectCommand(0, 17, tempo)
 				-- Compensate for slowed tempo
 				--rate_of_fire = math.floor(rate_of_fire / 2)
 			elseif powerup.type == 'candy' then
@@ -316,9 +321,9 @@ function love.draw()
 end
 
 ---- Modipulate callbacks
-
-function note_changed(channel, note, instrument, sample, volume)
-
+function note_changed(channel, note, instrument, sample, volumeCommand, 
+    volumeValue, effectCommand, effectValue)
+    
 	if sample == EVIL_INSTRUMENT then
 		local a = newAnimation(imgs.mouse, 24, 44, 0.1, 0)
 
@@ -416,12 +421,6 @@ function row_changed(row)
 		table.insert(lasers, {anim = a, x = ship.x + ship.w / 2, y = ship.y,
 				w = a:getWidth(), h = a:getHeight()})
 	end
-
-end
-
-----
-
-function tempo_changed(tempo)
 
 end
 

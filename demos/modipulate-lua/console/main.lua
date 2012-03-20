@@ -1,7 +1,6 @@
--- Example 1
--- Barebones Modipulate app
--- Now makes use of keypressed() callback
-
+-- Console
+-- Barebones Modipulate app. Look at the console for interesting stuff.
+-- Check the key functions for keyboard commands.   
 
 require 'libmodipulatelua'
 
@@ -183,7 +182,7 @@ function rowChanged(rowNum)
     row_number = rowNum
 end
 
-function noteChanged(channel, note, instrument, sample, volumeVommand, volumeValue, effectCommand, effectValue)
+function noteChanged(channel, note, instrument, sample, volumeCommand, volumeValue, effectCommand, effectValue)
     print("Note changed (channel, note, instrument, sample)", channel, note, instrument, sample)
     
     -- TODO: a handy-dandy list of effect and volumeCommand values for Lua devs.

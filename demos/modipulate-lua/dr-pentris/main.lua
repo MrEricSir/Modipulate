@@ -3,13 +3,15 @@
 
 ----------------
 
+tempo = 0
+
 function love.load()
 
 	-- SEEEED
 	math.randomseed(os.time() / 3)
 
 	-- Libraries and source files
-	require('modipulate')
+	require('libmodipulatelua')
 --	require('audio')
 	require('callbacks')
 	require('piece')
@@ -24,13 +26,14 @@ function love.load()
 	-- Count rows; 1 beat = 4 rows
 	row_counter = 0
 
-	-- Modipulate
-	modipulate.load(true)
-	modipulate.open_file('../media/v-cf.it')
-	modipulate.set_playing(true)
-	modipulate.set_volume(1)
-	modipulate.set_on_row_changed(exe_row)
-	modipulate.set_on_pattern_changed(exe_pattern)
+    -- Modipulate
+	modipulate.init()
+	song = modipulate.loadSong('../../media/v-cf.it')
+    tempo = song.defaultTempo
+    song:onRowChange(exe_row)
+    song:onPatternChange(exe_pattern)
+
+    song:play(true)
 
 	-- TEST: Start in play mode
 	level_in_progress = true
@@ -174,7 +177,7 @@ end
 
 function love.quit()
 
-	modipulate.quit()
+	modipulate.deinit()
 
 end
 

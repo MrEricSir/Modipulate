@@ -3,6 +3,10 @@
 
 ---- LOVE callbacks
 
+require 'libmodipulatelua'
+
+tempo = 0
+
 function love.load()
 
 	-- Convert HSL to RGB
@@ -31,14 +35,16 @@ function love.load()
 		end
 		return (r + m) * 255, (g + m) * 255, (b + m) * 255
 	end
-
-	require('modipulate')
-	modipulate.load(true)
-	modipulate.open_file('../media/v-cf.it')
-	modipulate.set_playing(true)
-	modipulate.set_volume(1)
-	modipulate.set_on_note_changed(exe_note)
-	modipulate.set_on_row_changed(exe_row)
+    
+	
+	-- Setup Modipulate
+	modipulate.init()
+	song = modipulate.loadSong('../../media/v-cf.it')
+	modipulate.setVolume(1)
+    tempo = song.defaultTempo
+    song:onRowChange(exe_row)
+    song:onNote(exe_note)
+    
 
 	-- Frame for columns
 	frame_margin = 20
@@ -51,7 +57,7 @@ function love.load()
 
 	-- Channel info
 	channels = {}
-	no_channels = modipulate.get_num_channels()
+	no_channels = song.numChannels
 	channel_width = frame_width / no_channels
 	for i=1,no_channels do
 		channels[i] = {enabled=true}
@@ -73,13 +79,14 @@ a / s    Transpose (octave)\
 (click)  Toggle channel'
 	love.graphics.setFont('Courier_New.ttf', 12)
 
+    song:play(true)
 end
 
 ----
 
 function love.update(dt)
 
-	modipulate.update(dt)
+	modipulate.update()
 
 end
 
@@ -126,7 +133,7 @@ function love.draw(dt)
 	love.graphics.print('Bubble spacing: ' .. bubble_spacing, print_x, 35)
 	love.graphics.print('Decay rate: ' .. bubble_decay_rate, print_x, 50)
 	love.graphics.print('Transpose: ' .. transposition, print_x, 65)
-	love.graphics.print('Tempo: ' .. modipulate.get_current_tempo(), print_x, 80)
+	love.graphics.print('Tempo: ' .. tempo, print_x, 80)
 	-- Controls
 	love.graphics.print(control_info, print_x, 120)
 
@@ -136,7 +143,7 @@ end
 
 function love.quit()
 
-	modipulate.quit()
+	modipulate.deinit()
 
 end
 
@@ -150,15 +157,15 @@ function love.keypressed(k)
 	elseif k == '+'
 	or k == '='
 	or k == 'kp+' then
-		local tempo = modipulate.get_current_tempo()
 		if tempo < 300 then
-			modipulate.set_tempo_override(tempo + 5)
+			tempo = tempo + 5
+			song:effectCommand(0, 17, tempo)
 		end
 	elseif k == '-'
 	or k == 'kp-' then
-		local tempo = modipulate.get_current_tempo()
 		if tempo > 40 then
-			modipulate.set_tempo_override(tempo - 5)
+			tempo = tempo - 5
+			song:effectCommand(0, 17, tempo)
 		end
 	elseif k == '[' then
 		if bubble_spacing > 2 then
@@ -179,22 +186,22 @@ function love.keypressed(k)
 	elseif k == 'z' then
 		transposition = transposition - 1
 		for i=1,no_channels-1 do
-			modipulate.set_transposition(i, transposition)
+			song:setTransposition(i, transposition)
 		end
 	elseif k == 'x' then
 		transposition = transposition + 1
 		for i=1,no_channels-1 do
-			modipulate.set_transposition(i, transposition)
+			song:setTransposition(i, transposition)
 		end
 	elseif k == 'a' then
 		transposition = transposition - 12
 		for i=1,no_channels-1 do
-			modipulate.set_transposition(i, transposition)
+			song:setTransposition(i, transposition)
 		end
 	elseif k == 's' then
 		transposition = transposition + 12
 		for i=1,no_channels-1 do
-			modipulate.set_transposition(i, transposition)
+			song:setTransposition(i, transposition)
 		end
 	end
 
@@ -215,7 +222,7 @@ function love.mousepressed(x, y, button)
 				* no_channels)
 		-- Toggle mute status and set muting
 		channels[ch + 1].enabled = not channels[ch + 1].enabled
-		modipulate.set_channel_enabled(ch, channels[ch + 1].enabled)
+		song:setChannelEnabled(ch, channels[ch + 1].enabled)
 	end
 
 end
@@ -223,12 +230,12 @@ end
 ---- Modipulate callbacks
 
 -- New note
-function exe_note(channel, note, instrument, sample, volume)
+function exe_note(channel, note, instrument, sample, volumeCommand, volumeValue, effectCommand, effectValue)
 	local new = {
 		x = (frame_width / no_channels) * (channel + 1)
 				- ((frame_width / no_channels) / 2) + frame_x1,
 		y = frame_y1 + (channel_width / 1.9),
-		radius = (channel_width / 2) * (256 / volume) * 0.8,
+		radius = (channel_width / 2) * 0.8,
 		color = {HSL(((note + transposition) * 4 - 128), 0x80, 0xa0)},
 		first_row = true
 	}
