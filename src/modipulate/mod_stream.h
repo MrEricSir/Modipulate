@@ -125,6 +125,16 @@ public:
     void enable_effect_command(int channel, int effect_command, bool enable);
     bool is_effect_command_enabled(int channel, int effect_command);
     
+    void issue_effect_command(unsigned channel, unsigned effect_command, unsigned effect_param);
+    bool is_effect_command_pending(unsigned channel);
+    unsigned pop_effect_command(unsigned channel);
+    unsigned pop_effect_parameter(unsigned channel);
+    
+    void issue_volume_command(unsigned channel, unsigned volume_command, unsigned volume_param);
+    bool is_volume_command_pending(unsigned channel);
+    unsigned pop_volume_command(unsigned channel);
+    unsigned pop_volume_parameter(unsigned channel);
+    
     // Transposition offset.
     void set_transposition(int channel, int offset);
     int get_transposition(int channel);
@@ -177,6 +187,12 @@ private:
     
     modipulate_song_note_cb note_cb;
     void* note_user_data;
+    
+    unsigned volCommand[];
+    unsigned volParameter[];
+    
+    unsigned effectCommand[MAX_CHANNELS];
+    unsigned effectParameter[MAX_CHANNELS];
     
     // Volume commands to allow [channel][command] where command is 1..VOLCMD_PORTADOWN
     Array2D<bool> volume_command_enabled;

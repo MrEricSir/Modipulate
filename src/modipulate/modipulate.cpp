@@ -150,8 +150,8 @@ ModipulateErr modipulate_song_get_transposition(ModipulateSong song, unsigned ch
 ModipulateErr modipulate_song_volume_command(ModipulateSong song, unsigned channel,
     int volume_command, int volume_value) {
     
-    // TODO
-    return MODIPULATE_ERROR_NOT_IMPLEMENTED;
+    mod.issue_volume_command(channel, volume_command, volume_value);
+    return MODIPULATE_ERROR_NONE;
 }
 
 
@@ -166,8 +166,8 @@ ModipulateErr modipulate_song_enable_volume(ModipulateSong song, unsigned channe
 ModipulateErr modipulate_song_effect_command(ModipulateSong song, unsigned channel,
     int effect_command, int effect_value) {
     
-    // TODO
-    return MODIPULATE_ERROR_NOT_IMPLEMENTED;
+    mod.issue_effect_command(channel, effect_command, effect_value);
+    return MODIPULATE_ERROR_NONE;
 }
 
 

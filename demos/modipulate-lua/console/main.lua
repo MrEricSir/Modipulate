@@ -24,7 +24,7 @@ function love.load()
     
     song = modipulate.loadSong(mod_file)
     
-    defaultTempo = song.defaultTempo
+    tempo = song.defaultTempo
     
     print('Song loaded')
     print('Title: ', song.title)
@@ -100,7 +100,14 @@ function love.keypressed(k)
     elseif k == 's' then
         love.audio.play(sound_effect)
     elseif k == 't' then 
-        modipulate.set_tempo_override(modipulate.get_current_tempo() * 2)
+        print('Increasing tempo')
+        -- increase tempo
+        tempo = tempo * 2
+        if tempo > 0xFF then
+            tempo = 0xFF
+        end
+        
+        song:effectCommand(0, 17, tempo)
     end
 end
 
@@ -137,7 +144,14 @@ function love.keyreleased(k)
         print('Enabling effect');
         song:enableEffect(4, 1, true)
     elseif k == 't' then
-        modipulate.set_tempo_override(-1) -- unset override
+        -- decrease tempo
+        print('Decreasing tempo')
+        tempo = tempo / 2
+        if tempo < 0x20 then
+            tempo = 0x20
+        end
+        
+        song:effectCommand(0, 17, tempo)
     elseif k == 'z' then
         for i = 0, song.numChannels, 1 do
             song:setTransposition(i, song:getTransposition(i) - 1)

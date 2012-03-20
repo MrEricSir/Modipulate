@@ -70,6 +70,10 @@ ModStream::ModStream() :
     // Init vol and effect command enable/ignore arrays.
     volume_command_enabled.setAll(true);
     effect_command_enabled.setAll(true);
+    
+    // Zero out our effect arrays.
+    for (int i = 0; i < MAX_CHANNELS; i++)
+        volCommand[i] = volParameter[i] = effectCommand[i] = effectParameter[i] = 0;
 }
 
 
@@ -487,6 +491,7 @@ void ModStream::set_transposition(int channel, int offset) {
     modplug_file->mSoundFile.transposition_offset[channel] = offset;
 }
 
+
 int ModStream::get_transposition(int channel) {
     return modplug_file->mSoundFile.transposition_offset[channel];
 }
@@ -496,17 +501,74 @@ void ModStream::enable_volume_command(int channel, int volume_command, bool enab
     volume_command_enabled.set(channel, volume_command, enable);
 }
 
+
 bool ModStream::is_volume_command_enabled(int channel, int volume_command) {
     return volume_command_enabled.get(channel, volume_command);
 }
+
 
 void ModStream::enable_effect_command(int channel, int effect_command, bool enable) {
     effect_command_enabled.set(channel, effect_command, enable);
 }
 
+
 bool ModStream::is_effect_command_enabled(int channel, int effect_command) {
     return effect_command_enabled.get(channel, effect_command);
 }
+
+
+void ModStream::issue_effect_command(unsigned channel, unsigned effect_command, unsigned effect_param) {
+    effectCommand[channel] = effect_command;
+    effectParameter[channel] = effect_param;
+}
+
+bool ModStream::is_effect_command_pending(unsigned channel) {
+    return effectCommand[channel] != 0;
+}
+
+
+unsigned ModStream::pop_effect_command(unsigned channel) {
+    unsigned cmd = effectCommand[channel];
+    effectCommand[channel] = 0;
+    
+    return cmd;
+}
+
+
+unsigned ModStream::pop_effect_parameter(unsigned channel) {
+    unsigned cmd = effectParameter[channel];
+    volParameter[channel] = 0;
+    
+    return cmd;
+}
+
+
+void ModStream::issue_volume_command(unsigned channel, unsigned volume_command, unsigned volume_param) {
+    volCommand[channel] = volume_command;
+    volParameter[channel] = volume_param;
+}
+
+
+bool ModStream::is_volume_command_pending(unsigned channel) {
+    return volCommand[channel] != 0;
+}
+
+
+unsigned ModStream::pop_volume_command(unsigned channel) {
+    unsigned cmd = volCommand[channel];
+    volCommand[channel] = 0;
+    
+    return cmd;
+}
+
+
+unsigned ModStream::pop_volume_parameter(unsigned channel) {
+    unsigned cmd = volParameter[channel];
+    volParameter[channel] = 0;
+    
+    return cmd;
+}
+
 
 // Grabs current timespec val.
 void ModStream::get_current_time(timespec& time) {

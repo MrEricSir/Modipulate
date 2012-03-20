@@ -776,7 +776,21 @@ BOOL HackedCSoundFile::ProcessEffects()
         // Check for effect command suppression.
         if (!mod_stream->is_effect_command_enabled(nChn, cmd))
             cmd = 0;
-            
+        
+        // Check for pending effect command.
+        // Note that we only do this when the tick count is zero, since many effects require this.
+        if (!m_nTickCount && mod_stream->is_effect_command_pending(nChn)) {
+            cmd = mod_stream->pop_effect_command(nChn);
+            param = mod_stream->pop_effect_parameter(nChn);
+        }
+        
+        // Check for pending volume command.
+        // As above, the tick count must be zero.
+        if (!m_nTickCount && mod_stream->is_volume_command_pending(nChn)) {
+            volcmd = mod_stream->pop_volume_command(nChn);
+            vol = mod_stream->pop_volume_parameter(nChn);
+        }
+        
         // </MODIPULATE>
         
 		bool bPorta = ((cmd != CMD_TONEPORTAMENTO) && (cmd != CMD_TONEPORTAVOL) && (volcmd != VOLCMD_TONEPORTAMENTO)) ? FALSE : TRUE;

@@ -144,7 +144,15 @@ static int modipulateLua_song_get_instrument_name(lua_State *L) {
 
 
 static int modipulateLua_song_volume_command(lua_State *L) {
-    // TODO
+    const char* usage = "Usage: volumeCommand(channel, volumeCommand, volumeParameter)";
+    luaL_argcheck(L, lua_gettop(L) == 4, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
+    luaL_argcheck(L, lua_isnumber(L, 3), 3, usage);
+    luaL_argcheck(L, lua_isnumber(L, 4), 4, usage);
+    
+    MODIPULATE_LUA_ERROR(L, modipulate_song_volume_command(lua_song->song, 
+        (unsigned) lua_tointeger(L, 2), (int) lua_tointeger(L, 3), (int) lua_tointeger(L, 4)));
     return 0;
 }
 
@@ -165,7 +173,15 @@ static int modipulateLua_song_enable_volume(lua_State *L) {
 
 
 static int modipulateLua_song_effect_command(lua_State *L) {
-    // TODO
+    const char* usage = "Usage: effectCommand(channel, effectCommand, effectParameter)";
+    luaL_argcheck(L, lua_gettop(L) == 4, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
+    luaL_argcheck(L, lua_isnumber(L, 3), 3, usage);
+    luaL_argcheck(L, lua_isnumber(L, 4), 4, usage);
+    
+    MODIPULATE_LUA_ERROR(L, modipulate_song_effect_command(lua_song->song,
+        (unsigned) lua_tointeger(L, 2), (int) lua_tointeger(L, 3), (int) lua_tointeger(L, 4)));
     return 0;
 }
 
