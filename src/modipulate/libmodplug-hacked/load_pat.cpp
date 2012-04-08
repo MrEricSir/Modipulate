@@ -32,7 +32,6 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
-#include <ctype.h>
 #ifndef _WIN32
 #include <limits.h> // for PATH_MAX
 #include <unistd.h> // for sleep
@@ -412,7 +411,7 @@ void pat_init_patnames(void)
 			isdrumset = 0;
 			_mm_fgets(mmcfg, line, PATH_MAX);
 			while( !_mm_feof(mmcfg) ) {
-			if( isdigit(line[0]) || (isblank(line[0]) && isdigit(line[1])) ) {
+			if( isdigit(line[0]) || (isspace(line[0]) && isdigit(line[1])) ) {
 				p = line;
 				// get pat number
 				while ( isspace(*p) ) p ++;
@@ -427,7 +426,7 @@ void pat_init_patnames(void)
 						pfnlen ++;
 						*q++ = *p++;
 					}
-					if( isblank(*p) && *(p+1) != '#' && pfnlen < 128 ) {
+					if(isspace(*p) && *(p+1) != '#' && pfnlen < 128 ) {
 						*q++ = ':'; pfnlen ++;
 						while( isspace(*p) ) {
 							while( isspace(*p) ) p++;

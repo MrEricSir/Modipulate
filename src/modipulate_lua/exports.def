@@ -1,0 +1,4 @@
+LIBRARY     LIBMODIPULATELUA
+EXPORTS
+    DllMain
+    luaopen_libmodipulatelua

@@ -1,5 +1,5 @@
 #include "mod_stream.h"
-#include "libmodplug-hacked/modplug.h"
+#include "libmodplug-hacked/include/modplug.h"
 
 #include <iostream>
 #include <stdlib.h>
@@ -23,6 +23,57 @@ int mod_stream_callback(const void *input, void *output, unsigned long frameCoun
 
 void mod_stream_callback_finished(void* userData) {
     ((ModStream*) userData)->stream_finished_callback();
+}
+
+static void mod_stream_cb_on_pattern_changed(unsigned pattern, void* user_data) {
+    ((ModStream*) user_data)->on_pattern_changed(pattern);
+}
+
+static void mod_stream_cb_on_tempo_changed(int tempo, void* user_data) {
+    ((ModStream*) user_data)->on_tempo_changed(tempo);
+}
+
+static void mod_stream_cb_on_note_change(unsigned channel, int note, int instrument, int sample, int volume, void* user_data) {
+    ((ModStream*) user_data)->on_note_change(channel, note, instrument, sample, volume);
+}
+
+static void mod_stream_cb_on_row_changed(int row, void* user_data) {
+    ((ModStream*) user_data)->on_row_changed(row);
+}
+
+static void mod_stream_cb_increase_sample_count(int add, void* user_data) {
+    ((ModStream*) user_data)->increase_sample_count(add);
+}
+
+static bool mod_stream_cb_is_volume_command_enabled(int channel, int volume_command, void* user_data) {
+    return ((ModStream*) user_data)->is_volume_command_enabled(channel, volume_command);
+}
+static bool mod_stream_cb_is_volume_command_pending(unsigned channel, void* user_data) {
+    return ((ModStream*) user_data)->is_volume_command_pending(channel);
+}
+
+static unsigned mod_stream_cb_pop_volume_command(unsigned channel, void* user_data) {
+    return ((ModStream*) user_data)->pop_volume_command(channel);
+}
+
+static unsigned mod_stream_cb_pop_volume_parameter(unsigned channel, void* user_data) {
+    return ((ModStream*) user_data)->pop_volume_parameter(channel);
+}
+
+static bool mod_stream_cb_is_effect_command_enabled(int channel, int effect_command, void* user_data) {
+    return ((ModStream*) user_data)->is_effect_command_enabled(channel, effect_command);
+}
+
+static bool mod_stream_cb_is_effect_command_pending(unsigned channel, void* user_data) {
+    return ((ModStream*) user_data)->is_effect_command_pending(channel);
+}
+
+static unsigned mod_stream_cb_pop_effect_command(unsigned channel, void* user_data) {
+    return ((ModStream*) user_data)->pop_effect_command(channel);
+}
+
+static unsigned mod_stream_cb_pop_effect_parameter(unsigned channel, void* user_data)  {
+    return ((ModStream*) user_data)->pop_effect_parameter(channel);
 }
 
 
@@ -108,15 +159,24 @@ void ModStream::open(string path) {
     
     DPRINT("Loaded mod! File length is: %lu", file_length);
     
-    // Save pointer.
-    modplug_file->mSoundFile.mod_stream = this;
-    
     // Allocate the current row.
     current_row = new ModStreamRow();
     
     samples_played = 0;
     
-    modplug_file = HackedModPlug_Load(buffer, file_length + 1);
+    modplug_file = HackedModPlug_Load(buffer, file_length + 1,
+        this,
+        mod_stream_cb_increase_sample_count,
+        mod_stream_cb_is_volume_command_enabled,
+        mod_stream_cb_is_volume_command_pending,
+        mod_stream_cb_pop_volume_command,
+        mod_stream_cb_pop_volume_parameter,
+        mod_stream_cb_is_effect_command_enabled,
+        mod_stream_cb_is_effect_command_pending,
+        mod_stream_cb_pop_effect_command,
+        mod_stream_cb_pop_effect_parameter
+        );
+
     if (modplug_file == NULL)
         throw("File was loaded, modplug couldn't parse it.");
     
@@ -151,6 +211,10 @@ void ModStream::open(string path) {
     
     check_error(__LINE__, Pa_SetStreamFinishedCallback(stream, &mod_stream_callback_finished));
     
+    HackedModPlug_SetOnPatternChanged(modplug_file, mod_stream_cb_on_pattern_changed);
+    HackedModPlug_SetOnRowChanged(modplug_file, mod_stream_cb_on_row_changed);
+    HackedModPlug_SetOnNoteChange(modplug_file, mod_stream_cb_on_note_change);
+
     default_tempo = ModPlug_GetCurrentTempo(modplug_file);
 }
 
@@ -169,11 +233,11 @@ void ModStream::set_playing(bool play) {
         return;
     } else if (play) {
         check_error(__LINE__, Pa_StartStream(stream));
-        time_add(song_start, song_start, pause_start); // add paused time to start
+		timer.start();
         stream_started = true;
     } else if (!play) {
         check_error(__LINE__, Pa_StopStream(stream));
-        get_current_time(pause_start);
+        timer.stop();
     }
 }
 
@@ -267,12 +331,12 @@ void ModStream::free_info(ModipulateSongInfo* info) {
 
 // Enable or disable channels.
 void ModStream::set_channel_enabled(int channel, bool is_enabled) {
-    modplug_file->mSoundFile.enabled_channels[channel] = is_enabled;
+    HackedModPlug_SetChannelEnabled(modplug_file, channel, is_enabled);
 }
 
 
 bool ModStream::get_channel_enabled(int channel) {
-    return modplug_file->mSoundFile.enabled_channels[channel];
+    return HackedModPlug_GetChannelEnabled(modplug_file, channel);
 }
 
 
@@ -308,15 +372,9 @@ void ModStream::perform_callbacks() {
     if (rows.empty() || !is_playing())
         return;
     
-    // Check time since we started the music.
-    timespec current_time; // Current time.
-    timespec since_start;  // Time since start.
-    get_current_time(current_time);
-    time_diff(since_start, song_start, current_time);
-    
     // Convert time to sample number.
-    unsigned long long samples_since_start = since_start.tv_sec * sampling_rate + 
-        (unsigned long long) ( ((double) (since_start.tv_nsec) * ((double)sampling_rate) / 1000000000.0)); // 1 / one billion = 1 ns
+	// 1 second / one million = 1 micro second
+	unsigned long long samples_since_start = (timer.getElapsedTimeInMicroSec() * (((double) sampling_rate) / 1000000.0));
     
     while (!rows.empty()) {
         // Process callbacks from row data.
@@ -401,8 +459,10 @@ std::string ModStream::get_title() {
 
 
 std::string ModStream::get_message() {
-    const char* message = ModPlug_GetMessage(modplug_file);
-    return (message != NULL) ? string(message) : string("");
+    return string("");
+    // TODO: why is this causing a crash?
+//    const char* message = ModPlug_GetMessage(modplug_file);
+//    return (message != NULL) ? string(message) : string("");
 }
 
 
@@ -416,7 +476,7 @@ void ModStream::set_volume(double vol) {
         vol = 0.;
     else if (vol > 1.)
         vol = 1.;
-    ModPlug_SetMasterVolume(modplug_file, round(vol * 511) + 1);
+    ModPlug_SetMasterVolume(modplug_file, (int) (vol * 511) + 1);
 }
 
 unsigned ModStream::get_num_instruments() {
@@ -488,12 +548,12 @@ int ModStream::get_tempo_override() {
 
 
 void ModStream::set_transposition(int channel, int offset) {
-    modplug_file->mSoundFile.transposition_offset[channel] = offset;
+    HackedModPlug_SetTransposition(modplug_file, channel, offset);
 }
 
 
 int ModStream::get_transposition(int channel) {
-    return modplug_file->mSoundFile.transposition_offset[channel];
+    return HackedModPlug_GetTransposition(modplug_file, channel);
 }
 
 
@@ -567,36 +627,4 @@ unsigned ModStream::pop_volume_parameter(unsigned channel) {
     volParameter[channel] = 0;
     
     return cmd;
-}
-
-
-// Grabs current timespec val.
-void ModStream::get_current_time(timespec& time) {
-    if (clock_gettime(CLOCK_MONOTONIC, &time) == -1)
-        DPRINT("Error getting time: %d", errno);
-}
-
-
-// Based on code from here:
-// http://www.guyrutenberg.com/2007/09/22/profiling-code-using-clock_gettime/
-void ModStream::time_diff(timespec& result, const timespec& start, const timespec& end) {
-    if ((end.tv_nsec-start.tv_nsec)<0) {
-        result.tv_sec = end.tv_sec-start.tv_sec-1;
-        result.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
-    } else {
-        result.tv_sec = end.tv_sec-start.tv_sec;
-        result.tv_nsec = end.tv_nsec-start.tv_nsec;
-    }
-}
-
-
-// Based on code from here:
-// http://www.geonius.com/software/libgpl/ts_util.html
-void ModStream::time_add(timespec& result, const timespec& time1, const timespec& time2) {
-    result.tv_sec = time1.tv_sec + time2.tv_sec;
-    result.tv_nsec = time1.tv_nsec + time2.tv_nsec;
-    if (result.tv_nsec >= 1000000000L) {
-        result.tv_sec++;
-        result.tv_nsec = result.tv_nsec - 1000000000L;
-    }
 }

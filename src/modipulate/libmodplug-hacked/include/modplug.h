@@ -7,22 +7,31 @@
 #ifndef MODPLUG_H__INCLUDED
 #define MODPLUG_H__INCLUDED
 
-#include "stdafx.h"
-#include "sndfile.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Moved this diff here as part of libmodplug-hacked (for Modipulate) because I don't
-// have time to wrap everything properly. Someday I'll hire an intern to go back and
-// do that.
-struct _HackedModPlugFile
-{
-	HackedCSoundFile mSoundFile;
-};
-
+struct _HackedModPlugFile;
 typedef struct _HackedModPlugFile HackedModPlugFile;
+
+
+// Modipulate callbacks.
+typedef void (*modplug_hacked_on_pattern_changed_cb) (unsigned pattern, void* user_data);
+typedef void (*modplug_hacked_on_tempo_changed_cb) (int tempo, void* user_data);
+typedef void (*modplug_hacked_on_note_change_cb) (unsigned channel, int note, int instrument, int sample, int volume, void* user_data);
+typedef void (*modplug_hacked_on_row_changed_cb) (int row, void* user_data);
+
+typedef void (*modplug_hacked_increase_sample_count_cb) (int add, void* user_data);
+typedef bool (*modplug_hacked_is_volume_command_enabled_cb) (int channel, int volume_command, void* user_data);
+typedef bool (*modplug_hacked_is_volume_command_pending_cb) (unsigned channel, void* user_data);
+typedef unsigned (*modplug_hacked_pop_volume_command_cb) (unsigned channel, void* user_data);
+typedef unsigned (*modplug_hacked_pop_volume_parameter_cb) (unsigned channel, void* user_data);
+typedef bool (*modplug_hacked_is_effect_command_enabled_cb) (int channel, int effect_command, void* user_data);
+typedef bool (*modplug_hacked_is_effect_command_pending_cb) (unsigned channel, void* user_data);
+typedef unsigned (*modplug_hacked_pop_effect_command_cb) (unsigned channel, void* user_data);
+typedef unsigned (*modplug_hacked_pop_effect_parameter_cb) (unsigned channel, void* user_data);
+
+
 
 struct _ModPlugNote {
 	unsigned char Note;
@@ -39,7 +48,20 @@ typedef void (*ModPlugMixerProc)(int*, unsigned long, unsigned long);
 /* Load a mod file.  [data] should point to a block of memory containing the complete
  * file, and [size] should be the size of that block.
  * Return the loaded mod file on success, or NULL on failure. */
-HackedModPlugFile* HackedModPlug_Load(const void* data, int size);
+HackedModPlugFile* HackedModPlug_Load(const void* data, int size,
+    // For Modipulation, a number of additional parameters are required.
+    void* mod_stream,  // this is the ModStream instance.
+    modplug_hacked_increase_sample_count_cb increase_sample_count,
+    modplug_hacked_is_volume_command_enabled_cb is_volume_command_enabled,
+    modplug_hacked_is_volume_command_pending_cb is_volume_command_pending,
+    modplug_hacked_pop_volume_command_cb pop_volume_command,
+    modplug_hacked_pop_volume_parameter_cb pop_volume_parameter,
+    modplug_hacked_is_effect_command_enabled_cb is_effect_command_enabled,
+    modplug_hacked_is_effect_command_pending_cb is_effect_command_pending,
+    modplug_hacked_pop_effect_command_cb pop_effect_command,
+    modplug_hacked_pop_effect_parameter_cb pop_effect_parameter
+);
+
 /* Unload a mod file. */
 void ModPlug_Unload(HackedModPlugFile* file);
 
@@ -126,7 +148,6 @@ void ModPlug_SeekOrder(HackedModPlugFile* file,int order);
 int ModPlug_GetModuleType(HackedModPlugFile* file);
 char* ModPlug_GetMessage(HackedModPlugFile* file);
 
-
 #ifndef MODPLUG_NO_FILESAVE
 /*
  * EXPERIMENTAL Export Functions
@@ -150,6 +171,17 @@ unsigned int ModPlug_NumPatterns(HackedModPlugFile* file);
 unsigned int ModPlug_NumChannels(HackedModPlugFile* file);
 unsigned int ModPlug_SampleName(HackedModPlugFile* file, unsigned int qual, char* buff);
 unsigned int ModPlug_InstrumentName(HackedModPlugFile* file, unsigned int qual, char* buff);
+
+void HackedModPlug_SetChannelEnabled(HackedModPlugFile* file, int channel, bool is_enabled);
+bool HackedModPlug_GetChannelEnabled(HackedModPlugFile* file, int channel);
+int HackedModPlug_GetTransposition(HackedModPlugFile* file, int channel);
+void HackedModPlug_SetTransposition(HackedModPlugFile* file, int channel, int offset);
+
+void HackedModPlug_SetOnTempoChanged(HackedModPlugFile* file, modplug_hacked_on_tempo_changed_cb cb);
+void HackedModPlug_SetOnNoteChange(HackedModPlugFile* file, modplug_hacked_on_note_change_cb cb);
+void HackedModPlug_SetOnPatternChanged(HackedModPlugFile* file, modplug_hacked_on_pattern_changed_cb cb);
+void HackedModPlug_SetOnRowChanged(HackedModPlugFile* file, modplug_hacked_on_row_changed_cb cb);
+
 
 /*
  * Retrieve pattern note-data

@@ -9,7 +9,7 @@
 #undef HAVE_DLFCN_H
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#define HAVE_INTTYPES_H 1
+//#define HAVE_INTTYPES_H 1
 
 /* Define to 1 if you have the <malloc.h> header file. */
 #define HAVE_MALLOC_H 1
@@ -18,7 +18,7 @@
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `setenv' function. */
-#define HAVE_SETENV 1
+//#define HAVE_SETENV 1
 
 /* Define to 1 if you have the `sinf' function. */
 #define HAVE_SINF 1

@@ -1,6 +1,6 @@
 -- Console
 -- Barebones Modipulate app. Look at the console for interesting stuff.
--- Check the key functions for keyboard commands.   
+-- Check the key functions for keyboard commands.
 
 require 'libmodipulatelua'
 
@@ -20,11 +20,11 @@ function love.load()
     else
         mod_file = '../../media/sponge1.it'
     end
-    
+
     song = modipulate.loadSong(mod_file)
-    
+
     tempo = song.defaultTempo
-    
+
     print('Song loaded')
     print('Title: ', song.title)
     print('Message: ', song.message)
@@ -42,11 +42,11 @@ function love.load()
         print('Instrument: ', i, song:getInstrumentName(i))
     end
     print('')
-    
+
     song:onPatternChange(patternChanged)
     song:onRowChange(rowChanged)
     song:onNote(noteChanged)
-    
+
     song:play(true)
 end
 
@@ -98,14 +98,14 @@ function love.keypressed(k)
         song:enableEffect(4, 1, false)
     elseif k == 's' then
         love.audio.play(sound_effect)
-    elseif k == 't' then 
+    elseif k == 't' then
         print('Increasing tempo')
         -- increase tempo
         tempo = tempo * 2
         if tempo > 0xFF then
             tempo = 0xFF
         end
-        
+
         song:effectCommand(0, 17, tempo)
     end
 end
@@ -149,7 +149,7 @@ function love.keyreleased(k)
         if tempo < 0x20 then
             tempo = 0x20
         end
-        
+
         song:effectCommand(0, 17, tempo)
     elseif k == 'z' then
         for i = 0, song.numChannels, 1 do
@@ -163,7 +163,7 @@ function love.keyreleased(k)
 end
 
 function love.draw()
-    love.graphics.setFont(12)
+    --love.graphics.setFont(12)
     love.graphics.print('Loaded file: ' .. mod_file, 20, 20)
     love.graphics.print(playing_text, 20, 40)
     love.graphics.print('Play/pause: space', 20, 60)
@@ -184,7 +184,7 @@ end
 
 function noteChanged(channel, note, instrument, sample, volumeCommand, volumeValue, effectCommand, effectValue)
     print("Note changed (channel, note, instrument, sample)", channel, note, instrument, sample)
-    
+
     -- TODO: a handy-dandy list of effect and volumeCommand values for Lua devs.
     --       For now, you'll have to consult sndfile.h (in the modplug directory)
     if effectCommand == 17 then

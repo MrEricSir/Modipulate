@@ -9,9 +9,6 @@
 #include "sndfile.h"
 #include "tables.h"
 
-#include "modipulate_common.h"
-#include "mod_stream.h"
-
 using namespace std;
 
 #ifdef MSC_VER
@@ -92,7 +89,8 @@ DWORD HackedCSoundFile::GetLength(BOOL bAdjust, BOOL bTotal)
 				{
 					m_nMusicSpeed = nMusicSpeed;
 					m_nMusicTempo = nMusicTempo;
-                    mod_stream->on_tempo_changed(m_nMusicTempo);
+					if (on_tempo_changed)
+						on_tempo_changed(m_nMusicTempo, mod_stream);
 				}
 				break;
 			}
@@ -572,13 +570,15 @@ void HackedCSoundFile::NoteChange(UINT nChn, int note, BOOL bPorta, BOOL bResetE
     int new_sample = -1;
     if (samples_reversed.count(pChn->pSample) == 1)
         new_sample = samples_reversed[pChn->pSample];
-        
-    mod_stream->on_note_change(nChn,                               // Channel #
-        note,                                                      // Note ID
-        pChn->pHeader != NULL? pChn->pHeader->number : -1,         // Instrument # (or -1)
-        new_sample,                                                // Sample # (or -1)
-        pChn->nVolume                                              // Volume
-    );
+    
+	if (on_note_change)
+		on_note_change(nChn,									// Channel #
+			note,                                               // Note ID
+			pChn->pHeader != NULL? pChn->pHeader->number : -1,  // Instrument # (or -1)
+			new_sample,                                         // Sample # (or -1)
+			pChn->nVolume,                                      // Volume
+            mod_stream
+		);
 }
 
 
@@ -770,25 +770,25 @@ BOOL HackedCSoundFile::ProcessEffects()
         // <MODIPULATE>
         
         // Check for volume command supression.
-        if (!mod_stream->is_volume_command_enabled(nChn, volcmd))
-            volcmd = 0;
+        if (!is_volume_command_enabled(nChn, volcmd, mod_stream))
+                volcmd = 0;
         
         // Check for effect command suppression.
-        if (!mod_stream->is_effect_command_enabled(nChn, cmd))
+        if (!is_effect_command_enabled(nChn, cmd, mod_stream))
             cmd = 0;
         
         // Check for pending effect command.
         // Note that we only do this when the tick count is zero, since many effects require this.
-        if (!m_nTickCount && mod_stream->is_effect_command_pending(nChn)) {
-            cmd = mod_stream->pop_effect_command(nChn);
-            param = mod_stream->pop_effect_parameter(nChn);
+        if (!m_nTickCount && is_effect_command_pending(nChn, mod_stream)) {
+            cmd = pop_effect_command(nChn, mod_stream);
+            param = pop_effect_parameter(nChn, mod_stream);
         }
         
         // Check for pending volume command.
         // As above, the tick count must be zero.
-        if (!m_nTickCount && mod_stream->is_volume_command_pending(nChn)) {
-            volcmd = mod_stream->pop_volume_command(nChn);
-            vol = mod_stream->pop_volume_parameter(nChn);
+        if (!m_nTickCount && is_volume_command_pending(nChn, mod_stream)) {
+            volcmd = pop_volume_command(nChn, mod_stream);
+            vol = pop_volume_parameter(nChn, mod_stream);
         }
         
         // </MODIPULATE>
@@ -2159,7 +2159,8 @@ void HackedCSoundFile::SetTempo(UINT param)
 		m_nMusicTempo = param;
 	}
     
-    mod_stream->on_tempo_changed(m_nMusicTempo);
+    if (on_tempo_changed)
+        on_tempo_changed(m_nMusicTempo, mod_stream);
 }
 
 

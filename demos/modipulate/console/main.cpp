@@ -1,9 +1,21 @@
 #include <stdio.h>
 #include <modipulate.h>
-#include <unistd.h>
 #include <string>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
+void mySleep(unsigned ms) {
+#ifdef _WIN32
+    Sleep(ms);
+#else
+    usleep(ms * 1000);
+#endif
+}
 
 class Note {
 public:
@@ -66,10 +78,10 @@ public:
 };
 
 
-char* filename = "../../media/v-cf.it";
-ModipulateSong song;
-ModipulateErr err;
-ModipulateSongInfo* song_info;
+char* filename = "../demos/media/v-cf.it";
+odipulateSong song;
+odipulateErr err;
+odipulateSongInfo* song_info;
 int channels;
 Row* my_row = NULL;
 
@@ -110,12 +122,16 @@ int main(int argc, char **argv) {
     printf("***************************\n\n");
     
     err = modipulate_global_init();
-    if (!MODIPULATE_OK(err))
+    if (!MODIPULATE_OK(err)) {
+        printf("\nERROR: %s\n", modipulate_global_get_last_error_string());
         return err;
+    }
     
     err = modipulate_song_load(filename, &song);
-    if (!MODIPULATE_OK(err))
+    if (!MODIPULATE_OK(err)) {
+        printf("\nERROR: %s\n", modipulate_global_get_last_error_string());
         return err;
+    }
     
     // Setup callbacks.
     modipulate_song_on_pattern_change(song, on_pattern_change, NULL);
@@ -124,8 +140,10 @@ int main(int argc, char **argv) {
     
     // Print song info.
     err = modipulate_song_get_info(song, &song_info);
-    if (!MODIPULATE_OK(err))
+    if (!MODIPULATE_OK(err)) {
+        printf("\nERROR: %s\n", modipulate_global_get_last_error_string());
         return err;
+    }
     
     printf("\n***************************\n");
     printf("Song info\n");
@@ -141,16 +159,20 @@ int main(int argc, char **argv) {
     channels = song_info->num_channels;
     
     err = modipulate_song_play(song, 1);
-    if (!MODIPULATE_OK(err))
+    if (!MODIPULATE_OK(err)) {
+        printf("\nERROR: %s\n", modipulate_global_get_last_error_string());
         return err;
-      
+    }
+    
     // Mimic a game loop.
     while(true) {
         err = modipulate_global_update();
-        if (!MODIPULATE_OK(err))
+        if (!MODIPULATE_OK(err)) {
+            printf("\nERROR: %s\n", modipulate_global_get_last_error_string());
             return err;
+        }
         
-        usleep(50000); // wait 50 ms (to reduce CPU usage)
+        mySleep(50); // wait 50 ms (to reduce CPU usage)
     }
     
     // Realstically you'll never get here if you ctrl-C out of the

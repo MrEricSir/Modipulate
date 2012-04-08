@@ -9,8 +9,7 @@
 #include "tables.h"
 
 #include <iostream>
-#include "modipulate_common.h"
-#include "mod_stream.h"
+#include "include/modplug.h"
 
 using namespace std;
 
@@ -46,8 +45,6 @@ LONG gnDryLOfsVol = 0;
 LONG gnRvbROfsVol = 0;
 LONG gnRvbLOfsVol = 0;
 int gbInitPlugins = 0;
-
-ModStream* HackedCSoundFile::mod_stream = NULL;
 
 typedef DWORD (MPPASMCALL * LPCONVERTPROC)(LPVOID, int *, DWORD, LPLONG, LPLONG);
 
@@ -297,7 +294,8 @@ UINT HackedCSoundFile::Read(LPVOID lpDestBuffer, UINT cbBuffer)
 		if (!lCount) break;
         
         //DPRINT("lcount: %d", lCount);
-        mod_stream->increase_sample_count(lCount);
+        if (increase_sample_count)
+            increase_sample_count(lCount, mod_stream);
         
 		lSampleCount = lCount;
 #ifndef MODPLUG_NO_REVERB
@@ -371,12 +369,14 @@ BOOL HackedCSoundFile::ProcessRow()
 		m_nRow = m_nNextRow;
         
         // Modipulate: row change.
-        mod_stream->on_row_changed(m_nRow);
+        if (on_row_changed)
+            on_row_changed(m_nRow, mod_stream);
         
 		// Reset Pattern Loop Effect
 		if (m_nCurrentPattern != m_nNextPattern) {
 				m_nCurrentPattern = m_nNextPattern;
-                mod_stream->on_pattern_changed(m_nCurrentPattern);
+                if (on_pattern_changed)
+                    on_pattern_changed(m_nCurrentPattern, mod_stream);
 		}
 		// Check if pattern is valid
 		if (!(m_dwSongFlags & SONG_PATTERNLOOP))
@@ -397,7 +397,8 @@ BOOL HackedCSoundFile::ProcessRow()
 					{
 						m_nMusicSpeed = m_nDefaultSpeed;
 						m_nMusicTempo = m_nDefaultTempo;
-                        mod_stream->on_tempo_changed(m_nMusicTempo);
+                        if (on_tempo_changed)
+                            on_tempo_changed(m_nMusicTempo, mod_stream);
 						m_nGlobalVolume = m_nDefaultGlobalVolume;
 						for (UINT i=0; i<MAX_CHANNELS; i++)
 						{
@@ -427,13 +428,15 @@ BOOL HackedCSoundFile::ProcessRow()
 					}
 					if (m_nRepeatCount > 0) m_nRepeatCount--;
 					m_nCurrentPattern = m_nRestartPos;
-                    mod_stream->on_pattern_changed(m_nCurrentPattern);
+                    if (on_pattern_changed)
+                        on_pattern_changed(m_nCurrentPattern, mod_stream);
 					m_nRow = 0;
 					if ((Order[m_nCurrentPattern] >= MAX_PATTERNS) || (!Patterns[Order[m_nCurrentPattern]])) return FALSE;
 				} else
 				{
 					m_nCurrentPattern++;
-                    mod_stream->on_pattern_changed(m_nCurrentPattern);
+                    if (on_pattern_changed)
+                        on_pattern_changed(m_nCurrentPattern, mod_stream);
 				}
 				m_nPattern = (m_nCurrentPattern < MAX_ORDERS) ? Order[m_nCurrentPattern] : 0xFF;
 				if ((m_nPattern < MAX_PATTERNS) && (!Patterns[m_nPattern])) m_nPattern = 0xFE;
@@ -497,8 +500,8 @@ BOOL HackedCSoundFile::ReadNote()
 	m_nTotalCount++;
 	if (!m_nMusicTempo) return FALSE;
     int tempo = m_nMusicTempo;
-    if (mod_stream->get_tempo_override() != -1)
-        tempo = mod_stream->get_tempo_override();
+    if (tempo_override != -1)
+        tempo = tempo_override;
 	m_nBufferCount = (gdwMixingFreq * 5 * m_nTempoFactor) / (tempo << 8);
 	// Master Volume + Pre-Amplification / Attenuation setup
 	DWORD nMasterVol;

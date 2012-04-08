@@ -15,7 +15,7 @@
 # define CONFIG_H_INCLUDED 1
 //#endif
 //#ifdef HAVE_INTTYPES_H
-# include <inttypes.h>
+//# include <inttypes.h>
 //#endif
 //#ifdef HAVE_STDINT_H
 # include <stdint.h>
@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <stdint.h>
+#include <cctype>
 
 #define srandom(_seed)  srand(_seed)
 #define random()        rand()

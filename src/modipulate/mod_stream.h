@@ -10,16 +10,16 @@
 #ifndef MODSTREAM_H
 #define MODSTREAM_H
 
-#include <time.h>
 #include <string>
 #include <list>
 #include <queue>
 #include "modipulate_common.h"
+#include "libmodplug-hacked/include/defines.h"
 #include <portaudio.h>
-#include "libmodplug-hacked/modplug.h"
+#include "libmodplug-hacked/include/modplug.h"
 #include "modipulate.h"
 #include "Array2D.h"
-
+#include "timer/Timer.h"
 
 class ModStreamNote {
 public:
@@ -147,7 +147,6 @@ public:
     
     void perform_callbacks();
     
-protected:
     void on_note_change(unsigned channel, int note, int instrument, int sample, int volume);
     void on_pattern_changed(unsigned pattern);
     void on_row_changed(int row);
@@ -162,9 +161,7 @@ private:
     
     void stream_finished_callback();
     
-    void get_current_time(timespec& time);
-    void time_diff(timespec& result, const timespec& start, const timespec& end);
-    void time_add(timespec& result, const timespec& time1, const timespec& time2);
+    Timer timer;
     
     HackedModPlugFile* modplug_file; // handle to file
     unsigned long file_length;  // length of file
@@ -172,8 +169,6 @@ private:
     const static int sampling_rate = 44100; // don't change this directly, need to call modplug for that
     bool stream_started;
     unsigned long long samples_played; // Samples played thus far.
-    timespec song_start; // Time the song started.
-    timespec pause_start; // Time when we started being paused.
     int last_tempo_read; // Last tempo we encountered.
     int tempo_override; // tempo override (-1 means disabled)
     
@@ -188,8 +183,8 @@ private:
     modipulate_song_note_cb note_cb;
     void* note_user_data;
     
-    unsigned volCommand[];
-    unsigned volParameter[];
+    unsigned volCommand[MAX_CHANNELS];
+    unsigned volParameter[MAX_CHANNELS];
     
     unsigned effectCommand[MAX_CHANNELS];
     unsigned effectParameter[MAX_CHANNELS];
@@ -207,8 +202,6 @@ private:
     
     // Cached data for upcoming callbacks.
     std::queue<ModStreamRow*> rows;
-    
-    friend class HackedCSoundFile;
     
     friend int mod_stream_callback(const void *input, void *output, unsigned long frameCount, 
         const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData);

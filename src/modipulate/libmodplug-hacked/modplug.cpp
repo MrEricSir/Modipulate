@@ -4,11 +4,16 @@
  * Authors: Kenton Varda <temporal@gauge3d.org> (C interface wrapper)
  */
 
-#include "modplug.h"
+#include "include/modplug.h"
 #include "stdafx.h"
 #include "sndfile.h"
 
 #include <modipulate_common.h>
+
+struct _HackedModPlugFile
+{
+	HackedCSoundFile mSoundFile;
+};
 
 namespace HackedModPlug
 {
@@ -78,7 +83,18 @@ namespace HackedModPlug
 	}
 }
 
-HackedModPlugFile* HackedModPlug_Load(const void* data, int size)
+HackedModPlugFile* HackedModPlug_Load(const void* data, int size,
+    void* mod_stream,  // this is the ModStream instance.
+    modplug_hacked_increase_sample_count_cb increase_sample_count,
+    modplug_hacked_is_volume_command_enabled_cb is_volume_command_enabled,
+    modplug_hacked_is_volume_command_pending_cb is_volume_command_pending,
+    modplug_hacked_pop_volume_command_cb pop_volume_command,
+    modplug_hacked_pop_volume_parameter_cb pop_volume_parameter,
+    modplug_hacked_is_effect_command_enabled_cb is_effect_command_enabled,
+    modplug_hacked_is_effect_command_pending_cb is_effect_command_pending,
+    modplug_hacked_pop_effect_command_cb pop_effect_command,
+    modplug_hacked_pop_effect_parameter_cb pop_effect_parameter
+    )
 {
     DPRINT("ModPlug_Load");
 	HackedModPlugFile* result = new HackedModPlugFile;
@@ -86,6 +102,18 @@ HackedModPlugFile* HackedModPlug_Load(const void* data, int size)
 	if(result->mSoundFile.Create((const BYTE*)data, size))
 	{
 		result->mSoundFile.SetRepeatCount(HackedModPlug::gSettings.mLoopCount);
+
+        result->mSoundFile.mod_stream = mod_stream;
+        result->mSoundFile.increase_sample_count = increase_sample_count;
+        result->mSoundFile.is_volume_command_enabled = is_volume_command_enabled;
+        result->mSoundFile.is_volume_command_pending = is_volume_command_pending;
+        result->mSoundFile.pop_volume_command = pop_volume_command;
+        result->mSoundFile.pop_volume_parameter = pop_volume_parameter;
+        result->mSoundFile.is_effect_command_enabled = is_effect_command_enabled;
+        result->mSoundFile.is_effect_command_pending = is_effect_command_pending;
+        result->mSoundFile.pop_effect_command = pop_effect_command;
+        result->mSoundFile.pop_effect_parameter = pop_effect_parameter;
+
 		return result;
 	}
 	else
@@ -270,4 +298,45 @@ void ModPlug_SetSettings(const ModPlug_Settings* settings)
 {
 	memcpy(&HackedModPlug::gSettings, settings, sizeof(ModPlug_Settings));
 	HackedModPlug::UpdateSettings(false); // do not update basic config.
+}
+
+
+////////////////////////////
+// Modipulate functions.
+////////////////////////////
+
+
+void HackedModPlug_SetChannelEnabled(HackedModPlugFile* file, int channel, bool is_enabled) {
+    file->mSoundFile.enabled_channels[channel] = is_enabled;
+}
+
+
+bool HackedModPlug_GetChannelEnabled(HackedModPlugFile* file, int channel) {
+    return file->mSoundFile.enabled_channels[channel];
+}
+
+
+int HackedModPlug_GetTransposition(HackedModPlugFile* file, int channel) {
+    return file->mSoundFile.enabled_channels[channel];
+}
+
+
+void HackedModPlug_SetTransposition(HackedModPlugFile* file, int channel, int offset) {
+    file->mSoundFile.transposition_offset[channel] = offset;
+}
+
+void HackedModPlug_SetOnTempoChanged(HackedModPlugFile* file, modplug_hacked_on_tempo_changed_cb cb) {
+    file->mSoundFile.on_tempo_changed = cb;
+}
+
+void HackedModPlug_SetOnNoteChange(HackedModPlugFile* file, modplug_hacked_on_note_change_cb cb) {
+    file->mSoundFile.on_note_change = cb;
+}
+
+void HackedModPlug_SetOnPatternChanged(HackedModPlugFile* file, modplug_hacked_on_pattern_changed_cb cb) {
+    file->mSoundFile.on_pattern_changed = cb;
+}
+
+void HackedModPlug_SetOnRowChanged(HackedModPlugFile* file, modplug_hacked_on_row_changed_cb cb) {
+    file->mSoundFile.on_row_changed = cb;
 }

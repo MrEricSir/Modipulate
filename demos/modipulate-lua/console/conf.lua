@@ -1,6 +1,7 @@
 function love.conf(t)
-    t.title = "Modipulate Example 1"
+    t.title = "Modipulate Console"
     t.author = "Eric Gregory; Stevie Hryciw"
+	t.identity = modipulate_console
     t.console = true
     t.release = false
     t.modules.audio = true

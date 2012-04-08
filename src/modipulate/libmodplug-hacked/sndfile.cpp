@@ -8,7 +8,6 @@
 #include <math.h> //for GCCFIX
 #include "stdafx.h"
 #include "sndfile.h"
-#include "mod_stream.h"
 
 extern char* last_error;
 
@@ -84,6 +83,14 @@ HackedCSoundFile::HackedCSoundFile()
         enabled_channels[i] = true;
         transposition_offset[i] = 0;
     }
+
+    on_tempo_changed = NULL;
+    on_note_change = NULL;
+    on_pattern_changed = NULL;
+    on_row_changed = NULL;
+
+    mod_stream = NULL;
+    tempo_override = -1;
 }
 
 
@@ -154,7 +161,7 @@ BOOL HackedCSoundFile::Create(LPCBYTE lpStream, DWORD dwMemLength)
 		 && (!ReadWav(lpStream, dwMemLength))
 #ifndef MODPLUG_BASIC_SUPPORT
 /* Sequencer File Format Support */
-		 && (!ReadABC(lpStream, dwMemLength))
+//		 && (!ReadABC(lpStream, dwMemLength))
 		 && (!ReadMID(lpStream, dwMemLength))
 		 && (!ReadPAT(lpStream, dwMemLength))
 		 && (!ReadSTM(lpStream, dwMemLength))
@@ -248,7 +255,8 @@ BOOL HackedCSoundFile::Create(LPCBYTE lpStream, DWORD dwMemLength)
 	if (!m_nDefaultSpeed) m_nDefaultSpeed = 6;
 	m_nMusicSpeed = m_nDefaultSpeed;
 	m_nMusicTempo = m_nDefaultTempo;
-    mod_stream->on_tempo_changed(m_nMusicTempo);
+    if (on_tempo_changed)
+        on_tempo_changed(m_nMusicTempo, mod_stream);
 	m_nGlobalVolume = m_nDefaultGlobalVolume;
 	m_nNextPattern = 0;
 	m_nCurrentPattern = 0;
@@ -655,7 +663,8 @@ void HackedCSoundFile::SetCurrentPos(UINT nPos)
 		}
 		m_nGlobalVolume = m_nDefaultGlobalVolume;
 		m_nMusicSpeed = m_nDefaultSpeed;
-        mod_stream->on_tempo_changed(m_nMusicTempo);
+        if (on_tempo_changed)
+            on_tempo_changed(m_nMusicTempo, mod_stream);
 		m_nMusicTempo = m_nDefaultTempo;
 	}
 	m_dwSongFlags &= ~(SONG_PATTERNLOOP|SONG_CPUVERYHIGH|SONG_FADINGSONG|SONG_ENDREACHED|SONG_GLOBALFADE);
