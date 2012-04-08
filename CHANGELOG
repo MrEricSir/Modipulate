@@ -1,3 +1,19 @@
+2012-04-08  Eric Gregory <mrericsir@gmail.com>
+
+    * Modipulate now has a C API, with a
+    second library providing a Lua API.
+
+    * Now using CMake as a build system.
+    
+    * Windows support is now under development.  It
+    compiles and runs on Linux, Mac has not yet
+    been tested.
+    
+    * CodeLite is no longer required, though CMake
+    can generate project files for CodeLite and many
+    other IDEs.
+
+
 2011-09-22  Eric Gregory <mrericsir@gmail.com>
 
     * Welcome to Modipulate. This library is intended for

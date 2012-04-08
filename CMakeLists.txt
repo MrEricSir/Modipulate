@@ -89,6 +89,7 @@ if (LUA51_FOUND)
     )
 endif ()
 
+
 # demo: console
 file(GLOB demo_console_sources 
     "${demo_path}/modipulate/console/*.c*"
@@ -98,5 +99,4 @@ target_link_libraries(console
     ${PORTAUDIO_LIBRARIES} 
     libmodipulate-static
     )
-
 

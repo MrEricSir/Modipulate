@@ -79,9 +79,9 @@ public:
 
 
 char* filename = "../demos/media/v-cf.it";
-odipulateSong song;
-odipulateErr err;
-odipulateSongInfo* song_info;
+ModipulateSong song;
+ModipulateErr err;
+ModipulateSongInfo* song_info;
 int channels;
 Row* my_row = NULL;
 
