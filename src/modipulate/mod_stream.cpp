@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
-#include <malloc.h>
 #include <sstream>
 #include <math.h>
 #include <errno.h>
