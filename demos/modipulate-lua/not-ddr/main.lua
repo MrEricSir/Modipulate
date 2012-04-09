@@ -35,8 +35,8 @@ function love.load()
 		end
 		return (r + m) * 255, (g + m) * 255, (b + m) * 255
 	end
-    
-	
+
+
 	-- Setup Modipulate
 	modipulate.init()
 	song = modipulate.loadSong('../../media/v-cf.it')
@@ -44,7 +44,7 @@ function love.load()
     tempo = song.defaultTempo
     song:onRowChange(exe_row)
     song:onNote(exe_note)
-    
+
 
 	-- Frame for columns
 	frame_margin = 20
@@ -185,22 +185,22 @@ function love.keypressed(k)
 		end
 	elseif k == 'z' then
 		transposition = transposition - 1
-		for i=1,no_channels-1 do
+		for i=0,no_channels-1 do
 			song:setTransposition(i, transposition)
 		end
 	elseif k == 'x' then
 		transposition = transposition + 1
-		for i=1,no_channels-1 do
+		for i=0,no_channels-1 do
 			song:setTransposition(i, transposition)
 		end
 	elseif k == 'a' then
 		transposition = transposition - 12
-		for i=1,no_channels-1 do
+		for i=0,no_channels-1 do
 			song:setTransposition(i, transposition)
 		end
 	elseif k == 's' then
 		transposition = transposition + 12
-		for i=1,no_channels-1 do
+		for i=0,no_channels-1 do
 			song:setTransposition(i, transposition)
 		end
 	end

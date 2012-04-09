@@ -1,8 +1,4 @@
 *~
-/src/modipulate/Debug
-/src/modipulate/Release
-/src/modipulate_lua/Debug
-/src/modipulate_lua/Release
 /build
 /.build-debug
 /.build-release
@@ -11,7 +7,9 @@ Modipulate.tags
 Modipulate.workspace.session
 Modipulate_wsp.mk
 *.so
-/.waf-*
-/.lock-waf_linux2_build
+*.dll
+*.exe
+*.lib
+*.a
 modipulate.txt
 /cscope_file.list
