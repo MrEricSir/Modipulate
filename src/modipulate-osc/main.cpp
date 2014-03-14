@@ -211,6 +211,17 @@ public:
 				modipulate_song_set_channel_enabled(&song, channel, 1);
 				err = MODIPULATE_ERROR_NONE;
 			}
+			else if (MSG_MATCH(msg.AddressPattern(), "/modipulate/channel/effect"))
+			{
+				osc::ReceivedMessageArgumentStream args = msg.ArgumentStream();
+				int channel;
+				int effect_command;
+				int effect_value;
+				args >> channel >> effect_command >> effect_value >> osc::EndMessage;
+				std::cout << PFX_CMD << "Modipulate: Executing command " << effect_command
+					<< " value " << effect_value << " on channel " << channel << "\n";
+				err = modipulate_song_effect_command(&song, channel, effect_command, effect_value);
+			}
 			if (!MODIPULATE_OK(err))
 				std::cout << PFX_ERR << "Modipulate: " << modipulate_global_get_last_error_string() << "\n";
 		}
