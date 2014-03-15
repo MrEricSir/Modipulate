@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
 set(modipulate_path ${CMAKE_SOURCE_DIR}/src/modipulate)
-set(modplug_path ${modipulate_path}/libmodplug-hacked)
+set(libopenmpt_path ${modipulate_path}/libopenmpt-forked)
 set(modipulatelua_path ${CMAKE_SOURCE_DIR}/src/modipulate_lua)
 set(demo_path ${CMAKE_SOURCE_DIR}/demos)
 
@@ -13,7 +13,7 @@ find_package(portaudio REQUIRED)
 find_package(Lua51)
 
 include_directories(${PORTAUDIO_INCLUDE_DIRS})
-include_directories(${modplug_path}/include ${modplug_path} ${modipulate_path})
+include_directories(${libopenmpt_path} ${libopenmpt_path}/common ${libopenmpt_path}/libopenmpt ${libopenmpt_path}/include ${modipulate_path})
 
 if (UNIX AND NOT APPLE)
     # -fPIC for Linux
@@ -35,13 +35,22 @@ function(remove_from_list haystack needle)
 endfunction(remove_from_list)
 
 
-# modplug-hacked
-file(GLOB modplug_sources
-    "${modplug_path}/*.c*"
+# libopenmpt-forked
+add_definitions( -DLIBOPENMPT_BUILD )
+add_definitions( -DNO_LIBMODPLUG )
+file(GLOB libopenmpt_sources
+    "${libopenmpt_path}/common/*.c*"
+    "${libopenmpt_path}/include/miniz/miniz.*"
+    "${libopenmpt_path}/include/miniz/timer.*"
+    "${libopenmpt_path}/include/miniz/tinfl.*"
+    "${libopenmpt_path}/libopenmpt/*.c*"
+    "${libopenmpt_path}/soundlib/*.c*"
+    "${libopenmpt_path}/soundlib/plugins/*.c*"
+    "${libopenmpt_path}/soundlib/Tunings/*.c*"
     )
-add_library(libmodplug-hacked STATIC ${modplug_sources})
-set_target_properties(libmodplug-hacked PROPERTIES PREFIX "")
-target_link_libraries(libmodplug-hacked ${PORTAUDIO_LIBRARIES})
+add_library(libopenmpt-forked STATIC ${libopenmpt_sources})
+set_target_properties(libopenmpt-forked PROPERTIES PREFIX "")
+target_link_libraries(libopenmpt-forked ${PORTAUDIO_LIBRARIES})
 
 
 # modipulate
@@ -55,11 +64,11 @@ set_target_properties(libmodipulate-static PROPERTIES PREFIX "")
 set_target_properties(libmodipulate PROPERTIES PREFIX "")
 target_link_libraries(libmodipulate-static
     ${PORTAUDIO_LIBRARIES} 
-    libmodplug-hacked
+    libopenmpt-forked
     )
 target_link_libraries(libmodipulate 
     ${PORTAUDIO_LIBRARIES} 
-    libmodplug-hacked
+    libopenmpt-forked
     )
 
 
@@ -84,7 +93,7 @@ if (LUA51_FOUND)
     target_link_libraries(libmodipulatelua 
         ${PORTAUDIO_LIBRARIES}
         ${LUA_LIBRARIES}
-        libmodplug-hacked
+        libopenmpt-forked
         libmodipulate-static
     )
 endif ()
