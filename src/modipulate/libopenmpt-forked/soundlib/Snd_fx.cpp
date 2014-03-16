@@ -27,6 +27,8 @@
 #pragma warning(disable:4244)
 #endif
 
+#include "../mod_stream.h"
+
 
 // Formats which have 7-bit (0...128) instead of 6-bit (0...64) global volume commands, or which are imported to this range (mostly formats which are converted to IT internally)
 #ifdef MODPLUG_TRACKER
@@ -1318,6 +1320,17 @@ void CSoundFile::NoteChange(CHANNELINDEX nChn, int note, bool bPorta, bool bRese
 		if (!bManual) pChn->nPeriod = 0;
 	}
 
+
+	////////////////////////////////////////////////////////
+	// Modipulate
+	////////////////////////////////////////////////////////
+	modStream->on_note_change(
+		nChn,	// Channel #
+		note,   // Note ID
+		pChn->pModInstrument ? pChn->pModInstrument->index : -1, // Instrument pointer
+		pChn->pModSample ? pChn->pModSample->index : -1,     // Sample pointer
+		pChn->nVolume         // Volume
+		);
 }
 
 

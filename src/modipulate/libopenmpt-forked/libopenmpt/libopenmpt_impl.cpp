@@ -1090,4 +1090,9 @@ void module_impl::ctl_set( const std::string & ctl, const std::string & value ) 
 	}
 }
 
+void module_impl::set_mod_stream(ModStream* modStream) {
+	this->modStream = modStream;
+	m_sndFile->modStream = modStream;
+}
+
 } // namespace openmpt

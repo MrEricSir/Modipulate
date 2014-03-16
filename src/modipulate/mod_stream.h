@@ -1,4 +1,4 @@
-/* Copyright 2011 Eric Gregory and Stevie Hryciw
+/* Copyright 2011-2014 Eric Gregory and Stevie Hryciw
  *
  * Modipulate.
  * https://github.com/MrEricSir/Modipulate/
@@ -13,13 +13,17 @@
 #include <string>
 #include <list>
 #include <queue>
+#include <map>
 #include "modipulate_common.h"
-#include "libmodplug-hacked/include/defines.h"
 #include <portaudio.h>
-#include "libmodplug-hacked/include/modplug.h"
 #include "modipulate.h"
 #include "Array2D.h"
 #include "timer/Timer.h"
+
+#include "libopenmpt-forked/libopenmpt/libopenmpt.hpp"
+
+#include "libopenmpt-forked/soundlib/Snd_defs.h"
+
 
 class ModStreamNote {
 public:
@@ -48,8 +52,7 @@ public:
 
 
 
-// Uses modplug-hacked to stream audio via OpenAL.
-// Same pattern as the ogg_stream class from: 
+// Similar design pattern as the ogg_stream class from: 
 //    http://www.devmaster.net/articles/openal-tutorials/lesson8.php
 
 class ModStream {
@@ -147,12 +150,12 @@ public:
     
     void perform_callbacks();
     
-    void on_note_change(unsigned channel, int note, int instrument, int sample, int volume);
+    void on_note_change(unsigned channel, int note,int instrumentNumber, int sampleNumber, int volume);
     void on_pattern_changed(unsigned pattern);
     void on_row_changed(int row);
     void increase_sample_count(int add);
     void on_tempo_changed(int tempo);
-    
+
 private:
     void check_error(int line, PaError err);
     
@@ -160,12 +163,14 @@ private:
         const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
     
     void stream_finished_callback();
+
+	// Resets all state variables.
+	void resetInternal();
     
     Timer timer;
     
-    HackedModPlugFile* modplug_file; // handle to file
+	openmpt::module* mod;
     unsigned long file_length;  // length of file
-    char* buffer; // file data
     const static int sampling_rate = 44100; // don't change this directly, need to call modplug for that
     bool stream_started;
     unsigned long long samples_played; // Samples played thus far.
@@ -188,6 +193,9 @@ private:
     
     unsigned effectCommand[MAX_CHANNELS];
     unsigned effectParameter[MAX_CHANNELS];
+
+	bool enabled_channels[MAX_CHANNELS];
+	int transposition_offset[MAX_CHANNELS];
     
     // Volume commands to allow [channel][command] where command is 1..VOLCMD_PORTADOWN
     Array2D<bool> volume_command_enabled;
@@ -202,6 +210,9 @@ private:
     
     // Cached data for upcoming callbacks.
     std::queue<ModStreamRow*> rows;
+
+	// Last pattern # we saw.
+	int lastPattern;
     
     friend int mod_stream_callback(const void *input, void *output, unsigned long frameCount, 
         const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData);

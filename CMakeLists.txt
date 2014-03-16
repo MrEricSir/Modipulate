@@ -56,7 +56,9 @@ target_link_libraries(libopenmpt-forked ${PORTAUDIO_LIBRARIES})
 # modipulate
 file(GLOB modipulate_sources 
     "${modipulate_path}/*.c*" 
+	"${modipulate_path}/*.h*"
     "${modipulate_path}/timer/*.c*"
+	"${modipulate_path}/timer/*.h*"
     )
 add_library(libmodipulate-static STATIC ${modipulate_sources})
 add_library(libmodipulate SHARED ${modipulate_sources})

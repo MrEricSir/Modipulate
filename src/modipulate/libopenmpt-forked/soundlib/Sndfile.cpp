@@ -30,6 +30,7 @@
 #include "../unarchiver/unarchiver.h"
 #endif // NO_ARCHIVE_SUPPORT
 
+#include "../mod_stream.h"
 
 // -> CODE#0027
 // -> DESC="per-instrument volume ramping setup (refered as attack)"
@@ -415,6 +416,7 @@ WRITE_MPTHEADER_sized_member(	midiPWD					, int8			, MPWD							)
 bool ReadInstrumentHeaderField(ModInstrument *input, uint32 fcode, uint16 fsize, FileReader &file)
 {
 if(input == nullptr) return false;
+
 
 GET_MPTHEADER_sized_member(	nFadeOut				, UINT			, FO..							)
 GET_MPTHEADER_sized_member(	dwFlags					, uint32		, dF..							)
@@ -974,6 +976,24 @@ BOOL CSoundFile::Create(FileReader file, ModLoadingFlags loadFlags)
 		const ORDERINDEX nMinLength = std::min(CacheSize, GetModSpecifications().ordersMax);
 		if (Order.GetLength() < nMinLength)
 			Order.resize(nMinLength);
+
+
+		// MODIPULATE
+
+		for (int i = 0; i < m_nInstruments; i++) {
+			ModInstrument* instrument = Instruments[i];
+			if (instrument) {
+				instrument->index = i;
+			}
+		}
+
+		for (int i = 0; i < m_nSamples; i++) {
+			Samples[i].index = i;
+		}		
+
+		// /MODIPULATE
+
+
 		return TRUE;
 	}
 

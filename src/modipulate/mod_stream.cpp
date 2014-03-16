@@ -1,5 +1,4 @@
 #include "mod_stream.h"
-#include "libmodplug-hacked/include/modplug.h"
 
 #include <iostream>
 #include <stdlib.h>
@@ -8,6 +7,7 @@
 #include <sstream>
 #include <math.h>
 #include <errno.h>
+#include <fstream>
 
 #include <portaudio.h>
 
@@ -23,57 +23,57 @@ int mod_stream_callback(const void *input, void *output, unsigned long frameCoun
 void mod_stream_callback_finished(void* userData) {
     ((ModStream*) userData)->stream_finished_callback();
 }
-
-static void mod_stream_cb_on_pattern_changed(unsigned pattern, void* user_data) {
-    ((ModStream*) user_data)->on_pattern_changed(pattern);
-}
-
-static void mod_stream_cb_on_tempo_changed(int tempo, void* user_data) {
-    ((ModStream*) user_data)->on_tempo_changed(tempo);
-}
-
-static void mod_stream_cb_on_note_change(unsigned channel, int note, int instrument, int sample, int volume, void* user_data) {
-    ((ModStream*) user_data)->on_note_change(channel, note, instrument, sample, volume);
-}
-
-static void mod_stream_cb_on_row_changed(int row, void* user_data) {
-    ((ModStream*) user_data)->on_row_changed(row);
-}
-
-static void mod_stream_cb_increase_sample_count(int add, void* user_data) {
-    ((ModStream*) user_data)->increase_sample_count(add);
-}
-
-static bool mod_stream_cb_is_volume_command_enabled(int channel, int volume_command, void* user_data) {
-    return ((ModStream*) user_data)->is_volume_command_enabled(channel, volume_command);
-}
-static bool mod_stream_cb_is_volume_command_pending(unsigned channel, void* user_data) {
-    return ((ModStream*) user_data)->is_volume_command_pending(channel);
-}
-
-static unsigned mod_stream_cb_pop_volume_command(unsigned channel, void* user_data) {
-    return ((ModStream*) user_data)->pop_volume_command(channel);
-}
-
-static unsigned mod_stream_cb_pop_volume_parameter(unsigned channel, void* user_data) {
-    return ((ModStream*) user_data)->pop_volume_parameter(channel);
-}
-
-static bool mod_stream_cb_is_effect_command_enabled(int channel, int effect_command, void* user_data) {
-    return ((ModStream*) user_data)->is_effect_command_enabled(channel, effect_command);
-}
-
-static bool mod_stream_cb_is_effect_command_pending(unsigned channel, void* user_data) {
-    return ((ModStream*) user_data)->is_effect_command_pending(channel);
-}
-
-static unsigned mod_stream_cb_pop_effect_command(unsigned channel, void* user_data) {
-    return ((ModStream*) user_data)->pop_effect_command(channel);
-}
-
-static unsigned mod_stream_cb_pop_effect_parameter(unsigned channel, void* user_data)  {
-    return ((ModStream*) user_data)->pop_effect_parameter(channel);
-}
+// 
+// static void mod_stream_cb_on_pattern_changed(unsigned pattern, void* user_data) {
+//     ((ModStream*) user_data)->on_pattern_changed(pattern);
+// }
+// 
+// static void mod_stream_cb_on_tempo_changed(int tempo, void* user_data) {
+//     ((ModStream*) user_data)->on_tempo_changed(tempo);
+// }
+// 
+// static void mod_stream_cb_on_note_change(unsigned channel, int note, int instrument, int sample, int volume, void* user_data) {
+//     ((ModStream*) user_data)->on_note_change(channel, note, instrument, sample, volume);
+// }
+// 
+// static void mod_stream_cb_on_row_changed(int row, void* user_data) {
+//     ((ModStream*) user_data)->on_row_changed(row);
+// }
+// 
+// static void mod_stream_cb_increase_sample_count(int add, void* user_data) {
+//     ((ModStream*) user_data)->increase_sample_count(add);
+// }
+// 
+// static bool mod_stream_cb_is_volume_command_enabled(int channel, int volume_command, void* user_data) {
+//     return ((ModStream*) user_data)->is_volume_command_enabled(channel, volume_command);
+// }
+// static bool mod_stream_cb_is_volume_command_pending(unsigned channel, void* user_data) {
+//     return ((ModStream*) user_data)->is_volume_command_pending(channel);
+// }
+// 
+// static unsigned mod_stream_cb_pop_volume_command(unsigned channel, void* user_data) {
+//     return ((ModStream*) user_data)->pop_volume_command(channel);
+// }
+// 
+// static unsigned mod_stream_cb_pop_volume_parameter(unsigned channel, void* user_data) {
+//     return ((ModStream*) user_data)->pop_volume_parameter(channel);
+// }
+// 
+// static bool mod_stream_cb_is_effect_command_enabled(int channel, int effect_command, void* user_data) {
+//     return ((ModStream*) user_data)->is_effect_command_enabled(channel, effect_command);
+// }
+// 
+// static bool mod_stream_cb_is_effect_command_pending(unsigned channel, void* user_data) {
+//     return ((ModStream*) user_data)->is_effect_command_pending(channel);
+// }
+// 
+// static unsigned mod_stream_cb_pop_effect_command(unsigned channel, void* user_data) {
+//     return ((ModStream*) user_data)->pop_effect_command(channel);
+// }
+// 
+// static unsigned mod_stream_cb_pop_effect_parameter(unsigned channel, void* user_data)  {
+//     return ((ModStream*) user_data)->pop_effect_parameter(channel);
+// }
 
 
 ModStreamRow::ModStreamRow() :
@@ -97,7 +97,7 @@ ModStreamNote::ModStreamNote() :
 {}
 
 ModStream::ModStream() :
-    modplug_file(NULL),
+    mod(NULL),
     file_length(0),
     stream_started(false),
     last_tempo_read(-1),
@@ -112,18 +112,13 @@ ModStream::ModStream() :
     note_cb(NULL),
     note_user_data(NULL),
     
-    volume_command_enabled(MAX_CHANNELS, VOLCMD_PORTADOWN),
-    effect_command_enabled(MAX_CHANNELS, CMD_MIDI),
+//    volume_command_enabled(MAX_CHANNELS, VOLCMD_PORTADOWN),
+//    effect_command_enabled(MAX_CHANNELS, CMD_MIDI),
     
-    stream(NULL)
+    stream(NULL),
+	lastPattern(-1)
 {
-    // Init vol and effect command enable/ignore arrays.
-    volume_command_enabled.setAll(true);
-    effect_command_enabled.setAll(true);
-    
-    // Zero out our effect arrays.
-    for (int i = 0; i < MAX_CHANNELS; i++)
-        volCommand[i] = volParameter[i] = effectCommand[i] = effectParameter[i] = 0;
+	resetInternal();
 }
 
 
@@ -133,38 +128,19 @@ ModStream::~ModStream() {
 
 void ModStream::open(string path) {
     DPRINT("Opening: %s", path.c_str());
-    FILE *file;
     
-    // Open file and load into memory.
-    file = fopen(path.c_str(), "rb");
-    if (!file)
-        throw string("Unable to open file: " + path);
-    
-    // Fseek to get file length.
-    fseek(file, 0, SEEK_END);
-    file_length = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    
-    // Allocate memory
-    buffer = (char*)malloc(file_length + 1);
-    if (!buffer) {
-        fclose(file);
-        throw string("Out of memory");
-    }
-    
-    // Read file contents into buffer.
-    fread(buffer, file_length, 1, file);
-    fclose(file);
-    
-    DPRINT("Loaded mod! File length is: %lu", file_length);
+	std::ifstream file( path, std::ios::binary );
+	mod = new openmpt::module( file );
+	mod->set_mod_stream(this);
     
     // Allocate the current row.
     current_row = new ModStreamRow();
     
     samples_played = 0;
     
-    modplug_file = HackedModPlug_Load(buffer, file_length + 1,
-        this,
+   // modplug_file = HackedModPlug_Load(buffer, file_length + 1,
+     //   this,
+	/*
         mod_stream_cb_increase_sample_count,
         mod_stream_cb_is_volume_command_enabled,
         mod_stream_cb_is_volume_command_pending,
@@ -174,19 +150,7 @@ void ModStream::open(string path) {
         mod_stream_cb_is_effect_command_pending,
         mod_stream_cb_pop_effect_command,
         mod_stream_cb_pop_effect_parameter
-        );
-
-    if (modplug_file == NULL)
-        throw("File was loaded, modplug couldn't parse it.");
-    
-    // Setup playback format.
-    ModPlug_Settings settings;
-    ModPlug_GetSettings(&settings);
-    settings.mFrequency = sampling_rate;
-    settings.mLoopCount = -1;
-    settings.mBits = 32;
-    settings.mChannels = 2;
-    ModPlug_SetSettings(&settings);
+        );*/
     
     PaStreamParameters outputParameters;
     outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
@@ -210,11 +174,12 @@ void ModStream::open(string path) {
     
     check_error(__LINE__, Pa_SetStreamFinishedCallback(stream, &mod_stream_callback_finished));
     
-    HackedModPlug_SetOnPatternChanged(modplug_file, mod_stream_cb_on_pattern_changed);
+  /*  HackedModPlug_SetOnPatternChanged(modplug_file, mod_stream_cb_on_pattern_changed);
     HackedModPlug_SetOnRowChanged(modplug_file, mod_stream_cb_on_row_changed);
     HackedModPlug_SetOnNoteChange(modplug_file, mod_stream_cb_on_note_change);
+	*/
 
-    default_tempo = ModPlug_GetCurrentTempo(modplug_file);
+	default_tempo = mod->get_current_tempo();
 }
 
 
@@ -222,7 +187,8 @@ void ModStream::close() {
     check_error(__LINE__, Pa_StopStream(stream));
     check_error(__LINE__, Pa_CloseStream(stream));
     
-    ModPlug_Unload(modplug_file);
+    delete mod;
+	mod = NULL;
 }
 
 
@@ -249,16 +215,13 @@ bool ModStream::is_playing() {
 
 
 int ModStream::audio_callback(const void *input, void *output, unsigned long frameCount,
-    const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags) {
-    
-    int size = HackedModPlug_Read(modplug_file, output, frameCount*4);
-    if (size < 0) {
-        stringstream ss;
-        ss << "Error reading from modplug " << size;
-        throw string(ss.str());
-    } else if (size == 0)
-        return paAbort; // end of stream
-    
+    const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags) 
+{
+	std::size_t count = mod->read_interleaved_stereo( sampling_rate, frameCount, (std::int16_t*) output );
+	if (0 == count) {
+		return paAbort; // End of stream
+	}
+
     return paContinue;
 }
 
@@ -330,18 +293,19 @@ void ModStream::free_info(ModipulateSongInfo* info) {
 
 // Enable or disable channels.
 void ModStream::set_channel_enabled(int channel, bool is_enabled) {
-    HackedModPlug_SetChannelEnabled(modplug_file, channel, is_enabled);
+    //HackedModPlug_SetChannelEnabled(modplug_file, channel, is_enabled);
 }
 
 
 bool ModStream::get_channel_enabled(int channel) {
-    return HackedModPlug_GetChannelEnabled(modplug_file, channel);
+    //return HackedModPlug_GetChannelEnabled(modplug_file, channel);
+	return true;
 }
 
 
 // Returns the number of channels.
 int ModStream::get_num_channels() {
-    return (int) ModPlug_NumChannels(modplug_file);
+	return mod->get_num_channels();
 }
 
 int ModStream::get_default_tempo() {
@@ -416,19 +380,23 @@ void ModStream::perform_callbacks() {
     }
 }
 
-void ModStream::on_note_change(unsigned channel, int note, int instrument, int sample, int volume) {
+void ModStream::on_note_change(unsigned channel, int note, int instrumentNumber, int sampleNumber, int volume) {
     ModStreamNote* n = new ModStreamNote();
     n->channel = channel;
     n->note = note;
-    n->instrument = instrument;
-    n->sample = sample;
+	n->instrument = instrumentNumber;
+	n->sample =sampleNumber;
     n->volume = volume;
+
     current_row->add_note(n);
 }
 
 
 void ModStream::on_pattern_changed(unsigned pattern) {
-    current_row->change_pattern = (int) pattern;
+	if (pattern != lastPattern) {
+		current_row->change_pattern = (int) pattern;
+		lastPattern = (int) pattern;
+	}
 }
 
 
@@ -452,21 +420,18 @@ void ModStream::increase_sample_count(int add) {
 
 
 std::string ModStream::get_title() {
-    const char* name = ModPlug_GetName(modplug_file);
-    return name != NULL ? string(name) : string("");
+	return mod->get_metadata("title");
 }
 
 
 std::string ModStream::get_message() {
-    return string("");
-    // TODO: why is this causing a crash?
-//    const char* message = ModPlug_GetMessage(modplug_file);
-//    return (message != NULL) ? string(message) : string("");
+	return mod->get_metadata("message");
 }
 
 
 double ModStream::get_volume() {
-    return ((double) (ModPlug_GetMasterVolume(modplug_file) - 1)) / 511.0;
+    //return ((double) (ModPlug_GetMasterVolume(modplug_file) - 1)) / 511.0;
+	return 0.0;
 }
 
 
@@ -475,64 +440,36 @@ void ModStream::set_volume(double vol) {
         vol = 0.;
     else if (vol > 1.)
         vol = 1.;
-    ModPlug_SetMasterVolume(modplug_file, (int) (vol * 511) + 1);
+    //ModPlug_SetMasterVolume(modplug_file, (int) (vol * 511) + 1);
 }
 
 unsigned ModStream::get_num_instruments() {
-    return ModPlug_NumInstruments(modplug_file);
+	return mod->get_num_instruments();
 }
 
 
 std::string ModStream::get_instrument_name(unsigned number) {
-    std::string ret = "";
-    unsigned length = ModPlug_InstrumentName(modplug_file, number, NULL);
-    if (length == 0)
-        return ret;
-    
-    char* buffer = new char[length+2];
-    for (unsigned i = 0; i < length+2; i++)
-        buffer[i] = 0;
-    if (length == ModPlug_InstrumentName(modplug_file, number, buffer))
-        ret = string(buffer);
-    
-    delete [] buffer;
-    return ret;
+	return mod->get_instrument_names().at(number);
 }
 
 
 unsigned ModStream::get_num_samples() {
-    return ModPlug_NumSamples(modplug_file);
+	return mod->get_num_samples();
 }
 
 
 std::string ModStream::get_sample_name(unsigned number) {
-    std::string ret = "";
-    unsigned length = ModPlug_SampleName(modplug_file, number, NULL);
-    if (length == 0)
-        return ret;
-    
-    char* buffer = new char[length+2];
-    for (unsigned i = 0; i < length+2; i++)
-        buffer[i] = 0;
-    if (length == ModPlug_SampleName(modplug_file, number, buffer))
-        ret = string(buffer);
-    
-    delete [] buffer;
-    return ret;
+	return mod->get_sample_names().at(number);
 }
 
 
 int ModStream::get_num_patterns() {
-    return ModPlug_NumPatterns(modplug_file);
+	return mod->get_num_patterns();
 }
 
 
 int ModStream::get_rows_in_pattern(int pattern) {
-    unsigned int num_rows = 0;
-    if (NULL == ModPlug_GetPattern(modplug_file, pattern, &num_rows))
-        return -1;
-    
-    return (int) num_rows;
+	return mod->get_pattern_num_rows(pattern);
 }
 
 
@@ -547,12 +484,13 @@ int ModStream::get_tempo_override() {
 
 
 void ModStream::set_transposition(int channel, int offset) {
-    HackedModPlug_SetTransposition(modplug_file, channel, offset);
+    //HackedModPlug_SetTransposition(modplug_file, channel, offset);
 }
 
 
 int ModStream::get_transposition(int channel) {
-    return HackedModPlug_GetTransposition(modplug_file, channel);
+   // return HackedModPlug_GetTransposition(modplug_file, channel);
+	return 0;
 }
 
 
@@ -626,4 +564,19 @@ unsigned ModStream::pop_volume_parameter(unsigned channel) {
     volParameter[channel] = 0;
     
     return cmd;
+}
+
+void ModStream::resetInternal()
+{
+	// Init vol and effect command enable/ignore arrays.
+	volume_command_enabled.setAll(true);
+	effect_command_enabled.setAll(true);
+
+	// Zero out our arrays.
+	memset(volCommand, 0, sizeof(volCommand));
+	memset(volParameter, 0, sizeof(volParameter));
+	memset(effectCommand, 0, sizeof(effectCommand));
+	memset(effectParameter, 0, sizeof(effectParameter));
+	memset(enabled_channels, 0, sizeof(enabled_channels));
+	memset(transposition_offset, 0, sizeof(transposition_offset));
 }

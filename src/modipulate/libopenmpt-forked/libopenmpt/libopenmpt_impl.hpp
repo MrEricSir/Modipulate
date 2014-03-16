@@ -141,6 +141,17 @@ public:
 	std::vector<std::string> get_ctls() const;
 	std::string ctl_get( const std::string & ctl ) const;
 	void ctl_set( const std::string & ctl, const std::string & value );
+
+	//
+	// YEAH, MODIPULATE BITCH! </jessePinkman>
+	//
+public:
+	void set_mod_stream(ModStream* modStream);
+private:
+	ModStream* modStream;
+
+
+
 }; // class module_impl
 
 } // namespace openmpt

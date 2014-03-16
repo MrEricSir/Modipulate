@@ -12,6 +12,8 @@
 
 #include "libopenmpt_config.h"
 
+class ModStream; // modipulate!
+
 #include <exception>
 #include <iostream>
 #include <istream>
@@ -550,6 +552,12 @@ public:
 	void ctl_set( const std::string & ctl, const std::string & value );
 
 	// remember to add new functions to both C and C++ interfaces and to increase OPENMPT_API_VERSION_MINOR
+
+	/************************************************************************/
+	/* MODIPULATE!!!!!!!!!!                                                 */
+	/************************************************************************/
+
+	void set_mod_stream(ModStream* modStream);
 
 }; // class module
 

@@ -312,6 +312,11 @@ void module::ctl_set( const std::string & ctl, const std::string & value ) {
 	impl->ctl_set( ctl, value );
 }
 
+// MODIPULATE!!!11
+void module::set_mod_stream(ModStream* modStream) {
+	impl->set_mod_stream(modStream);
+}
+
 } // namespace openmpt
 
 #endif // NO_LIBOPENMPT_CXX

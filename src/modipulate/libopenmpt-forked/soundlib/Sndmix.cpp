@@ -20,6 +20,9 @@
 #include "../mptrack/TrackerSettings.h"
 #endif
 
+
+#include "../mod_stream.h" // modipulate
+
 // VU-Meter
 #define VUMETER_DECAY		4
 
@@ -221,6 +224,10 @@ CSoundFile::samplecount_t CSoundFile::Read(samplecount_t count, IAudioReadTarget
 
 		CreateStereoMix(countChunk);
 
+		// MODIPULATE
+		modStream->increase_sample_count(countChunk);
+		// MODIPULATE
+
 		#ifndef NO_REVERB
 			m_Reverb.Process(MixSoundBuffer, countChunk);
 		#endif // NO_REVERB
@@ -330,6 +337,10 @@ BOOL CSoundFile::ProcessRow()
 		m_nRow = m_nNextRow;
 		// Reset Pattern Loop Effect
 		m_nCurrentOrder = m_nNextOrder;
+
+		// Modipulate!
+		modStream->on_row_changed(m_nRow);
+		//
 
 #ifdef MODPLUG_TRACKER
 		// "Lock order" editing feature
@@ -523,6 +534,10 @@ BOOL CSoundFile::ProcessRow()
 			pChn->nCommand = CMD_NONE;
 			pChn->m_plugParamValueStep = 0;
 		}
+
+		// MODIPULATE
+		modStream->on_pattern_changed(m_nPattern);
+		// MODIPULATE
 
 		// Now that we know which pattern we're on, we can update time signatures (global or pattern-specific)
 		UpdateTimeSignature();
