@@ -8,6 +8,7 @@ Modipulate.workspace.session
 Modipulate_wsp.mk
 *.so
 *.dll
+*.dylib
 *.exe
 *.lib
 *.a
