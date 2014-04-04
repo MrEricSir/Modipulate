@@ -96,7 +96,8 @@ function love.load()
 	ship.y = love.graphics.getHeight() - ship.h * 2
 
 	-- Font
-	love.graphics.setFont('Courier_New.ttf', 12)
+	font = love.graphics.newFont('Courier_New.ttf', 12)
+	love.graphics.setFont(font)
 
 	--love.timer.sleep(500)
 
