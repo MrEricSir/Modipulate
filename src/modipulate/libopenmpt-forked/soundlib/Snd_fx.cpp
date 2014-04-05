@@ -1636,6 +1636,29 @@ BOOL CSoundFile::ProcessEffects()
 
 		pChn->dwFlags.reset(CHN_FASTVOLRAMP);
 
+        // MODIPULATE
+        if (!modStream->is_effect_command_enabled(nChn, cmd)) {
+            cmd = 0; // Suppress effect command.
+        }
+
+        if (!modStream->is_volume_command_enabled(nChn, volcmd)) {
+            volcmd = 0; // Suppress volume command.
+        }
+
+        if (!m_nTickCount && modStream->is_effect_command_pending(nChn)) {
+            // Overwrite effect command.
+            cmd = modStream->pop_effect_command(nChn);
+            param = modStream->pop_effect_parameter(nChn);
+        }
+
+        if (!m_nTickCount && modStream->is_volume_command_pending(nChn)) {
+            // Overwrite volume command.
+            volcmd = modStream->pop_volume_command(nChn);
+            vol = modStream->pop_volume_parameter(nChn);
+        }
+
+        // /MODIPULATE
+
 		// Process parameter control note.
 		if(pChn->rowCommand.note == NOTE_PC)
 		{

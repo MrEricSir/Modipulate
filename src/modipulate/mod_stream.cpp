@@ -260,7 +260,7 @@ void ModStream::get_info(ModipulateSongInfo** _info) {
     song_info->sample_names = new char*[song_info->num_samples];
     song_info->rows_per_pattern = new int[song_info->num_patterns];
     
-    for (int instrument = 1; instrument <= song_info->num_instruments; instrument++)
+    for (int instrument = 0; instrument < song_info->num_instruments; instrument++)
         song_info->instrument_names[instrument] = modipulate_make_message("%s", 
             get_instrument_name(instrument).c_str());
     
@@ -277,7 +277,7 @@ void ModStream::get_info(ModipulateSongInfo** _info) {
 
 
 void ModStream::free_info(ModipulateSongInfo* info) {
-    for (int instrument = 1; instrument <= info->num_instruments; instrument++)
+    for (int instrument = 0; instrument < info->num_instruments; instrument++)
         delete info->instrument_names[instrument];
     
     for (int sample = 0; sample < info->num_samples; sample++)
