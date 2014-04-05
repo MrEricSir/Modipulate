@@ -77,7 +77,8 @@ function love.load()
 z / x    Transpose (semitone)\
 a / s    Transpose (octave)\
 (click)  Toggle channel'
-	love.graphics.setFont('Courier_New.ttf', 12)
+	font = love.graphics.newFont('Courier_New.ttf', 12)
+	love.graphics.setFont(font)
 
     song:play(true)
 end
