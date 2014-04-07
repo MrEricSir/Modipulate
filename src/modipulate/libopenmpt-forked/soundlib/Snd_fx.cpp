@@ -1110,7 +1110,7 @@ void CSoundFile::NoteChange(CHANNELINDEX nChn, int note, bool bPorta, bool bRese
 	if ((!bPorta) || (GetType() & (MOD_TYPE_S3M|MOD_TYPE_IT|MOD_TYPE_MPT)))
 		pChn->nNewIns = 0;
 
-	UINT period = GetPeriodFromNote(note, pChn->nFineTune, pChn->nC5Speed);
+	UINT period = GetPeriodFromNote(note + modStream->get_transposition(nChn), pChn->nFineTune, pChn->nC5Speed);
 
 	if(!pSmp) return;
 	if(period)
@@ -1769,7 +1769,7 @@ BOOL CSoundFile::ProcessEffects()
 				// Pattern Loop ?
 				if((((param & 0xF0) == 0x60 && cmd == CMD_MODCMDEX)
 					|| ((param & 0xF0) == 0xB0 && cmd == CMD_S3MCMDEX))
-					&& !(GetType() == MOD_TYPE_S3M && ChnSettings[nChn].dwFlags[CHN_MUTE]))	// not even effects are processed on muted S3M channels
+                    && !(GetType() == MOD_TYPE_S3M && (ChnSettings[nChn].dwFlags[CHN_MUTE] || !modStream->get_channel_enabled(nChn))))	// not even effects are processed on muted S3M channels
 				{
 					ROWINDEX nloop = PatternLoop(pChn, param & 0x0F);
 					if (nloop != ROWINDEX_INVALID)
@@ -2130,7 +2130,7 @@ BOOL CSoundFile::ProcessEffects()
 #endif // MODPLUG_TRACKER
 		}
 
-		if((GetType() == MOD_TYPE_S3M) && ChnSettings[nChn].dwFlags[CHN_MUTE])	// not even effects are processed on muted S3M channels
+		if((GetType() == MOD_TYPE_S3M) && (ChnSettings[nChn].dwFlags[CHN_MUTE] || !modStream->get_channel_enabled(nChn)))	// not even effects are processed on muted S3M channels
 			continue;
 
 		// Volume Column Effect (except volume & panning)
@@ -2700,7 +2700,7 @@ BOOL CSoundFile::ProcessEffects()
 		case CMD_NOTESLIDEDOWNRETRIG:
 			// Note that this command seems to be a bit buggy in Polytracker... Luckily, no tune seems to seriously use this
 			// (Vic uses it e.g. in Spaceman or Perfect Reason to slide effect samples, noone will notice the difference :)
-			NoteSlide(pChn, param, cmd == CMD_NOTESLIDEUP || cmd == CMD_NOTESLIDEUPRETRIG, cmd == CMD_NOTESLIDEUPRETRIG || cmd == CMD_NOTESLIDEDOWNRETRIG);
+			NoteSlide(pChn, param, cmd == CMD_NOTESLIDEUP || cmd == CMD_NOTESLIDEUPRETRIG, cmd == CMD_NOTESLIDEUPRETRIG || cmd == CMD_NOTESLIDEDOWNRETRIG, nChn);
 			break;
 
 		// PTM Reverse sample + offset (executed on every tick)
@@ -3096,7 +3096,7 @@ void CSoundFile::ExtraFinePortamentoDown(ModChannel *pChn, UINT param)
 
 // Implemented for IMF compatibility, can't actually save this in any formats
 // Slide up / down every x ticks by y semitones
-void CSoundFile::NoteSlide(ModChannel *pChn, UINT param, bool slideUp, bool retrig)
+void CSoundFile::NoteSlide(ModChannel *pChn, UINT param, bool slideUp, bool retrig, int nChn)
 //---------------------------------------------------------------------------------
 {
 	uint8 x, y;
@@ -3116,7 +3116,7 @@ void CSoundFile::NoteSlide(ModChannel *pChn, UINT param, bool slideUp, bool retr
 			pChn->nNoteSlideCounter = pChn->nNoteSlideSpeed;
 			// update it
 			pChn->nPeriod = GetPeriodFromNote
-				((slideUp ? 1 : -1)  * pChn->nNoteSlideStep + GetNoteFromPeriod(pChn->nPeriod), 8363, 0);
+				((slideUp ? 1 : -1)  * pChn->nNoteSlideStep + GetNoteFromPeriod(pChn->nPeriod) + modStream->get_transposition(nChn), 8363, 0);
 
 			if(retrig)
 			{
@@ -3526,11 +3526,11 @@ void CSoundFile::ExtendedMODCommands(CHANNELINDEX nChn, UINT param)
 				if(GetType() & (MOD_TYPE_MOD | MOD_TYPE_DIGI | MOD_TYPE_AMF0 | MOD_TYPE_MED))
 				{
 					pChn->nFineTune = MOD2XMFineTune(param);
-					if(pChn->nPeriod && pChn->rowCommand.IsNote()) pChn->nPeriod = GetPeriodFromNote(pChn->nNote, pChn->nFineTune, pChn->nC5Speed);
+					if(pChn->nPeriod && pChn->rowCommand.IsNote()) pChn->nPeriod = GetPeriodFromNote(pChn->nNote + modStream->get_transposition(nChn), pChn->nFineTune, pChn->nC5Speed);
 				} else if(pChn->rowCommand.IsNote())
 				{
 					pChn->nFineTune = MOD2XMFineTune(param - 8);
-					if(pChn->nPeriod) pChn->nPeriod = GetPeriodFromNote(pChn->nNote, pChn->nFineTune, pChn->nC5Speed);
+					if(pChn->nPeriod) pChn->nPeriod = GetPeriodFromNote(pChn->nNote + modStream->get_transposition(nChn), pChn->nFineTune, pChn->nC5Speed);
 
 				}
 				break;
@@ -3589,7 +3589,7 @@ void CSoundFile::ExtendedS3MCommands(CHANNELINDEX nChn, UINT param)
 	case 0x20:	if(!m_SongFlags[SONG_FIRSTTICK]) break;
 				pChn->nC5Speed = S3MFineTuneTable[param];
 				pChn->nFineTune = MOD2XMFineTune(param);
-				if (pChn->nPeriod) pChn->nPeriod = GetPeriodFromNote(pChn->nNote, pChn->nFineTune, pChn->nC5Speed);
+				if (pChn->nPeriod) pChn->nPeriod = GetPeriodFromNote(pChn->nNote + modStream->get_transposition(nChn), pChn->nFineTune, pChn->nC5Speed);
 				break;
 	// S3x: Set Vibrato Waveform
 	case 0x30:	if(GetType() == MOD_TYPE_S3M)
@@ -4919,7 +4919,7 @@ PLUGINDEX CSoundFile::GetChannelPlugin(CHANNELINDEX nChn, PluginMutePriority res
 	const ModChannel &channel = Chn[nChn];
 
 	PLUGINDEX nPlugin;
-	if((respectMutes == RespectMutes && channel.dwFlags[CHN_MUTE]) || channel.dwFlags[CHN_NOFX])
+	if((respectMutes == RespectMutes && channel.dwFlags[CHN_MUTE]) || channel.dwFlags[CHN_NOFX] || !modStream->get_channel_enabled(nChn))
 	{
 		nPlugin = 0;
 	} else
@@ -4947,7 +4947,7 @@ PLUGINDEX CSoundFile::GetActiveInstrumentPlugin(CHANNELINDEX nChn, PluginMutePri
 	PLUGINDEX plug = 0;
 	if(Chn[nChn].pModInstrument != nullptr)
 	{
-		if(respectMutes == RespectMutes && Chn[nChn].pModSample && Chn[nChn].pModSample->uFlags[CHN_MUTE])
+		if((respectMutes == RespectMutes && Chn[nChn].pModSample && Chn[nChn].pModSample->uFlags[CHN_MUTE]) || !modStream->get_channel_enabled(nChn))
 		{
 			plug = 0;
 		} else

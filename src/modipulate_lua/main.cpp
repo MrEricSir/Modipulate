@@ -1,4 +1,4 @@
-/* Copyright 2011-2012 Eric Gregory and Stevie Hryciw
+/* Copyright 2011-2014 Eric Gregory and Stevie Hryciw
  *
  * Modipulate-Lua.
  * https://github.com/MrEricSir/Modipulate/
@@ -114,9 +114,9 @@ static int modipulateLua_song_get_sample_name(lua_State *L) {
     luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
     
     int num = lua_tointeger(L, 2);
-    if (num < 0 || num >= lua_song->num_samples) {
+    if (num < 0 || num > lua_song->num_samples) {
         return luaL_error(L, "Not a valid sample number: %d.  "
-            "Sample number must be between 0 and numInstruments - 1", num);
+            "Sample number must be between 0 and numSamples - 1", num);
     }
     
     lua_pushstring(L, lua_song->song_info->sample_names[num]);
@@ -126,13 +126,13 @@ static int modipulateLua_song_get_sample_name(lua_State *L) {
 
 
 static int modipulateLua_song_get_instrument_name(lua_State *L) {
-    const char* usage = "Usage: getInstrumentName(instrument) where instrument is from 1 to numInstruments";
+    const char* usage = "Usage: getInstrumentName(instrument) where instrument is from 0 to numInstruments - 1";
     luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
     modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
     luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
     
     int num = lua_tointeger(L, 2);
-    if (num < 1 || num > lua_song->num_instruments) {
+    if (num < 0 || num > lua_song->num_instruments) {
         return luaL_error(L, "Not a valid instrument number: %d.  "
             "Instrument number must be between 0 and numInstruments - 1", num);
     }
@@ -520,7 +520,7 @@ static int modipulateLua_loadSong(lua_State *L) {
     luaL_argcheck(L, lua_gettop(L) == 1, 0, usage);
     luaL_argcheck(L, lua_isstring(L, 1), 1, usage);
     
-    ModipulateSong song;
+    ModipulateSong song = NULL;
     ModipulateSongInfo* song_info;
     modipulate_song_t* lua_song = NULL;
     

@@ -485,13 +485,12 @@ int ModStream::get_tempo_override() {
 
 
 void ModStream::set_transposition(int channel, int offset) {
-    //HackedModPlug_SetTransposition(modplug_file, channel, offset);
+    transposition_offset[channel] = offset;
 }
 
 
 int ModStream::get_transposition(int channel) {
-   // return HackedModPlug_GetTransposition(modplug_file, channel);
-	return 0;
+    return transposition_offset[channel];
 }
 
 
