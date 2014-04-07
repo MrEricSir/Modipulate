@@ -3,8 +3,7 @@
  * Modipulate.
  * https://github.com/MrEricSir/Modipulate/
  *
- * This software is licensed under the GNU LGPL (version 3 or later).
- * See the COPYING.LESSER file in this distribution. 
+ * Modipulate is released under the BSD license.  See LICENSE for details.
  */
 
 #ifndef MODSTREAM_H

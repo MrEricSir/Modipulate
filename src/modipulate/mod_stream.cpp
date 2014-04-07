@@ -25,58 +25,6 @@ int mod_stream_callback(const void *input, void *output, unsigned long frameCoun
 void mod_stream_callback_finished(void* userData) {
     ((ModStream*) userData)->stream_finished_callback();
 }
-// 
-// static void mod_stream_cb_on_pattern_changed(unsigned pattern, void* user_data) {
-//     ((ModStream*) user_data)->on_pattern_changed(pattern);
-// }
-// 
-// static void mod_stream_cb_on_tempo_changed(int tempo, void* user_data) {
-//     ((ModStream*) user_data)->on_tempo_changed(tempo);
-// }
-// 
-// static void mod_stream_cb_on_note_change(unsigned channel, int note, int instrument, int sample, int volume, void* user_data) {
-//     ((ModStream*) user_data)->on_note_change(channel, note, instrument, sample, volume);
-// }
-// 
-// static void mod_stream_cb_on_row_changed(int row, void* user_data) {
-//     ((ModStream*) user_data)->on_row_changed(row);
-// }
-// 
-// static void mod_stream_cb_increase_sample_count(int add, void* user_data) {
-//     ((ModStream*) user_data)->increase_sample_count(add);
-// }
-// 
-// static bool mod_stream_cb_is_volume_command_enabled(int channel, int volume_command, void* user_data) {
-//     return ((ModStream*) user_data)->is_volume_command_enabled(channel, volume_command);
-// }
-// static bool mod_stream_cb_is_volume_command_pending(unsigned channel, void* user_data) {
-//     return ((ModStream*) user_data)->is_volume_command_pending(channel);
-// }
-// 
-// static unsigned mod_stream_cb_pop_volume_command(unsigned channel, void* user_data) {
-//     return ((ModStream*) user_data)->pop_volume_command(channel);
-// }
-// 
-// static unsigned mod_stream_cb_pop_volume_parameter(unsigned channel, void* user_data) {
-//     return ((ModStream*) user_data)->pop_volume_parameter(channel);
-// }
-// 
-// static bool mod_stream_cb_is_effect_command_enabled(int channel, int effect_command, void* user_data) {
-//     return ((ModStream*) user_data)->is_effect_command_enabled(channel, effect_command);
-// }
-// 
-// static bool mod_stream_cb_is_effect_command_pending(unsigned channel, void* user_data) {
-//     return ((ModStream*) user_data)->is_effect_command_pending(channel);
-// }
-// 
-// static unsigned mod_stream_cb_pop_effect_command(unsigned channel, void* user_data) {
-//     return ((ModStream*) user_data)->pop_effect_command(channel);
-// }
-// 
-// static unsigned mod_stream_cb_pop_effect_parameter(unsigned channel, void* user_data)  {
-//     return ((ModStream*) user_data)->pop_effect_parameter(channel);
-// }
-
 
 ModStreamRow::ModStreamRow() :
     samples_since_last(0),
