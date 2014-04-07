@@ -11,6 +11,8 @@
 
 #include <portaudio.h>
 
+#include "libopenmpt-forked/soundlib/modcommand.h"
+
 using namespace std;
 
 
@@ -112,8 +114,8 @@ ModStream::ModStream() :
     note_cb(NULL),
     note_user_data(NULL),
     
-//    volume_command_enabled(MAX_CHANNELS, VOLCMD_PORTADOWN),
-//    effect_command_enabled(MAX_CHANNELS, CMD_MIDI),
+    volume_command_enabled(MAX_CHANNELS, MAX_VOLCMDS),
+    effect_command_enabled(MAX_CHANNELS, MAX_EFFECTS),
     
     stream(NULL),
 	lastPattern(-1)
@@ -293,13 +295,12 @@ void ModStream::free_info(ModipulateSongInfo* info) {
 
 // Enable or disable channels.
 void ModStream::set_channel_enabled(int channel, bool is_enabled) {
-    //HackedModPlug_SetChannelEnabled(modplug_file, channel, is_enabled);
+    enabled_channels[channel] = is_enabled;
 }
 
 
 bool ModStream::get_channel_enabled(int channel) {
-    //return HackedModPlug_GetChannelEnabled(modplug_file, channel);
-	return true;
+	return enabled_channels[channel];
 }
 
 
@@ -577,6 +578,10 @@ void ModStream::resetInternal()
 	memset(volParameter, 0, sizeof(volParameter));
 	memset(effectCommand, 0, sizeof(effectCommand));
 	memset(effectParameter, 0, sizeof(effectParameter));
-	memset(enabled_channels, 0, sizeof(enabled_channels));
 	memset(transposition_offset, 0, sizeof(transposition_offset));
+
+    // All channels enabled by default.
+    for (int i = 0; i < MAX_CHANNELS; i++) {
+        enabled_channels[i] = true;
+    }
 }

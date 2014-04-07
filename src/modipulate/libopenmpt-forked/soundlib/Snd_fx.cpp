@@ -1379,7 +1379,7 @@ void CSoundFile::CheckNNA(CHANNELINDEX nChn, UINT instr, int note, bool forceCut
 	// Always NNA cut - using
 	if(!(GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_MT2)) || !m_nInstruments || forceCut)
 	{
-		if(!pChn->nLength || pChn->dwFlags[CHN_MUTE] || !(pChn->rightVol | pChn->leftVol))
+        if(!pChn->nLength || pChn->dwFlags[CHN_MUTE] || !(pChn->rightVol | pChn->leftVol) || !modStream->get_channel_enabled(nChn)) // MODIPULATE
 		{
 			return;
 		}
@@ -1429,7 +1429,7 @@ void CSoundFile::CheckNNA(CHANNELINDEX nChn, UINT instr, int note, bool forceCut
 	}
 	ModChannel *p = pChn;
 	//if (!pIns) return;
-	if (pChn->dwFlags[CHN_MUTE]) return;
+	if (pChn->dwFlags[CHN_MUTE] || !modStream->get_channel_enabled(nChn)) return; // MODIPULATE
 
 	bool applyDNAtoPlug;	//rewbs.VSTiNNA
 
@@ -1624,6 +1624,8 @@ BOOL CSoundFile::ProcessEffects()
 // -! NEW_FEATURE#0010
 	for(CHANNELINDEX nChn = 0; nChn < GetNumChannels(); nChn++, pChn++)
 	{
+        if (!modStream->get_channel_enabled(nChn)) continue; // MODIPULATE
+
 		UINT instr = pChn->rowCommand.instr;
 		UINT volcmd = pChn->rowCommand.volcmd;
 		UINT vol = pChn->rowCommand.vol;
