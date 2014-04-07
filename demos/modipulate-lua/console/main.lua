@@ -71,7 +71,7 @@ function love.keypressed(k)
             playing_text = 'Playing'
         end
     elseif k == 'escape' or k == 'q' then
-        love.event.push('q')
+        love.event.quit()
     elseif k == '0' then
         song:setChannelEnabled(0, false)
     elseif k == '1' then
