@@ -492,7 +492,8 @@ BOOL CSoundFile::ProcessRow()
 				GetLengthType t = GetLength(eNoAdjust);
 				if(IsRenderingToDisc() || (t.lastOrder == m_nCurrentOrder && t.lastRow == m_nRow))
 #else
-				if(1)
+				// if(1)
+                if (0) // MODIPULATE
 #endif // MODPLUG_TRACKER
 				{
 					// This is really the song's end!
@@ -1250,7 +1251,7 @@ void CSoundFile::ProcessArpeggio(CHANNELINDEX nChn, int &period, CTuning::NOTEIN
 				if(note > 108 + NOTE_MIN && arpPos != 0)
 					note = 108 + NOTE_MIN; // FT2's note limit
 
-				period = GetPeriodFromNote(note, pChn->nFineTune, pChn->nC5Speed);
+				period = GetPeriodFromNote(note + modStream->get_transposition(nChn), pChn->nFineTune, pChn->nC5Speed);
 
 			}
 			// Other trackers
@@ -1270,7 +1271,7 @@ void CSoundFile::ProcessArpeggio(CHANNELINDEX nChn, int &period, CTuning::NOTEIN
 						// Test case: ArpWraparound.mod, and the snare sound in "Jim is dead" by doh.
 						note -= 37;
 					}
-					period = GetPeriodFromNote(note, pChn->nFineTune, pChn->nC5Speed);
+					period = GetPeriodFromNote(note + modStream->get_transposition(nChn), pChn->nFineTune, pChn->nC5Speed);
 
 					// The arpeggio note offset remains effective after the end of the current row in ScreamTracker 2.
 					// This fixes the flute lead in MORPH.STM by Skaven, pattern 27.
@@ -1697,13 +1698,14 @@ BOOL CSoundFile::ReadNote()
 		// FT2 Compatibility: Prevent notes to be stopped after a fadeout. This way, a portamento effect can pick up a faded instrument which is long enough.
 		// This occours for example in the bassline (channel 11) of jt_burn.xm. I hope this won't break anything else...
 		// I also suppose this could decrease mixing performance a bit, but hey, which CPU can't handle 32 muted channels these days... :-)
-		if(pChn->dwFlags[CHN_NOTEFADE] && (!(pChn->nFadeOutVol|pChn->leftVol|pChn->rightVol)) && (!IsCompatibleMode(TRK_FASTTRACKER2)))
+		if((pChn->dwFlags[CHN_NOTEFADE] && (!(pChn->nFadeOutVol|pChn->leftVol|pChn->rightVol)) && (!IsCompatibleMode(TRK_FASTTRACKER2)))
+            || !modStream->get_channel_enabled(nChn))// MODIPULATE
 		{
 			pChn->nLength = 0;
 			pChn->nROfs = pChn->nLOfs = 0;
 		}
 		// Check for unused channel
-		if(pChn->dwFlags[CHN_MUTE] || (nChn >= m_nChannels && !pChn->nLength))
+        if(pChn->dwFlags[CHN_MUTE] || (nChn >= m_nChannels && !pChn->nLength) || !modStream->get_channel_enabled(nChn)) // MODIPULATE
 		{
 			if(nChn < m_nChannels)
 			{
@@ -1799,7 +1801,7 @@ BOOL CSoundFile::ReadNote()
 			// TODO Glissando effect is reset after portamento! What would this sound like without the CHN_PORTAMENTO flag?
 			if((pChn->dwFlags & (CHN_GLISSANDO | CHN_PORTAMENTO)) == (CHN_GLISSANDO | CHN_PORTAMENTO))
 			{
-				period = GetPeriodFromNote(GetNoteFromPeriod(period), pChn->nFineTune, pChn->nC5Speed);
+				period = GetPeriodFromNote(GetNoteFromPeriod(period)  + modStream->get_transposition(nChn), pChn->nFineTune, pChn->nC5Speed);
 			}
 
 			ProcessArpeggio(nChn, period, arpeggioSteps);
@@ -2047,7 +2049,8 @@ BOOL CSoundFile::ReadNote()
 			ProcessRamping(pChn);
 
 			// Adding the channel in the channel list
-			ChnMix[m_nMixChannels++] = nChn;
+            if (modStream->get_channel_enabled(nChn)) // MODIPULATE
+			    ChnMix[m_nMixChannels++] = nChn;
 		} else
 		{
 			// Note change but no sample
@@ -2083,6 +2086,9 @@ BOOL CSoundFile::ReadNote()
 void CSoundFile::ProcessMacroOnChannel(CHANNELINDEX nChn)
 //-------------------------------------------------------
 {
+     if (!modStream->get_channel_enabled(nChn))
+         return;
+
 	ModChannel *pChn = &Chn[nChn];
 	if(nChn < GetNumChannels())
 	{

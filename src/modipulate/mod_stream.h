@@ -3,8 +3,7 @@
  * Modipulate.
  * https://github.com/MrEricSir/Modipulate/
  *
- * This software is licensed under the GNU LGPL (version 3 or later).
- * See the COPYING.LESSER file in this distribution. 
+ * Modipulate is released under the BSD license.  See LICENSE for details.
  */
 
 #ifndef MODSTREAM_H
@@ -197,10 +196,10 @@ private:
 	bool enabled_channels[MAX_CHANNELS];
 	int transposition_offset[MAX_CHANNELS];
     
-    // Volume commands to allow [channel][command] where command is 1..VOLCMD_PORTADOWN
+    // Volume commands to allow [channel][command] where command is 1..MAX_VOLCMDS - 1
     Array2D<bool> volume_command_enabled;
     
-    // Effect commands to allow [channel][command] where command is 1..CMD_MIDI
+    // Effect commands to allow [channel][command] where command is 1..MAX_EFFECTS - 1
     Array2D<bool> effect_command_enabled;
     
     PaStream *stream;

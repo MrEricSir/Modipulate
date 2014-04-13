@@ -39,12 +39,13 @@ function love.load()
 
 	-- Setup Modipulate
 	modipulate.init()
-	song = modipulate.loadSong('../../media/v-cf.it')
+	song = modipulate.loadSong('../../media/vhiiula-inventio_in_4k.it')  --v-cf.it')
+	
 	modipulate.setVolume(1)
     tempo = song.defaultTempo
     song:onRowChange(exe_row)
     song:onNote(exe_note)
-
+	
 
 	-- Frame for columns
 	frame_margin = 20
@@ -77,7 +78,8 @@ function love.load()
 z / x    Transpose (semitone)\
 a / s    Transpose (octave)\
 (click)  Toggle channel'
-	love.graphics.setFont('Courier_New.ttf', 12)
+	font = love.graphics.newFont('Courier_New.ttf', 12)
+	love.graphics.setFont(font)
 
     song:play(true)
 end
