@@ -20,6 +20,10 @@ if (UNIX AND NOT APPLE)
     add_definitions(-fPIC)
 endif()
 
+# Needed for clang -- TODO: replace with actual Clang check instead of APPLE
+if (APPLE)
+    set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+endif (APPLE)
 
 # Removes a filename from a list
 function(remove_from_list haystack needle)
@@ -51,7 +55,9 @@ file(GLOB libopenmpt_sources
 add_library(libopenmpt-forked STATIC ${libopenmpt_sources})
 set_target_properties(libopenmpt-forked PROPERTIES PREFIX "")
 target_link_libraries(libopenmpt-forked ${PORTAUDIO_LIBRARIES})
-
+if(APPLE) # -- TODO: Linux too?
+    target_link_libraries(libopenmpt-forked iconv)
+endif(APPLE)
 
 # modipulate
 file(GLOB modipulate_sources 

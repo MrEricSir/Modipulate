@@ -13,37 +13,17 @@
 
 
 #if MPT_COMPILER_MSVC
-#pragma warning(error : 4309) // Treat "truncation of constant value"-warning as error.
-#endif
-
-
-
-#if MPT_COMPILER_MSVC && MPT_MSVC_AT_LEAST(2010,0)
-#define MPT_COMPILER_HAS_RVALUE_REF
-#endif
-
-
-
-#if MPT_COMPILER_MSVC && MPT_MSVC_AT_LEAST(2010,0)
-#define HAS_TYPE_TRAITS
-#endif
-
-
-
-#if MPT_COMPILER_MSVC
-
-#if MPT_MSVC_BEFORE(2010,0)
-#define nullptr		0
-#endif
-
+# pragma warning(error : 4309) // Treat "truncation of constant value"-warning as error.
+# if MPT_MSVC_AT_LEAST(2010,0)
+#  define MPT_COMPILER_HAS_RVALUE_REF
+#  define HAS_TYPE_TRAITS
+#  define nullptr		0
+# endif
 #elif MPT_COMPILER_GCC
-
-#if MPT_GCC_BEFORE(4,6,0)
-#define nullptr 0
+# if MPT_GCC_BEFORE(4,6,0)
+#  define nullptr 0
+# endif
 #endif
-
-#endif
-
 
 
 //  CountOf macro computes the number of elements in a statically-allocated array.
@@ -136,8 +116,10 @@ typedef std::bad_alloc & MPTMemoryException;
 
 
 #include <memory>
-#if MPT_COMPILER_MSVC && MPT_MSVC_BEFORE(2010,0)
-#define MPT_SHARED_PTR std::tr1::shared_ptr
+#if MPT_COMPILER_MSVC
+	#if MPT_MSVC_BEFORE(2010,0)
+		#define MPT_SHARED_PTR std::tr1::shared_ptr
+	#endif
 #else
 #define MPT_SHARED_PTR std::shared_ptr
 #endif
@@ -224,8 +206,10 @@ noinline void AssertHandler(const char *file, int line, const char *function, co
 
 
 // Compile time assert.
-#if MPT_COMPILER_MSVC && MPT_MSVC_BEFORE(2010,0)
-	#define static_assert(expr, msg) typedef char OPENMPT_STATIC_ASSERT[(expr)?1:-1]
+#if MPT_COMPILER_MSVC
+	#if MPT_MSVC_BEFORE(2010,0)
+		#define static_assert(expr, msg) typedef char OPENMPT_STATIC_ASSERT[(expr)?1:-1]
+	#endif
 #endif
 #define STATIC_ASSERT(expr) static_assert((expr), "compile time assertion failed: " #expr)
 
@@ -252,7 +236,8 @@ noinline void AssertHandler(const char *file, int line, const char *function, co
 #define __STDC_CONSTANT_MACROS
 #define __STDC_LIMIT_MACROS
 
-#if MPT_COMPILER_MSVC && MPT_MSVC_BEFORE(2010,0)
+#if MPT_COMPILER_MSVC
+#if MPT_MSVC_BEFORE(2010,0)
 
 #include "stdint.h"
 
@@ -264,6 +249,8 @@ typedef uint8_t  uint8;
 typedef uint16_t uint16;
 typedef uint32_t uint32;
 typedef uint64_t uint64;
+
+#endif // MPT_MSVC_BEFORE
 
 #else
 
