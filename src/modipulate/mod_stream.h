@@ -84,7 +84,7 @@ public:
     bool get_channel_enabled(int channel);
     
     void get_info(ModipulateSongInfo** info);
-    void free_info(ModipulateSongInfo* info);
+    static void free_info(ModipulateSongInfo* info);
     
     // Returns the number of channels.
     int get_num_channels();

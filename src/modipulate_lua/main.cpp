@@ -100,7 +100,7 @@ static int modipulateLua_song_play(lua_State *L) {
     modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
     luaL_argcheck(L, lua_isboolean(L, 2), 2, usage);
     
-    MODIPULATE_LUA_ERROR(L, modipulate_song_play(&lua_song->song, (int) lua_toboolean(L, 2)));
+    MODIPULATE_LUA_ERROR(L, modipulate_song_play(lua_song->song, (int) lua_toboolean(L, 2)));
     
     return 0;
 }
@@ -236,7 +236,7 @@ static int modipulateLua_song_get_channel_enabled(lua_State *L) {
     modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
     luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
     
-    lua_pushboolean(L, (bool) modipulate_song_get_channel_enabled(&lua_song->song, (unsigned) lua_tointeger(L, 2)));
+    lua_pushboolean(L, (bool) modipulate_song_get_channel_enabled(lua_song->song, (unsigned) lua_tointeger(L, 2)));
     
     return 1;
 }
@@ -250,7 +250,7 @@ static int modipulateLua_song_set_channel_enabled(lua_State *L) {
     luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
     luaL_argcheck(L, lua_isnumber(L, 2), 3, usage);
     
-    modipulate_song_set_channel_enabled(&lua_song->song, (unsigned) lua_tointeger(L, 2), (int) lua_toboolean(L, 3));
+    modipulate_song_set_channel_enabled(lua_song->song, (unsigned) lua_tointeger(L, 2), (int) lua_toboolean(L, 3));
     
     return 0;
 }
