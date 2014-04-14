@@ -15,6 +15,8 @@
 
 using namespace std;
 
+// Global volume.
+double ModStream::modipulate_global_volume = 1.0;
 
 // Callback helper functions.
 int mod_stream_callback(const void *input, void *output, unsigned long frameCount, 
@@ -108,7 +110,7 @@ void ModStream::open(string path) {
         DPRINT("Error: No default output device.");
     }
     outputParameters.channelCount = 2;
-    outputParameters.sampleFormat = paInt16;
+    outputParameters.sampleFormat = paFloat32;
     outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
     
@@ -167,10 +169,16 @@ bool ModStream::is_playing() {
 int ModStream::audio_callback(const void *input, void *output, unsigned long frameCount,
     const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags) 
 {
-	std::size_t count = mod->read_interleaved_stereo( sampling_rate, frameCount, (std::int16_t*) output );
+	std::size_t count = mod->read_interleaved_stereo( sampling_rate, frameCount, (float*) output );
 	if (0 == count) {
 		return paAbort; // End of stream
 	}
+
+    // Perform volume adjustment.
+    float* out = (float*) output;
+    for (int i = 0; i < frameCount * 2; i++) { // *2 because we're in stereo (just like KOFY)
+        (*out++) *= modipulate_global_volume;
+    }
 
     return paContinue;
 }
@@ -379,8 +387,7 @@ std::string ModStream::get_message() {
 
 
 double ModStream::get_volume() {
-    //return ((double) (ModPlug_GetMasterVolume(modplug_file) - 1)) / 511.0;
-	return 0.0;
+    return modipulate_global_volume;
 }
 
 
@@ -389,7 +396,8 @@ void ModStream::set_volume(double vol) {
         vol = 0.;
     else if (vol > 1.)
         vol = 1.;
-    //ModPlug_SetMasterVolume(modplug_file, (int) (vol * 511) + 1);
+
+    modipulate_global_volume = vol;
 }
 
 unsigned ModStream::get_num_instruments() {
