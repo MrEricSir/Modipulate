@@ -1,10 +1,9 @@
-/* Copyright 2011 Eric Gregory and Stevie Hryciw
+/* Copyright 2011-2014 Eric Gregory and Stevie Hryciw
  *
  * Modipulate.
  * https://github.com/MrEricSir/Modipulate/
  *
- * This software is licensed under the GNU LGPL (version 3 or later).
- * See the COPYING.LESSER file in this distribution. 
+ * Modipulate is released under the BSD license.  See LICENSE for details.
  */
 
 #ifndef MODIPULATE_COMMON_H

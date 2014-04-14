@@ -38,9 +38,9 @@ function love.load()
         print('Sample: ', i, song:getSampleName(i))
     end
     print('')
-    for i = 1, song.numInstruments do
-        print('Instrument: ', i, song:getInstrumentName(i))
-    end
+    --//for i = 1, song.numInstruments - 1 do
+       -- //print('Instrument: ', i, song:getInstrumentName(i))
+    --end
     print('')
 
     song:onPatternChange(patternChanged)
@@ -71,7 +71,7 @@ function love.keypressed(k)
             playing_text = 'Playing'
         end
     elseif k == 'escape' or k == 'q' then
-        love.event.push('q')
+        love.event.quit()
     elseif k == '0' then
         song:setChannelEnabled(0, false)
     elseif k == '1' then

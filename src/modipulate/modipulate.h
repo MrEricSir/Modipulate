@@ -1,5 +1,5 @@
 /*! \mainpage Modipulate home page
- \author Copyright 2011-2012 Eric Gregory and Stevie Hryciw
+ \author Copyright 2011-2014 Eric Gregory and Stevie Hryciw
  \section intro What is Modipulate?
  
  Modipulate is a library for modipulating games and MOD-style music.
@@ -8,8 +8,7 @@
  https://github.com/MrEricSir/Modipulate/
  
  \section license License
- This software is licensed under the GNU LGPL (version 3 or later).
- See the COPYING.LESSER file in this distribution.
+ Modipulate is released under the BSD license.  See LICENSE for details.
  */
 
 /*! \file modipulate.h
@@ -89,14 +88,14 @@ typedef void (*modipulate_song_row_change_cb) (ModipulateSong song, int row, voi
 Song information struct.  Contains metadata for a song.
 */
 typedef struct {
-    char** instrument_names; //!< Array of instrument names from 1 to numInstruments
+    char** instrument_names; //!< Array of instrument names from 0 to numInstruments - 1
     char** sample_names;  //!< Array of samples names from 0 to numSamples - 1
     int* rows_per_pattern;  //!< Array of rows per pattern.
     char* title;  //!< Song title
     char* message;  //!< Message string metadata
     int default_tempo;  //!< Default tempo. Until a tempo command is issued, this will be the tempo
     int num_channels;  //!< Number of channels.
-    int num_instruments;  //!< Number of instruments. For historical reasons, valid range is 1..numInstruments
+    int num_instruments;  //!< Number of instruments. (0-based index)
     int num_samples;  //!< Number of samples
     int num_patterns; //!< Number of patterns
 } ModipulateSongInfo;

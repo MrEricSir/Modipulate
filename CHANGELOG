@@ -1,3 +1,13 @@
+2014-04-06  Eric Gregory <mrericsir@gmail.com>
+
+    * Modipulate is now based on the newer libopenmpt
+	library instead of libmodplug.
+	
+	* License is now BSD (formerly LGPL.)
+	
+	* Instruments now use a 0-based index.
+
+
 2012-04-08  Eric Gregory <mrericsir@gmail.com>
 
     * Modipulate now has a C API, with a

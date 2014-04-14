@@ -8,8 +8,12 @@ Modipulate.workspace.session
 Modipulate_wsp.mk
 *.so
 *.dll
+*.dylib
 *.exe
 *.lib
 *.a
 modipulate.txt
 /cscope_file.list
+*.pdb
+*.ilk
+*.exp
