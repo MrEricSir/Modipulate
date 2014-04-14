@@ -14,3 +14,6 @@ Modipulate_wsp.mk
 *.a
 modipulate.txt
 /cscope_file.list
+*.pdb
+*.ilk
+*.exp

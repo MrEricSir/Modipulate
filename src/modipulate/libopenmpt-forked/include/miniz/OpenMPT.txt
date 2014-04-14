@@ -1,0 +1,4 @@
+miniz DEFLATE implementation.
+http://miniz.googlecode.com/svn/trunk
+v155_r4
+No further changes have been made.
