@@ -90,20 +90,6 @@ void ModStream::open(string path) {
     
     samples_played = 0;
     
-   // modplug_file = HackedModPlug_Load(buffer, file_length + 1,
-     //   this,
-	/*
-        mod_stream_cb_increase_sample_count,
-        mod_stream_cb_is_volume_command_enabled,
-        mod_stream_cb_is_volume_command_pending,
-        mod_stream_cb_pop_volume_command,
-        mod_stream_cb_pop_volume_parameter,
-        mod_stream_cb_is_effect_command_enabled,
-        mod_stream_cb_is_effect_command_pending,
-        mod_stream_cb_pop_effect_command,
-        mod_stream_cb_pop_effect_parameter
-        );*/
-    
     PaStreamParameters outputParameters;
     outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
     if (outputParameters.device == paNoDevice) {
@@ -125,11 +111,6 @@ void ModStream::open(string path) {
               this));
     
     check_error(__LINE__, Pa_SetStreamFinishedCallback(stream, &mod_stream_callback_finished));
-    
-  /*  HackedModPlug_SetOnPatternChanged(modplug_file, mod_stream_cb_on_pattern_changed);
-    HackedModPlug_SetOnRowChanged(modplug_file, mod_stream_cb_on_row_changed);
-    HackedModPlug_SetOnNoteChange(modplug_file, mod_stream_cb_on_note_change);
-	*/
 
 	default_tempo = mod->get_current_tempo();
 }
