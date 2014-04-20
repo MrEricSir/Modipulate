@@ -217,6 +217,9 @@ private:
         const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
     
     friend void mod_stream_callback_finished(void* userData);
+
+    // Global volume, from 0.0 to 1.0
+    static double modipulate_global_volume;
 };
 
 #endif // MODSTREAM_H
