@@ -5,12 +5,15 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 set(modipulate_path ${CMAKE_SOURCE_DIR}/src/modipulate)
 set(libopenmpt_path ${modipulate_path}/libopenmpt-forked)
 set(modipulatelua_path ${CMAKE_SOURCE_DIR}/src/modipulate_lua)
+set(modipulateosc_path ${CMAKE_SOURCE_DIR}/src/modipulate-osc)
+set(oscpack_path ${modipulateosc_path}/oscpack)
 set(demo_path ${CMAKE_SOURCE_DIR}/demos)
 
 project(modipulate)
 
 find_package(portaudio REQUIRED)
 find_package(Lua51)
+find_package(Threads)
 
 include_directories(${PORTAUDIO_INCLUDE_DIRS})
 include_directories(${libopenmpt_path} ${libopenmpt_path}/common ${libopenmpt_path}/libopenmpt ${libopenmpt_path}/include ${modipulate_path})
@@ -105,6 +108,37 @@ if (LUA51_FOUND)
         libmodipulate-static
     )
 endif ()
+
+
+# modipulate-osc
+if(THREADS_FOUND)
+    if(WIN32)
+        set(IpSystemTypePath ip/win32)
+        set(oscpack_libraries Ws2_32 winmm)
+    else(WIN32)
+        set(IpSystemTypePath ip/posix)
+    endif(WIN32)
+    include_directories(${modipulateosc_path} ${oscpack_path})
+    set(modipulateosc_sources
+        "${modipulateosc_path}/main.cpp"
+    )
+    list(APPEND modipulateosc_sources
+        ${oscpack_path}/ip/IpEndpointName.cpp
+        ${oscpack_path}/${IpSystemTypePath}/NetworkingUtils.cpp
+        ${oscpack_path}/${IpSystemTypePath}/UdpSocket.cpp
+        ${oscpack_path}/osc/OscTypes.cpp 
+        ${oscpack_path}/osc/OscReceivedElements.cpp
+        ${oscpack_path}/osc/OscPrintReceivedElements.cpp
+        ${oscpack_path}/osc/OscOutboundPacketStream.cpp
+    )
+    add_executable(modipulate-osc ${modipulateosc_sources})
+    target_link_libraries(modipulate-osc
+        ${PORTAUDIO_LIBRARIES}
+        ${oscpack_libraries}
+        ${CMAKE_THREAD_LIBS_INIT}
+        libmodipulate-static
+    )
+endif(THREADS_FOUND)
 
 
 # demo: console
