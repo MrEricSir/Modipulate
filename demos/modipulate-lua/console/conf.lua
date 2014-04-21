@@ -9,4 +9,5 @@ function love.conf(t)
     t.modules.sound = true
     t.window.width = 300
     t.window.height = 140
+	t.window.resizable = true
 end
