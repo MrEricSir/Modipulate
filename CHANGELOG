@@ -1,3 +1,9 @@
+2014-04-20  Stevie Hryciw <codroid@gmail.com>
+
+    * Preliminary support for Open Sound Control (OSC)
+    integration via the modipulate-osc application.
+	
+
 2014-04-20  Eric Gregory <mrericsir@gmail.com>
 
     * Support for multiple songs.
