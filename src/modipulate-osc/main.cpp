@@ -158,12 +158,15 @@ public:
 				args >> filename >> osc::EndMessage;
 				std::cout << PFX_CMD << "Modipulate: Loading song '" << filename << "'\n";
 				err = modipulate_song_load(filename, &song);
+				modipulate_song_on_pattern_change(song, on_pattern_change, NULL);
+				modipulate_song_on_row_change(song, on_row_change, NULL);
+				modipulate_song_on_note(song, on_note, NULL);
 			}
 			// Unload the current song
 			else if (MSG_MATCH(msg.AddressPattern(), "/modipulate/song/unload"))
 			{
 				std::cout << PFX_CMD << "Modipulate: Unloading song\n";
-				err = modipulate_song_unload(&song);
+				err = modipulate_song_unload(song);
 			}
 			// Get info about the current song
 			else if (MSG_MATCH(msg.AddressPattern(), "/modipulate/song/info"))
@@ -175,13 +178,13 @@ public:
 			else if (MSG_MATCH(msg.AddressPattern(), "/modipulate/transport/play"))
 			{
 				std::cout << PFX_CMD << "Modipulate: Playing song\n";
-				err = modipulate_song_play(&song, 1);
+				err = modipulate_song_play(song, 1);
 			}
 			// Stop the current song
 			else if (MSG_MATCH(msg.AddressPattern(), "/modipulate/transport/stop"))
 			{
 				std::cout << PFX_CMD << "Modipulate: Stopping song\n";
-				err = modipulate_song_play(&song, 0);
+				err = modipulate_song_play(song, 0);
 			}
 			// Set the global mixer volume
 			else if (MSG_MATCH(msg.AddressPattern(), "/modipulate/mixer/setvolume"))
@@ -199,7 +202,7 @@ public:
 				int channel;
 				args >> channel >> osc::EndMessage;
 				std::cout << PFX_CMD << "Modipulate: Disabling channel " << channel << "\n";
-				modipulate_song_set_channel_enabled(&song, channel, 0);
+				modipulate_song_set_channel_enabled(song, channel, 0);
 				err = MODIPULATE_ERROR_NONE;
 			}
 			else if (MSG_MATCH(msg.AddressPattern(), "/modipulate/channel/enable"))
@@ -208,7 +211,7 @@ public:
 				int channel;
 				args >> channel >> osc::EndMessage;
 				std::cout << PFX_CMD << "Modipulate: Enabling channel " << channel << "\n";
-				modipulate_song_set_channel_enabled(&song, channel, 1);
+				modipulate_song_set_channel_enabled(song, channel, 1);
 				err = MODIPULATE_ERROR_NONE;
 			}
 			else if (MSG_MATCH(msg.AddressPattern(), "/modipulate/channel/effect"))
@@ -220,7 +223,7 @@ public:
 				args >> channel >> effect_command >> effect_value >> osc::EndMessage;
 				std::cout << PFX_CMD << "Modipulate: Executing command " << effect_command
 					<< " value " << effect_value << " on channel " << channel << "\n";
-				err = modipulate_song_effect_command(&song, channel, effect_command, effect_value);
+				err = modipulate_song_effect_command(song, channel, effect_command, effect_value);
 			}
 			if (!MODIPULATE_OK(err))
 				std::cout << PFX_ERR << "Modipulate: " << modipulate_global_get_last_error_string() << "\n";
@@ -270,9 +273,6 @@ int main(int argc, char *argv[])
 		std::cout << PFX_ERR << "Modipulate: " << modipulate_global_get_last_error_string() << "\n";
 		goto cleanup_oscpack;
 	}
-	modipulate_song_on_pattern_change(song, on_pattern_change, NULL);
-	modipulate_song_on_row_change(song, on_row_change, NULL);
-	modipulate_song_on_note(song, on_note, NULL);
 
 	// oscpack: set up UDP transmit socket and OSC stream
 	try
