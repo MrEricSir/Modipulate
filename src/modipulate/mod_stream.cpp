@@ -172,7 +172,7 @@ int ModStream::audio_callback(const void *input, void *output, unsigned long fra
     // Perform volume adjustment.
     float* out = (float*) output;
     for (int i = 0; i < frameCount * 2; i++) { // *2 because we're in stereo (just like KOFY)
-        (*out++) *= modipulate_global_volume;
+        (*out++) *= modipulate_global_volume * volume;
     }
 
     return paContinue;
@@ -383,7 +383,7 @@ std::string ModStream::get_message() {
 
 
 double ModStream::get_volume() {
-    return modipulate_global_volume;
+    return volume;
 }
 
 
@@ -393,7 +393,7 @@ void ModStream::set_volume(double vol) {
     else if (vol > 1.)
         vol = 1.;
 
-    modipulate_global_volume = vol;
+    volume = vol;
 }
 
 unsigned ModStream::get_num_instruments() {
@@ -535,4 +535,6 @@ void ModStream::resetInternal()
     for (int i = 0; i < MAX_CHANNELS; i++) {
         enabled_channels[i] = true;
     }
+
+    volume = 1.0;
 }

@@ -142,6 +142,12 @@ function love.keyreleased(k)
     elseif k == '=' then
         modipulate.setVolume(modipulate.getVolume() + VOL_STEP)
         print("Volume is", modipulate.getVolume())
+	elseif k == '[' then
+        song:setVolume(song:getVolume() - VOL_STEP)
+        print("Song 1 volume is", song:getVolume())
+    elseif k == ']' then
+        song:setVolume(song:getVolume() + VOL_STEP)
+        print("Song 1 volume is", song:getVolume())
     elseif k == 'e' then
         -- Re-enable the effect.
         print('Enabling effect');

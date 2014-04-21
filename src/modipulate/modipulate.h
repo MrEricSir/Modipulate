@@ -221,6 +221,22 @@ Frees a ModipulateSongInfo instance.
 ModipulateErr modipulate_song_info_free(ModipulateSongInfo* song_info);
 
 /**
+Gets a song's volume.
+
+@param song      Song to get volume for.
+@return          Volume from 0..1.0
+*/
+float modipulate_song_get_volume(ModipulateSong song);
+
+/**
+Sets a song's volume.
+
+@param song     Song to set volume on.
+@param volume   Volume from 0..1.0
+*/
+void modipulate_song_set_volume(ModipulateSong song, float volume);
+
+/**
 Issues a volume command.
 
 @param song           Song to act on.

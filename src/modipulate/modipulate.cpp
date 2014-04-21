@@ -195,6 +195,22 @@ ModipulateErr modipulate_song_info_free(ModipulateSongInfo* song_info) {
     return MODIPULATE_ERROR_NONE;
 }
 
+float modipulate_song_get_volume(ModipulateSong song) {
+    if (!modipulateIsInitialized) {
+        return -1;
+    }
+
+    return ((ModStream*) song)->get_volume();
+}
+
+void modipulate_song_set_volume(ModipulateSong song, float volume) {
+    if (!modipulateIsInitialized) {
+        return;
+    }
+
+    ((ModStream*) song)->set_volume(volume);
+}
+
 void modipulate_song_set_channel_enabled(ModipulateSong song, unsigned channel, int enabled) {
     if (!modipulateIsInitialized) {
         return;
@@ -220,8 +236,7 @@ float modipulate_global_get_volume(void) {
         return -1.0;
     }
 
-	// TODO
-    return 0.0;
+	return ModStream::modipulate_global_volume;
 }
 
 
@@ -230,7 +245,7 @@ void modipulate_global_set_volume(float vol) {
         return;
     }
 
-    // TODO
+    ModStream::modipulate_global_volume = vol;
 }
 
 
