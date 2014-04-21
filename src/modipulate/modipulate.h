@@ -26,6 +26,7 @@ extern "C" {
 #define MODIPULATE_ERROR_GENERAL                1
 #define MODIPULATE_ERROR_INVALID_PARAMETERS     2
 #define MODIPULATE_ERROR_NOT_IMPLEMENTED        3
+#define MODIPULATE_ERROR_NOT_INITIALIZED        4
 
 /** \ingroup global 
 Error checking macro. Returns 0 for error, 1 for no error.

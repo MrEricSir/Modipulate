@@ -17,21 +17,36 @@
 // Last error string.
 char* last_error = NULL;
 
+// Table of all modules.
 #define MAX_MODSTREAMS 16
-
 ModStream* mods[MAX_MODSTREAMS];
 
+// Check if we've initialized.
+static bool modipulateIsInitialized = false;
+
 ModipulateErr modipulate_global_init(void) {
+    if (modipulateIsInitialized) {
+        return MODIPULATE_ERROR_GENERAL;
+    }
+
     DPRINT("Loading Modipulate!");
 
 	for (int i = 0; i < MAX_MODSTREAMS; i++)
 		mods[i] = NULL;
     
+    modipulateIsInitialized = true;
+
     // Start PortAudio.
     return modipulate_handle_pa_error(Pa_Initialize());
 }
 
 ModipulateErr modipulate_global_deinit(void) {
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NONE;
+    }
+
+    modipulateIsInitialized = false;
+
     DPRINT("Quiting Modipulate");
     ModipulateErr ret = MODIPULATE_ERROR_NONE;
     
@@ -61,6 +76,10 @@ char* modipulate_global_get_last_error_string(void) {
 }
 
 ModipulateErr modipulate_global_update(void) {
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     // Call all callbacks.
 	for (int i = 0; i < MAX_MODSTREAMS; i++) {
 		if (mods[i]) {
@@ -72,6 +91,10 @@ ModipulateErr modipulate_global_update(void) {
 }
 
 ModipulateErr modipulate_song_load(const char* filename, ModipulateSong* song) {
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     DPRINT("Opening file: %s", filename);
     ModipulateErr ret = MODIPULATE_ERROR_NONE;
 
@@ -108,6 +131,10 @@ ModipulateErr modipulate_song_load(const char* filename, ModipulateSong* song) {
 
 
 ModipulateErr modipulate_song_unload(ModipulateSong song) {
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     modipulate_song_play(song, false);
     
     // Destroy object.
@@ -125,6 +152,10 @@ ModipulateErr modipulate_song_unload(ModipulateSong song) {
 }
 
 ModipulateErr modipulate_song_play(ModipulateSong song, int play) {
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     ModipulateErr ret = MODIPULATE_ERROR_NONE;
 	
     try {
@@ -138,6 +169,10 @@ ModipulateErr modipulate_song_play(ModipulateSong song, int play) {
 }
 
 ModipulateErr modipulate_song_get_info(ModipulateSong song, ModipulateSongInfo** song_info) {
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     ModipulateErr ret = MODIPULATE_ERROR_NONE;
     
     try {
@@ -151,12 +186,20 @@ ModipulateErr modipulate_song_get_info(ModipulateSong song, ModipulateSongInfo**
 }
 
 ModipulateErr modipulate_song_info_free(ModipulateSongInfo* song_info) {
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     ModStream::free_info(song_info);
     
     return MODIPULATE_ERROR_NONE;
 }
 
 void modipulate_song_set_channel_enabled(ModipulateSong song, unsigned channel, int enabled) {
+    if (!modipulateIsInitialized) {
+        return;
+    }
+
     DPRINT("Channel %d is set to %s", channel, enabled ? "Enabled" : "Disabled");
     
     ((ModStream*) song)->set_channel_enabled(channel, enabled);
@@ -164,22 +207,38 @@ void modipulate_song_set_channel_enabled(ModipulateSong song, unsigned channel, 
 
 
 int modipulate_song_get_channel_enabled(ModipulateSong song, unsigned channel) {
+    if (!modipulateIsInitialized) {
+        return -1;
+    }
+
     return ((ModStream*) song)->get_channel_enabled(channel);
 }
 
 
 float modipulate_global_get_volume(void) {
+    if (!modipulateIsInitialized) {
+        return -1.0;
+    }
+
 	// TODO
     return 0.0;
 }
 
 
 void modipulate_global_set_volume(float vol) {
+    if (!modipulateIsInitialized) {
+        return;
+    }
+
     // TODO
 }
 
 
 ModipulateErr modipulate_song_set_transposition(ModipulateSong song, unsigned channel, int offset) {
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     ((ModStream*) song)->set_transposition(channel, offset);
     
     return MODIPULATE_ERROR_NONE;
@@ -187,6 +246,10 @@ ModipulateErr modipulate_song_set_transposition(ModipulateSong song, unsigned ch
 
 
 ModipulateErr modipulate_song_get_transposition(ModipulateSong song, unsigned channel, int *offset) {
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     *offset = ((ModStream*) song)->get_transposition(channel);
     
     return MODIPULATE_ERROR_NONE;
@@ -195,6 +258,9 @@ ModipulateErr modipulate_song_get_transposition(ModipulateSong song, unsigned ch
 
 ModipulateErr modipulate_song_volume_command(ModipulateSong song, unsigned channel,
     int volume_command, int volume_value) {
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
     
     ((ModStream*) song)->issue_volume_command(channel, volume_command, volume_value);
     return MODIPULATE_ERROR_NONE;
@@ -203,7 +269,10 @@ ModipulateErr modipulate_song_volume_command(ModipulateSong song, unsigned chann
 
 ModipulateErr modipulate_song_enable_volume(ModipulateSong song, unsigned channel,
     int volume_command, int enable) {
-    
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     ((ModStream*) song)->enable_volume_command(channel, volume_command, (bool) enable);
     return MODIPULATE_ERROR_NONE;
 }
@@ -211,7 +280,10 @@ ModipulateErr modipulate_song_enable_volume(ModipulateSong song, unsigned channe
 
 ModipulateErr modipulate_song_effect_command(ModipulateSong song, unsigned channel,
     int effect_command, int effect_value) {
-    
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     ((ModStream*) song)->issue_effect_command(channel, effect_command, effect_value);
     return MODIPULATE_ERROR_NONE;
 }
@@ -219,7 +291,10 @@ ModipulateErr modipulate_song_effect_command(ModipulateSong song, unsigned chann
 
 ModipulateErr modipulate_song_enable_effect(ModipulateSong song, unsigned channel,
     int effect_command, int enable) {
-    
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     ((ModStream*) song)->enable_effect_command(channel, effect_command, (bool) enable);
     return MODIPULATE_ERROR_NONE;
 }
@@ -227,7 +302,10 @@ ModipulateErr modipulate_song_enable_effect(ModipulateSong song, unsigned channe
 
 ModipulateErr modipulate_song_on_pattern_change(ModipulateSong song,
     modipulate_song_pattern_change_cb cb, void* user_data) {
-    
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     ((ModStream*) song)->set_pattern_change_cb(cb, user_data);
     
     return MODIPULATE_ERROR_NONE;
@@ -236,7 +314,10 @@ ModipulateErr modipulate_song_on_pattern_change(ModipulateSong song,
 
 ModipulateErr modipulate_song_on_row_change(ModipulateSong song,
     modipulate_song_row_change_cb cb, void* user_data) {
-    
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     ((ModStream*) song)->set_row_change_cb(cb, user_data);
     
     return MODIPULATE_ERROR_NONE;
@@ -245,7 +326,10 @@ ModipulateErr modipulate_song_on_row_change(ModipulateSong song,
 
 ModipulateErr modipulate_song_on_note(ModipulateSong song,
     modipulate_song_note_cb cb, void* user_data) {
-    
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
     ((ModStream*) song)->set_note_change_cb(cb, user_data);
     
     return MODIPULATE_ERROR_NONE;

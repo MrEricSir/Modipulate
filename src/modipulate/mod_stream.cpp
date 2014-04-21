@@ -16,7 +16,7 @@
 using namespace std;
 
 // Global volume.
-double ModStream::modipulate_global_volume = 1.0;
+float ModStream::modipulate_global_volume = 1.0;
 
 // Callback helper functions.
 int mod_stream_callback(const void *input, void *output, unsigned long frameCount, 
@@ -74,11 +74,19 @@ ModStream::ModStream() :
 }
 
 
-ModStream::~ModStream() {
+ModStream::~ModStream()
+{
+    close();
 }
 
 
 void ModStream::open(string path) {
+    if (mod) {
+        DPRINT("File already loaded. Did you forget to call ModStream::close()?");
+
+        return;
+    }
+
     DPRINT("Opening: %s", path.c_str());
     
 	std::ifstream file( path, std::ios::binary );
@@ -117,8 +125,13 @@ void ModStream::open(string path) {
 
 
 void ModStream::close() {
-    check_error(__LINE__, Pa_StopStream(stream));
-    check_error(__LINE__, Pa_CloseStream(stream));
+    if (!mod) {
+        return;
+    }
+
+    // Ignore errors, just exit.
+    Pa_StopStream(stream);
+    Pa_CloseStream(stream);
     
     delete mod;
 	mod = NULL;
@@ -140,8 +153,9 @@ void ModStream::set_playing(bool play) {
 }
 
 bool ModStream::is_playing() {
-    if (!stream_started)
+    if (!stream_started || !mod) {
         return false;
+    }
     
     return (Pa_IsStreamActive(stream) == 1);
 }
@@ -178,6 +192,7 @@ void ModStream::check_error(int line, PaError err) {
         ss << " ";
         ss << Pa_GetErrorText( err );
         ss << " at line " << line;
+        DPRINT(ss.str().c_str());
         throw string(ss.str());
     }
 }

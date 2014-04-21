@@ -88,7 +88,7 @@ static int modipulateLua_song_destroy(lua_State *L) {
     
     // Attempt to free the song and song info.
     MODIPULATE_LUA_ERROR(L, modipulate_song_info_free(lua_song->song_info));
-    MODIPULATE_LUA_ERROR(L, modipulate_song_unload(&lua_song->song));
+    MODIPULATE_LUA_ERROR(L, modipulate_song_unload(lua_song->song));
     
     return 0;
 }
