@@ -1,3 +1,13 @@
+2014-04-20  Eric Gregory <mrericsir@gmail.com>
+
+    * Support for multiple songs.
+	
+	* Adjust volume on a per-song basis.
+	
+	* Volumes are now specified as floats rather than
+	doubles for internal consistency. (API change)
+
+
 2014-04-06  Eric Gregory <mrericsir@gmail.com>
 
     * Modipulate is now based on the newer libopenmpt

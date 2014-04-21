@@ -88,7 +88,7 @@ static int modipulateLua_song_destroy(lua_State *L) {
     
     // Attempt to free the song and song info.
     MODIPULATE_LUA_ERROR(L, modipulate_song_info_free(lua_song->song_info));
-    MODIPULATE_LUA_ERROR(L, modipulate_song_unload(&lua_song->song));
+    MODIPULATE_LUA_ERROR(L, modipulate_song_unload(lua_song->song));
     
     return 0;
 }
@@ -100,7 +100,7 @@ static int modipulateLua_song_play(lua_State *L) {
     modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
     luaL_argcheck(L, lua_isboolean(L, 2), 2, usage);
     
-    MODIPULATE_LUA_ERROR(L, modipulate_song_play(&lua_song->song, (int) lua_toboolean(L, 2)));
+    MODIPULATE_LUA_ERROR(L, modipulate_song_play(lua_song->song, (int) lua_toboolean(L, 2)));
     
     return 0;
 }
@@ -236,7 +236,7 @@ static int modipulateLua_song_get_channel_enabled(lua_State *L) {
     modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
     luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
     
-    lua_pushboolean(L, (bool) modipulate_song_get_channel_enabled(&lua_song->song, (unsigned) lua_tointeger(L, 2)));
+    lua_pushboolean(L, (bool) modipulate_song_get_channel_enabled(lua_song->song, (unsigned) lua_tointeger(L, 2)));
     
     return 1;
 }
@@ -250,11 +250,33 @@ static int modipulateLua_song_set_channel_enabled(lua_State *L) {
     luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
     luaL_argcheck(L, lua_isnumber(L, 2), 3, usage);
     
-    modipulate_song_set_channel_enabled(&lua_song->song, (unsigned) lua_tointeger(L, 2), (int) lua_toboolean(L, 3));
+    modipulate_song_set_channel_enabled(lua_song->song, (unsigned) lua_tointeger(L, 2), (int) lua_toboolean(L, 3));
     
     return 0;
 }
 
+
+static int modipulateLua_song_get_volume(lua_State *L) {
+    const char* usage = "Usage: getVolume() returns voluume from 0..1.0";
+    luaL_argcheck(L, lua_gettop(L) == 1, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    
+    lua_pushnumber(L, (float) modipulate_song_get_volume(lua_song->song));
+    
+    return 1;
+}
+
+
+static int modipulateLua_song_set_volume(lua_State *L) {
+    const char* usage = "Usage: setVolume(float vol) where vol is 0..1.0";
+    luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
+    
+    modipulate_song_set_volume(lua_song->song, (float) lua_tonumber(L, 2));
+    
+    return 0;
+}
 
 // Dispatch function for pattern change.
 void on_modipulate_song_pattern_change(ModipulateSong song, int pattern_number, void* user_data) {
@@ -398,6 +420,8 @@ static const luaL_reg modipulate_song_methods[] = {
 {"getTransposition",       modipulateLua_song_get_transposition},
 {"getChannelEnabled",      modipulateLua_song_get_channel_enabled},
 {"setChannelEnabled",      modipulateLua_song_set_channel_enabled},
+{"getVolume",              modipulateLua_song_get_volume},
+{"setVolume",              modipulateLua_song_set_volume},
 {"onPatternChange",        modipulateLua_song_on_pattern_change},
 {"onRowChange",            modipulateLua_song_on_row_change},
 {"onNote",                 modipulateLua_song_on_note},
@@ -498,7 +522,7 @@ static int modipulateLua_setVolume(lua_State *L) {
     luaL_argcheck(L, lua_gettop(L) == 1, 0, usage);
     luaL_argcheck(L, lua_isnumber(L, 1), 1, usage);
     
-    modipulate_global_set_volume(lua_tonumber(L, 1));
+    modipulate_global_set_volume((float) lua_tonumber(L, 1));
     
     return 0;
 }

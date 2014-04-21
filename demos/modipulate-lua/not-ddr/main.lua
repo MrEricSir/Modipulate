@@ -39,7 +39,7 @@ function love.load()
 
 	-- Setup Modipulate
 	modipulate.init()
-	song = modipulate.loadSong('../../media/vhiiula-inventio_in_4k.it')  --v-cf.it')
+	song = modipulate.loadSong('../../media/8vb1.it')
 	
 	modipulate.setVolume(1)
     tempo = song.defaultTempo
@@ -60,7 +60,7 @@ function love.load()
 	channels = {}
 	no_channels = song.numChannels
 	channel_width = frame_width / no_channels
-	for i=1,no_channels do
+	for i=0,no_channels - 1 do
 		channels[i] = {enabled=true}
 	end
 
@@ -97,7 +97,6 @@ end
 function love.draw(dt)
 
 	-- Draw bubbles
-	local bubble_x_center = (frame_width / no_channels) / 2
 	for i,bubble in ipairs(bubbles) do
 		love.graphics.setColor(0x40, 0x40, 0x40)
 		love.graphics.circle('fill', bubble.x, bubble.y, bubble.radius * 1.15, 20)
@@ -113,14 +112,14 @@ function love.draw(dt)
 			frame_x2, frame_y2, frame_x2, frame_y1, frame_x1, frame_y1)
 	-- Column bars
 	local no_channels = no_channels
-	for i=1,no_channels-1 do
+	for i=0,no_channels-1 do
 		local x = i * (frame_width / no_channels) + frame_x1
 		love.graphics.line(x, frame_y1, x, frame_y2)
 	end
 	-- X-out disabled channels
-	for i,ch in ipairs(channels) do
-		if not ch.enabled then
-			local x1 = (i - 1) * channel_width + frame_x1
+	for i=0,no_channels-1 do
+		if not channels[i].enabled then
+			local x1 = i * channel_width + frame_x1
 			local x2 = x1 + channel_width
 			love.graphics.setColor(0x80, 0x10, 0x10)
 			love.graphics.line(x1, frame_y1, x2, frame_y2)
@@ -221,10 +220,10 @@ function love.mousepressed(x, y, button)
 	and y < frame_y2 then
 		-- Figure out which track was pressed
 		local ch = math.floor(((x - frame_x1) / frame_width)
-				* no_channels)
+				* (no_channels))
 		-- Toggle mute status and set muting
-		channels[ch + 1].enabled = not channels[ch + 1].enabled
-		song:setChannelEnabled(ch, channels[ch + 1].enabled)
+		channels[ch].enabled = not channels[ch].enabled
+		song:setChannelEnabled(ch, channels[ch].enabled)
 	end
 
 end
@@ -256,7 +255,7 @@ function exe_row(row)
 			bubble.radius = bubble.radius * 0.7
 			bubble.first_row = false
 		else
-			-- Shrink the bubble a litle each time
+			-- Shrink the bubble a little each time
 			bubble.radius = bubble.radius * bubble_decay_rate
 		end
 	end

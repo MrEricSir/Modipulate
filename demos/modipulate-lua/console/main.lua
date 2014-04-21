@@ -38,9 +38,9 @@ function love.load()
         print('Sample: ', i, song:getSampleName(i))
     end
     print('')
-    --//for i = 1, song.numInstruments - 1 do
-       -- //print('Instrument: ', i, song:getInstrumentName(i))
-    --end
+    for i = 0, song.numInstruments - 1 do
+       print('Instrument: ', i, song:getInstrumentName(i))
+    end
     print('')
 
     song:onPatternChange(patternChanged)
@@ -107,6 +107,10 @@ function love.keypressed(k)
         end
 
         song:effectCommand(0, 17, tempo)
+	elseif k == 'o' then
+		-- Load & play a new song (at the same time)
+		song2 = modipulate.loadSong('../../media/8vb1.it')
+		song2:play(true)
     end
 end
 
@@ -138,6 +142,12 @@ function love.keyreleased(k)
     elseif k == '=' then
         modipulate.setVolume(modipulate.getVolume() + VOL_STEP)
         print("Volume is", modipulate.getVolume())
+	elseif k == '[' then
+        song:setVolume(song:getVolume() - VOL_STEP)
+        print("Song 1 volume is", song:getVolume())
+    elseif k == ']' then
+        song:setVolume(song:getVolume() + VOL_STEP)
+        print("Song 1 volume is", song:getVolume())
     elseif k == 'e' then
         -- Re-enable the effect.
         print('Enabling effect');
@@ -159,6 +169,10 @@ function love.keyreleased(k)
         for i = 0, song.numChannels, 1 do
             song:setTransposition(i, song:getTransposition(i) + 1)
         end
+	elseif k == 'o' then
+		-- Kill the song
+		song2 = nil
+		collectgarbage()
     end
 end
 

@@ -84,7 +84,7 @@ public:
     bool get_channel_enabled(int channel);
     
     void get_info(ModipulateSongInfo** info);
-    void free_info(ModipulateSongInfo* info);
+    static void free_info(ModipulateSongInfo* info);
     
     // Returns the number of channels.
     int get_num_channels();
@@ -155,6 +155,10 @@ public:
     void increase_sample_count(int add);
     void on_tempo_changed(int tempo);
 
+    
+    // Global volume, from 0.0 to 1.0
+    static float modipulate_global_volume;
+
 private:
     void check_error(int line, PaError err);
     
@@ -212,14 +216,15 @@ private:
 
 	// Last pattern # we saw.
 	int lastPattern;
+
+    // Per-song volume.
+    float volume;
     
     friend int mod_stream_callback(const void *input, void *output, unsigned long frameCount, 
         const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
     
     friend void mod_stream_callback_finished(void* userData);
 
-    // Global volume, from 0.0 to 1.0
-    static double modipulate_global_volume;
 };
 
 #endif // MODSTREAM_H
