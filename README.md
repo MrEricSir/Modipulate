@@ -16,8 +16,14 @@ for more information.
 License
 -------
 
-Copyright Eric Gregory and Stevie Hryciw.  
+Copyright 2011-2014 Eric Gregory and Stevie Hryciw.  
 
-Modipulate is released under a BSD license. Modipulate includes a forked copy
-of libopenmpt, which is also available under a BSD license.  See the LICENSE
-file for more information.
+Modipulate is released under a BSD license. See the LICENSE file for more
+information.
+
+Modipulate includes a forked copy of libopenmpt, which is also available
+under a BSD license. See src/modipulate/libopenmpt-forked/LICENSE for more
+information.
+
+Modipulate-OSC includes a copy of OSCPack, which is available under an MIT
+license. See src/modipulate-osc/oscpack/LICENSE for more information.
