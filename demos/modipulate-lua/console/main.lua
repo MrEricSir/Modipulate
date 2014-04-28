@@ -2,6 +2,8 @@
 -- Barebones Modipulate app. Look at the console for interesting stuff.
 -- Check the key functions for keyboard commands.
 
+package.cpath = package.cpath .. ';./?.dylib'
+
 require 'libmodipulatelua'
 
 sound_effect = love.audio.newSource('rooster.ogg', 'static')

@@ -1,6 +1,8 @@
 -- 8vb
 -- A shooter game to demo Modipulate
 
+package.cpath = package.cpath .. ';./?.dylib'
+
 require('libmodipulatelua')
 require('AnAL')
 

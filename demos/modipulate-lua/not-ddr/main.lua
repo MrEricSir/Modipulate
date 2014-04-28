@@ -1,6 +1,8 @@
 -- not-ddr
 -- A music-visualization demo for modipulate
 
+package.cpath = package.cpath .. ';./?.dylib'
+
 ---- LOVE callbacks
 
 require 'libmodipulatelua'
