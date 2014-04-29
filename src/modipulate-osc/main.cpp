@@ -301,7 +301,7 @@ bool processSetSongChannelEffect(oscpkt::Message *msg)
     oscpkt::int32_t channel = 0;
     oscpkt::int32_t effect_command = 0;
     oscpkt::int32_t effect_value = 0;
-    if (!msg->match("/modipulate/song/channel/enable").popInt32(channel).popInt32(effect_command).popInt32(effect_value).isOkNoMoreArgs())
+    if (!msg->match("/modipulate/song/channel/effect").popInt32(channel).popInt32(effect_command).popInt32(effect_value).isOkNoMoreArgs())
     {
         return false;
     }
