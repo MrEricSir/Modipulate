@@ -101,11 +101,13 @@ ModipulateErr modipulate_song_load(const char* filename, ModipulateSong* song) {
 	ModStream* stream = NULL;
 
 	// Find an empty slot.
+    int slot = -1;
 	for (int i = 0; i < MAX_MODSTREAMS; i++) {
 		if (mods[i] == NULL) {
 			// We got one!
 			stream = new ModStream();
-			mods[i] = stream;
+            slot = i;
+			mods[slot] = stream;
 
 			break;
 		}
@@ -124,6 +126,10 @@ ModipulateErr modipulate_song_load(const char* filename, ModipulateSong* song) {
     } catch (std::string e) {
         modipulate_set_error_string_cpp(e);
         ret = MODIPULATE_ERROR_GENERAL;
+
+        // Cleanup.
+        delete stream;
+        mods[slot] = NULL;
     }
     
     return ret;
