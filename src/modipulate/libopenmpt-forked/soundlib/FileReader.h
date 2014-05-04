@@ -208,6 +208,9 @@ public:
 	const char *GetRawData() const
 	{
 		CacheStream();
+        if (!cache.size())
+            return NULL; // fix0r for MODIPULATE
+        
 		return &cache[0];
 	}
 

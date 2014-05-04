@@ -78,7 +78,7 @@ public:
 };
 
 
-char* filename = "../demos/media/v-cf.it";
+const char* filename = "../demos/media/v-cf.it";
 ModipulateSong song;
 ModipulateErr err;
 ModipulateSongInfo* song_info;

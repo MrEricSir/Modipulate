@@ -82,15 +82,28 @@ ModStream::~ModStream()
 
 void ModStream::open(string path) {
     if (mod) {
-        DPRINT("File already loaded. Did you forget to call ModStream::close()?");
-
-        return;
+        throw string("File already loaded. Did you forget to call ModStream::close()?");
     }
 
     DPRINT("Opening: %s", path.c_str());
     
 	std::ifstream file( path, std::ios::binary );
-	mod = new openmpt::module( file );
+
+    if (file.fail() || !file.good()) {
+        throw string("Error reading file: " + path);
+    }
+    
+    try {
+	    mod = new openmpt::module( file );
+    } catch(const openmpt::exception& e) {
+        string err = e.what();
+
+        delete mod;
+        mod = NULL;
+
+        throw err;
+    }
+
 	mod->set_mod_stream(this);
     
     // Allocate the current row.
@@ -101,7 +114,10 @@ void ModStream::open(string path) {
     PaStreamParameters outputParameters;
     outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
     if (outputParameters.device == paNoDevice) {
-        DPRINT("Error: No default output device.");
+        delete mod;
+        mod = NULL;
+
+        throw string("Error: No default output device.");
     }
     outputParameters.channelCount = 2;
     outputParameters.sampleFormat = paFloat32;
