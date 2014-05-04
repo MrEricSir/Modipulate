@@ -27,6 +27,7 @@
 #include <cstring>  // strcmp() etc.
 #include <cstdlib>  // atoi()
 #include <string>   // std::string
+#include <cstdint>  // int32_t, etc
 
 // Modipulate
 #include <modipulate.h>
@@ -119,7 +120,7 @@ void on_note(ModipulateSong song, unsigned channel, int note,
  */
 bool processPing(oscpkt::Message *msg) 
 {
-    oscpkt::int32_t port = 0;
+    std::int32_t port = 0;
     if (!msg->match("/ping").popInt32(port).isOkNoMoreArgs())
     {
         return false;
@@ -264,7 +265,7 @@ bool processSetVolume(oscpkt::Message *msg)
  */
 bool processSetSongChannelDisable(oscpkt::Message *msg) 
 {
-    oscpkt::int32_t channel = 0;
+    std::int32_t channel = 0;
     if (!msg->match("/modipulate/song/channel/disable").popInt32(channel).isOkNoMoreArgs())
     {
         return false;
@@ -281,7 +282,7 @@ bool processSetSongChannelDisable(oscpkt::Message *msg)
  */
 bool processSetSongChannelEnable(oscpkt::Message *msg) 
 {
-    oscpkt::int32_t channel = 0;
+    std::int32_t channel = 0;
     if (!msg->match("/modipulate/song/channel/enable").popInt32(channel).isOkNoMoreArgs())
     {
         return false;
@@ -298,9 +299,9 @@ bool processSetSongChannelEnable(oscpkt::Message *msg)
  */
 bool processSetSongChannelEffect(oscpkt::Message *msg) 
 {
-    oscpkt::int32_t channel = 0;
-    oscpkt::int32_t effect_command = 0;
-    oscpkt::int32_t effect_value = 0;
+    std::int32_t channel = 0;
+    std::int32_t effect_command = 0;
+    std::int32_t effect_value = 0;
     if (!msg->match("/modipulate/song/channel/effect").popInt32(channel).popInt32(effect_command).popInt32(effect_value).isOkNoMoreArgs())
     {
         return false;
