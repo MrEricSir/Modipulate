@@ -25,5 +25,5 @@ Modipulate includes a forked copy of libopenmpt, which is also available
 under a BSD license. See src/modipulate/libopenmpt-forked/LICENSE for more
 information.
 
-Modipulate-OSC includes a copy of OSCPack, which is available under an MIT
-license. See src/modipulate-osc/oscpack/LICENSE for more information.
+Modipulate-OSC includes a copy of oscpkt, which is available under a zlib
+license. See src/modipulate-osc/oscpkt/oscpkt.hh for more information.
