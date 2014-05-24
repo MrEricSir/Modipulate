@@ -336,7 +336,7 @@ bool doReceive(void)
 
         // Check each command.
         if (processPing(msg)) goto runtimeErrorCheck;
-        if (processQuit(msg)) break;
+        if (processQuit(msg)) return false;
         if (processSongLoad(msg)) goto runtimeErrorCheck;
         if (processSongUnload(msg)) goto runtimeErrorCheck;
         if (processSongInfo(msg)) goto runtimeErrorCheck;
