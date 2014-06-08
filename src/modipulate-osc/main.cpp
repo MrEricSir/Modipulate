@@ -24,8 +24,6 @@
 
 
 #include <iostream> // cout
-#include <cstring>  // strcmp() etc.
-#include <cstdlib>  // atoi()
 #include <string>   // std::string
 #include <cstdint>  // int32_t, etc
 
@@ -48,15 +46,20 @@
 #define PFX_OSCIN  "<osc-in>  "
 #define PFX_OSCOUT "<osc-out> "
 // Helper macros
-#define MSG_MATCH(s1, s2) (std::strcmp(s1, s2) == 0)
 #define USAGE_MSG \
 "Usage:\n" \
-"  " APPNAME " -h\n" \
-"  " APPNAME " receive_port send_address send_port\n" \
+"  " APPNAME " --help\n" \
+"  " APPNAME " [options]\n" \
 "Options:\n" \
-"  -h        View this help message and exit\n" \
-"Example:\n" \
-"  " APPNAME " 7071 127.0.0.1 8009\n"
+"  --help             View this help message and exit\n" \
+"  --bind-port=port   Port for incoming messages (default: 7070)\n" \
+"  --send-port=port   Port for outgoing messages (default: 7071)\n" \
+"  --send-addr=addr   Address for outgoing messages (default: localhost)\n" \
+"  --skip-bytes=N     Skip N bytes of incoming packets (default: 0)\n" \
+"Examples:\n" \
+"  " APPNAME "\n" \
+"  " APPNAME " --send-addr=192.168.1.15 -send-port=9442\n" \
+"  " APPNAME " --bind-port=7071 --skip-bytes=16\n"
 
 
 // Modipulate: globals
@@ -67,9 +70,10 @@ ModipulateSongInfo* song_info;
 // oscpkt: globals
 oscpkt::UdpSocket socketSend;
 oscpkt::UdpSocket socketReceive;
-int rcv_port = 0;
-int snd_port = 0;
-std::string snd_address = "";
+int skip_bytes = 0;
+int rcv_port = 7070;
+int snd_port = 7071;
+std::string snd_address = "127.0.0.1";
 char snd_buffer[OUTPUT_BUFFER_SIZE] = "";
 
 
@@ -325,8 +329,10 @@ bool processSetSongChannelEffect(oscpkt::Message *msg)
  */
 bool doReceive(void)
 {
-    oscpkt::PacketReader pr(socketReceive.packetData(), socketReceive.packetSize());
+    oscpkt::PacketReader pr((char*)socketReceive.packetData() + skip_bytes,
+        socketReceive.packetSize() - skip_bytes);
     oscpkt::Message *msg;
+
     while (pr.isOk() && (msg = pr.popMessage()) != 0)
     {
         err = MODIPULATE_ERROR_NONE;
@@ -384,26 +390,86 @@ void doLoop(void)
 
 // Welcome to Maine
 int main(int argc, char *argv[])
-{    
+{
     // Process arguments
-    if (argc > 1 && std::strcmp(argv[1], "-h") == 0)
+    int i;
+    for (i = 1; i < argc; i++)
     {
-        std::cout << USAGE_MSG;
-        return 0;
-    }
-    if (argc < 4)
-    {
-        std::cout << "Not enough parameters\n";
-        std::cout << USAGE_MSG;
-        return 1;
-    }
-    rcv_port = std::atoi(argv[1]);
-    snd_address = argv[2];
-    snd_port = std::atoi(argv[3]);
-    if (!rcv_port || !snd_port || snd_address.length() == 0)
-    {
-        std::cout << "Error parsing parameters (invalid address or port number?)\n";
-        return 1;
+        std::string param = argv[i];
+        if (param.compare("--help") == 0)
+        {
+            std::cout << USAGE_MSG;
+            return 0;
+        }
+        else
+        {
+            size_t pos = param.find("=");
+            if (pos == std::string::npos)
+            {
+                std::cout << "Error: Expected --option=VALUE (" << param << ")\n\n";
+                std::cout << USAGE_MSG;
+                return 1;
+            }
+            std::string option = param.substr(0, pos);
+            std::string value;
+            try
+            {
+                value = param.substr(pos + 1);
+            }
+            catch (const std::out_of_range& oor)
+            {
+                std::cout << "Error: No value supplied to option (" << option << ")\n";
+                return 1;
+            }
+            if (option.compare("--bind-port") == 0)
+            {
+                try
+                {
+                    rcv_port = std::stoi(value);
+                }
+                catch (const std::invalid_argument& ia)
+                {
+                    std::cout << "Error: Bad number supplied to option (" << option << ")\n";
+                    return 1;
+                }
+            }
+            else if (option.compare("--send-port") == 0)
+            {
+                try
+                {
+                    snd_port = std::stoi(value);
+                }
+                catch (const std::invalid_argument& ia)
+                {
+                    std::cout << "Error: Bad number supplied to option (" << option << ")\n";
+                    return 1;
+                }
+            }
+            else if (option.compare("--send-addr") == 0)
+            {
+                snd_address = value;
+            }
+            else if (option.compare("--skip-bytes") == 0)
+            {
+                try
+                {
+                    skip_bytes = std::stoi(param.substr(13));
+                }
+                catch (const std::invalid_argument& ia)
+                {
+                    std::cout << "Error: Bad number supplied to option (" << option << ")\n";
+                    return 1;
+                }
+                if (skip_bytes < 0)
+                    skip_bytes = 0;
+            }
+            else
+            {
+                std::cout << "Error: Unknown option (" << option << ")\n\n";
+                std::cout << USAGE_MSG;
+                return 1;
+            }
+        }
     }
 
     // Modipulate: set up
@@ -432,7 +498,10 @@ int main(int argc, char *argv[])
 
 
     // Let's a-go!
-    std::cout << PFX_INFO << "Listening for OSC messages on UDP port " << rcv_port << "\n";
+    std::cout << PFX_INFO << "Listening for OSC messages on port " << rcv_port << "\n";
+    std::cout << PFX_INFO << "Sending OSC messages to " << snd_address << ":" << snd_port << "\n";
+    if (skip_bytes > 0)
+        std::cout << PFX_INFO << "Skipping " << skip_bytes << " bytes of incoming packets\n";
     doLoop();
     // ...and we're done.
 
