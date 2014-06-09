@@ -173,6 +173,10 @@ bool processSongLoad(oscpkt::Message *msg)
 
     std::cout << PFX_CMD << "Modipulate: Loading song '" << filename << "'\n";
     err = modipulate_song_load(filename.c_str(), &song);
+    if (!MODIPULATE_OK(err))
+    {
+        return false;
+    }
     modipulate_song_on_pattern_change(song, on_pattern_change, NULL);
     modipulate_song_on_row_change(song, on_row_change, NULL);
     modipulate_song_on_note(song, on_note, NULL);
