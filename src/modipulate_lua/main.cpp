@@ -95,12 +95,29 @@ static int modipulateLua_song_destroy(lua_State *L) {
 
 
 static int modipulateLua_song_play(lua_State *L) {
-    const char* usage = "Usage: play(bool) where bool is true to play the song, false to stop it";
-    luaL_argcheck(L, lua_gettop(L) == 2, 0, usage);
+    const char* usage = "Usage: play() or play(bool) where bool is true to play or false to stop";
+    int nargs = lua_gettop(L);
+    int playbool = 1;
+    luaL_argcheck(L, nargs >= 1 && nargs <= 2, 0, usage);
     modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
-    luaL_argcheck(L, lua_isboolean(L, 2), 2, usage);
+    if (nargs == 2)
+    {
+        luaL_argcheck(L, lua_isboolean(L, 2), 2, usage);
+        playbool = (int) lua_toboolean(L, 2);
+    }
     
-    MODIPULATE_LUA_ERROR(L, modipulate_song_play(lua_song->song, (int) lua_toboolean(L, 2)));
+    MODIPULATE_LUA_ERROR(L, modipulate_song_play(lua_song->song, playbool));
+    
+    return 0;
+}
+
+
+static int modipulateLua_song_stop(lua_State *L) {
+    const char* usage = "Usage: stop()";
+    luaL_argcheck(L, lua_gettop(L) == 1, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    
+    MODIPULATE_LUA_ERROR(L, modipulate_song_play(lua_song->song, 0));
     
     return 0;
 }
@@ -410,6 +427,7 @@ static const luaL_reg modipulate_song_meta_methods[] = {
 
 static const luaL_reg modipulate_song_methods[] = {
 {"play",                   modipulateLua_song_play},
+{"stop",                   modipulateLua_song_stop},
 {"getSampleName",          modipulateLua_song_get_sample_name},
 {"getInstrumentName",      modipulateLua_song_get_instrument_name}, 
 {"volumeCommand",          modipulateLua_song_volume_command},
