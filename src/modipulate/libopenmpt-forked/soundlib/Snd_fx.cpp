@@ -1631,7 +1631,6 @@ BOOL CSoundFile::ProcessEffects()
 		UINT vol = pChn->rowCommand.vol;
 		UINT cmd = pChn->rowCommand.command;
 		UINT param = pChn->rowCommand.param;
-		bool bPorta = (cmd == CMD_TONEPORTAMENTO) || (cmd == CMD_TONEPORTAVOL) || (volcmd == VOLCMD_TONEPORTAMENTO);
 
 		UINT nStartTick = 0;
 		pChn->isFirstTick = (m_nTickCount == 0);
@@ -1647,19 +1646,37 @@ BOOL CSoundFile::ProcessEffects()
             volcmd = 0; // Suppress volume command.
         }
 
-        if (!m_nTickCount && modStream->is_effect_command_pending(nChn)) {
-            // Overwrite effect command.
-            cmd = modStream->pop_effect_command(nChn);
-            param = modStream->pop_effect_parameter(nChn);
-        }
+		if (!m_nTickCount) {
+			if (modStream->is_effect_command_pending(nChn)) {
+				// Overwrite effect command.
+				cmd = modStream->pop_effect_command(nChn);
+				param = modStream->pop_effect_parameter(nChn);
+			}
 
-        if (!m_nTickCount && modStream->is_volume_command_pending(nChn)) {
-            // Overwrite volume command.
-            volcmd = modStream->pop_volume_command(nChn);
-            vol = modStream->pop_volume_parameter(nChn);
-        }
+			if (modStream->is_volume_command_pending(nChn)) {
+				// Overwrite volume command.
+				volcmd = modStream->pop_volume_command(nChn);
+				vol = modStream->pop_volume_parameter(nChn);
+			}
 
+			// Check for pending samples.
+			ModStreamPendingSample* pending_sample = modStream->get_pending_for(nChn, m_nRow);
+			if (pending_sample) {
+				instr = pending_sample->sample;
+				volcmd = pending_sample->volume_command;
+				vol = pending_sample->volume_value;
+				cmd = pending_sample->effect_command;
+				param = pending_sample->effect_value;
+				pChn->rowCommand.note = pending_sample->note;
+
+				// TODO:
+				// int velocity;
+			}
+		}
+		
         // /MODIPULATE
+
+		bool bPorta = (cmd == CMD_TONEPORTAMENTO) || (cmd == CMD_TONEPORTAVOL) || (volcmd == VOLCMD_TONEPORTAMENTO);
 
 		// Process parameter control note.
 		if(pChn->rowCommand.note == NOTE_PC)

@@ -48,6 +48,21 @@ ModStreamNote::ModStreamNote() :
     volume(-1)
 {}
 
+ModStreamPendingSample::ModStreamPendingSample(int sample, int note, int velocity, unsigned channel, int modulus, 
+		unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value) :
+	sample(sample),
+	note(note),
+	velocity(velocity),
+	channel(channel),
+	modulus(modulus),
+	offset(offset),
+	volume_command(volume_command),
+	volume_value(volume_value),
+	effect_command(effect_command),
+	effect_value(effect_value)
+{}
+
+
 ModStream::ModStream() :
     mod(NULL),
     file_length(0),
@@ -459,6 +474,46 @@ void ModStream::set_transposition(int channel, int offset) {
 
 int ModStream::get_transposition(int channel) {
     return transposition_offset[channel];
+}
+
+
+void ModStream::play_sample(int sample, int note, int velocity, unsigned channel, int modulus,
+	unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value) {
+	pending_samples.push_back(new ModStreamPendingSample(sample, note, velocity, channel, modulus,
+		offset, volume_command, volume_value, effect_command, effect_value));
+}
+
+
+ModStreamPendingSample* ModStream::get_pending_for(unsigned channel, unsigned row) {
+	ModStreamPendingSample* ret = NULL;
+	std::vector<ModStreamPendingSample*>::iterator it;
+
+	// Go over all our pending samples.
+	for(it = pending_samples.begin(); it != pending_samples.end(); ++it) {
+		ModStreamPendingSample* sample = *it;
+		if (sample->channel != channel) {
+			// *waves hand* These aren't the channels you're looking for.
+			continue;
+		}
+
+		if (sample->modulus && sample->modulus % row) {
+			// Okay! We got one!  Clear the modulus, now the offset
+			// is what we're interested in.
+			sample->modulus = 0;
+		}
+
+		if (!sample->modulus) {
+			if (!sample->offset) {
+				// We got one!  Return the sample.
+				ret = sample;
+			} else {
+				// Decrement the offset until it's zero.
+				sample->offset--;
+			}
+		}
+	}
+
+	return ret;
 }
 
 
