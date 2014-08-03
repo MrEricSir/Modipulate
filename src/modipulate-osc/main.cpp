@@ -247,7 +247,7 @@ bool processSongUnload(oscpkt::Message *msg)
 bool processSongGetInfo(oscpkt::Message *msg) 
 {
     std::int32_t song_id = 0;
-    if (!msg->match("/modipulate/song/info").popInt32(song_id).isOkNoMoreArgs())
+    if (!msg->match("/modipulate/song/get_info").popInt32(song_id).isOkNoMoreArgs())
     {
         return false;
     }
