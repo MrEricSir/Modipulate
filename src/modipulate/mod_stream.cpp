@@ -48,19 +48,35 @@ ModStreamNote::ModStreamNote() :
     volume(-1)
 {}
 
-ModStreamPendingSample::ModStreamPendingSample(int sample, int note, int velocity, int modulus, 
-		unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value) :
-	sample(sample),
-	note(note),
-	velocity(velocity),
-	modulus(modulus),
-	offset(offset),
-	volume_command(volume_command),
-	volume_value(volume_value),
-	effect_command(effect_command),
-	effect_value(effect_value),
-	used(false)
+ModStreamPendingSample::ModStreamPendingSample() :
+	sample(0),
+	note(0),
+	velocity(0),
+    channel(0),
+	modulus(0),
+	offset(0),
+	volume_command(0),
+	volume_value(0),
+	effect_command(0),
+	effect_value(0),
+	used(true)
 {}
+
+void ModStreamPendingSample::set(int sample, int note, int velocity, unsigned channel, int modulus, 
+    unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value) {
+    this->sample = sample;
+    this->note = note;
+    this->velocity = velocity;
+    this->channel = channel;
+    this->modulus = modulus;
+    this->offset = offset;
+    this->volume_command = volume_command;
+    this->volume_value = volume_value;
+    this->effect_command = effect_command;
+    this->effect_value = effect_value;
+
+    this->used = false; // duh
+}
 
 
 ModStream::ModStream() :
@@ -479,25 +495,28 @@ int ModStream::get_transposition(int channel) {
 
 void ModStream::play_sample(int sample, int note, int velocity, unsigned channel, int modulus,
 	unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value) {
-	pending_samples[channel].push_back(new ModStreamPendingSample(sample, note, velocity, modulus,
-		offset, volume_command, volume_value, effect_command, effect_value));
+    for (int i = 0; i < MAX_PENDING_SAMPLES; i++) {
+        if (pending_samples[i].used) {
+            pending_samples[i].set(sample, note, velocity, channel, modulus,
+		        offset, volume_command, volume_value, effect_command, effect_value);
+        }
+    }
 }
 
 
 ModStreamPendingSample* ModStream::get_pending_for(unsigned channel, unsigned row) {
-	// Get the most common case out of the way first.
-	if (pending_samples[channel].size() == 0) {
-		return NULL; 
-	}
-
 	ModStreamPendingSample* ret = NULL;
-	std::vector<ModStreamPendingSample*>::iterator it;
 
-	// Go over all our pending samples.
-	for(it = pending_samples[channel].begin(); it != pending_samples[channel].end(); ++it) {
-		ModStreamPendingSample* sample = *it;
+    // Iterate over all pending samples.
+    for (int i = 0; i < MAX_PENDING_SAMPLES; i++) {
+        // Skip the ones
+        if (pending_samples[i].used || pending_samples[i].channel != channel) {
+            continue;
+        }
 
-		if (sample->modulus > 0 && row % sample->modulus == 0) {
+        // We got one, bro!
+        ModStreamPendingSample* sample = &(pending_samples[i]);
+        if (sample->modulus > 0 && row % sample->modulus == 0) {
 			// Okay! We got one!  Clear the modulus, now the offset
 			// is what we're interested in.
 			sample->modulus = 0;
@@ -506,8 +525,7 @@ ModStreamPendingSample* ModStream::get_pending_for(unsigned channel, unsigned ro
 		if (0 == sample->modulus) {
 			if (0 == sample->offset) {
 				if (ret) {
-					// Since we can only return one, the previous choice is safe to
-					// be removed from the vector.
+					// Since we can only return one, mark the previous one as used.
 					ret->used = true;
 				}
 
@@ -518,7 +536,7 @@ ModStreamPendingSample* ModStream::get_pending_for(unsigned channel, unsigned ro
 				sample->offset--;
 			}
 		}
-	}
+    }
 
 	return ret;
 }

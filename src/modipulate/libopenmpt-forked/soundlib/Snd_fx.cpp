@@ -1674,7 +1674,7 @@ BOOL CSoundFile::ProcessEffects()
 				// TODO:
 				// int velocity;
 
-				delete pending_sample;
+                pending_sample->used = true;
 			}
 		}
 		

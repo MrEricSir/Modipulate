@@ -24,6 +24,8 @@
 
 #include "libopenmpt-forked/soundlib/Snd_defs.h"
 
+#define MAX_PENDING_SAMPLES 20
+
 
 class ModStreamNote {
 public:
@@ -52,11 +54,15 @@ public:
 
 class ModStreamPendingSample {
 public:
-	ModStreamPendingSample(int sample, int note, int velocity, int modulus, 
+	ModStreamPendingSample();
+
+    void set(int sample, int note, int velocity, unsigned channel, int modulus, 
 		unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value);
+
 	int sample;
 	int note;
 	int velocity;
+    unsigned channel;
 	int modulus;
 	unsigned offset;
 	int volume_command;
@@ -240,9 +246,8 @@ private:
     // Cached data for upcoming callbacks.
     std::queue<ModStreamRow*> rows;
 
-	// Samples to play at some future date.  Each channel gets its own
-	// vector to minimize lookup times.
-	std::vector<ModStreamPendingSample*> pending_samples[MAX_CHANNELS];
+	// Samples to play at some future date.
+	ModStreamPendingSample pending_samples[MAX_PENDING_SAMPLES];
 
 	// Last pattern # we saw.
 	int lastPattern;
