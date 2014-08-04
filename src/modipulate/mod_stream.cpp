@@ -48,18 +48,18 @@ ModStreamNote::ModStreamNote() :
     volume(-1)
 {}
 
-ModStreamPendingSample::ModStreamPendingSample(int sample, int note, int velocity, unsigned channel, int modulus, 
+ModStreamPendingSample::ModStreamPendingSample(int sample, int note, int velocity, int modulus, 
 		unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value) :
 	sample(sample),
 	note(note),
 	velocity(velocity),
-	channel(channel),
 	modulus(modulus),
 	offset(offset),
 	volume_command(volume_command),
 	volume_value(volume_value),
 	effect_command(effect_command),
-	effect_value(effect_value)
+	effect_value(effect_value),
+	used(false)
 {}
 
 
@@ -479,31 +479,38 @@ int ModStream::get_transposition(int channel) {
 
 void ModStream::play_sample(int sample, int note, int velocity, unsigned channel, int modulus,
 	unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value) {
-	pending_samples.push_back(new ModStreamPendingSample(sample, note, velocity, channel, modulus,
+	pending_samples[channel].push_back(new ModStreamPendingSample(sample, note, velocity, modulus,
 		offset, volume_command, volume_value, effect_command, effect_value));
 }
 
 
 ModStreamPendingSample* ModStream::get_pending_for(unsigned channel, unsigned row) {
+	// Get the most common case out of the way first.
+	if (pending_samples[channel].size() == 0) {
+		return NULL; 
+	}
+
 	ModStreamPendingSample* ret = NULL;
 	std::vector<ModStreamPendingSample*>::iterator it;
 
 	// Go over all our pending samples.
-	for(it = pending_samples.begin(); it != pending_samples.end(); ++it) {
+	for(it = pending_samples[channel].begin(); it != pending_samples[channel].end(); ++it) {
 		ModStreamPendingSample* sample = *it;
-		if (sample->channel != channel) {
-			// *waves hand* These aren't the channels you're looking for.
-			continue;
-		}
 
-		if (sample->modulus && sample->modulus % row) {
+		if (sample->modulus > 0 && row % sample->modulus == 0) {
 			// Okay! We got one!  Clear the modulus, now the offset
 			// is what we're interested in.
 			sample->modulus = 0;
 		}
 
-		if (!sample->modulus) {
-			if (!sample->offset) {
+		if (0 == sample->modulus) {
+			if (0 == sample->offset) {
+				if (ret) {
+					// Since we can only return one, the previous choice is safe to
+					// be removed from the vector.
+					ret->used = true;
+				}
+
 				// We got one!  Return the sample.
 				ret = sample;
 			} else {

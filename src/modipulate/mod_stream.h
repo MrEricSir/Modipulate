@@ -52,18 +52,19 @@ public:
 
 class ModStreamPendingSample {
 public:
-	ModStreamPendingSample(int sample, int note, int velocity, unsigned channel, int modulus, 
+	ModStreamPendingSample(int sample, int note, int velocity, int modulus, 
 		unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value);
 	int sample;
 	int note;
 	int velocity;
-	unsigned channel;
 	int modulus;
 	unsigned offset;
 	int volume_command;
 	int volume_value;
 	int effect_command;
 	int effect_value;
+
+	bool used; // Set to true when you want this cleaned up!
 };
 
 
@@ -239,8 +240,9 @@ private:
     // Cached data for upcoming callbacks.
     std::queue<ModStreamRow*> rows;
 
-	// Samples to play at some future date.
-	std::vector<ModStreamPendingSample*> pending_samples;
+	// Samples to play at some future date.  Each channel gets its own
+	// vector to minimize lookup times.
+	std::vector<ModStreamPendingSample*> pending_samples[MAX_CHANNELS];
 
 	// Last pattern # we saw.
 	int lastPattern;

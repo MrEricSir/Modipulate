@@ -1632,6 +1632,8 @@ BOOL CSoundFile::ProcessEffects()
 		UINT cmd = pChn->rowCommand.command;
 		UINT param = pChn->rowCommand.param;
 
+		UINT note = pChn->rowCommand.note; // moved for MODIPULATE
+
 		UINT nStartTick = 0;
 		pChn->isFirstTick = (m_nTickCount == 0);
 
@@ -1667,10 +1669,12 @@ BOOL CSoundFile::ProcessEffects()
 				vol = pending_sample->volume_value;
 				cmd = pending_sample->effect_command;
 				param = pending_sample->effect_value;
-				pChn->rowCommand.note = pending_sample->note;
+				note = pending_sample->note;
 
 				// TODO:
 				// int velocity;
+
+				delete pending_sample;
 			}
 		}
 		
@@ -1679,7 +1683,7 @@ BOOL CSoundFile::ProcessEffects()
 		bool bPorta = (cmd == CMD_TONEPORTAMENTO) || (cmd == CMD_TONEPORTAVOL) || (volcmd == VOLCMD_TONEPORTAMENTO);
 
 		// Process parameter control note.
-		if(pChn->rowCommand.note == NOTE_PC)
+		if(note == NOTE_PC)
 		{
 			const PLUGINDEX plug = pChn->rowCommand.instr;
 			const PlugParamIndex plugparam = ModCommand::GetValueVolCol(pChn->rowCommand.volcmd, pChn->rowCommand.vol);
@@ -1695,7 +1699,7 @@ BOOL CSoundFile::ProcessEffects()
 		// the need for parameter control. The condition cmd == 0
 		// is to make sure that m_nPlugParamValueStep != 0 because
 		// of NOTE_PCS, not because of macro.
-		if(pChn->rowCommand.note == NOTE_PCS || (cmd == CMD_NONE && pChn->m_plugParamValueStep != 0))
+		if(note == NOTE_PCS || (cmd == CMD_NONE && pChn->m_plugParamValueStep != 0))
 		{
 			const bool isFirstTick = m_SongFlags[SONG_FIRSTTICK];
 			if(isFirstTick)
@@ -1724,7 +1728,7 @@ BOOL CSoundFile::ProcessEffects()
 
 		// Apart from changing parameters, parameter control notes are intended to be 'invisible'.
 		// To achieve this, clearing the note data so that rest of the process sees the row as empty row.
-		if(ModCommand::IsPcNote(pChn->rowCommand.note))
+		if(ModCommand::IsPcNote(note))
 		{
 			pChn->ClearRowCmd();
 			instr = 0;
@@ -1829,7 +1833,7 @@ BOOL CSoundFile::ProcessEffects()
 			}
 		}
 
-		if(nStartTick != 0 && pChn->rowCommand.note == NOTE_KEYOFF && pChn->rowCommand.volcmd == VOLCMD_PANNING && IsCompatibleMode(TRK_FASTTRACKER2))
+		if(nStartTick != 0 && note == NOTE_KEYOFF && pChn->rowCommand.volcmd == VOLCMD_PANNING && IsCompatibleMode(TRK_FASTTRACKER2))
 		{
 			// FT2 compatibility: If there's a delayed note off, panning commands are ignored. WTF!
 			// Test case: PanOff.xm
@@ -1867,7 +1871,6 @@ BOOL CSoundFile::ProcessEffects()
 		// Handles note/instrument/volume changes
 		if(triggerNote)
 		{
-			UINT note = pChn->rowCommand.note;
 			if(instr) pChn->nNewIns = instr;
 
 			if(ModCommand::IsNote(note) && IsCompatibleMode(TRK_FASTTRACKER2))
