@@ -499,6 +499,8 @@ void ModStream::play_sample(int sample, int note, int velocity, unsigned channel
         if (pending_samples[i].used) {
             pending_samples[i].set(sample, note, velocity, channel, modulus,
 		        offset, volume_command, volume_value, effect_command, effect_value);
+
+            break;
         }
     }
 }
@@ -509,7 +511,7 @@ ModStreamPendingSample* ModStream::get_pending_for(unsigned channel, unsigned ro
 
     // Iterate over all pending samples.
     for (int i = 0; i < MAX_PENDING_SAMPLES; i++) {
-        // Skip the ones
+        // Skip the ones we don't care about.
         if (pending_samples[i].used || pending_samples[i].channel != channel) {
             continue;
         }

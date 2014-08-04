@@ -278,6 +278,33 @@ static int modipulateLua_song_set_volume(lua_State *L) {
     return 0;
 }
 
+
+static int modipulateLua_song_play_sample(lua_State *L) {
+    const char* usage = "Usage: playSample(int sample, int note, int velocity, unsigned channel, "
+        "int modulus, unsigned offset, int volume_command, "
+        "int volume_value, int effect_command, int effect_value)";
+    luaL_argcheck(L, lua_gettop(L) == 11, 0, usage);
+    modipulate_song_t* lua_song = check_modipulate_song_t(L, 1);
+    luaL_argcheck(L, lua_isnumber(L, 2), 2, usage);
+    luaL_argcheck(L, lua_isnumber(L, 3), 3, usage);
+    luaL_argcheck(L, lua_isnumber(L, 4), 4, usage);
+    luaL_argcheck(L, lua_isnumber(L, 5), 5, usage);
+    luaL_argcheck(L, lua_isnumber(L, 6), 6, usage);
+    luaL_argcheck(L, lua_isnumber(L, 7), 7, usage);
+    luaL_argcheck(L, lua_isnumber(L, 8), 8, usage);
+    luaL_argcheck(L, lua_isnumber(L, 9), 9, usage);
+    luaL_argcheck(L, lua_isnumber(L, 10), 10, usage);
+    luaL_argcheck(L, lua_isnumber(L, 11), 11, usage);
+    
+    MODIPULATE_LUA_ERROR(L, modipulate_song_play_sample(lua_song->song, (int) lua_tonumber(L, 2),
+        (int) lua_tonumber(L, 3), (int) lua_tonumber(L, 4), (int) lua_tonumber(L, 5),
+        (int) lua_tonumber(L, 6), (int) lua_tonumber(L, 7), (int) lua_tonumber(L, 8),
+        (int) lua_tonumber(L, 9), (int) lua_tonumber(L, 10), (int) lua_tonumber(L, 11)));
+    
+    return 0;
+}
+
+
 // Dispatch function for pattern change.
 void on_modipulate_song_pattern_change(ModipulateSong song, int pattern_number, void* user_data) {
     modipulate_song_t* lua_song = (modipulate_song_t*) user_data;
@@ -422,6 +449,7 @@ static const luaL_reg modipulate_song_methods[] = {
 {"setChannelEnabled",      modipulateLua_song_set_channel_enabled},
 {"getVolume",              modipulateLua_song_get_volume},
 {"setVolume",              modipulateLua_song_set_volume},
+{"playSample",             modipulateLua_song_play_sample},
 {"onPatternChange",        modipulateLua_song_on_pattern_change},
 {"onRowChange",            modipulateLua_song_on_row_change},
 {"onNote",                 modipulateLua_song_on_note},

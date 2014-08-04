@@ -173,6 +173,7 @@ function love.update(dt)
 			and laser.y < enemy.y + enemy.h
 			and laser.y + laser.h > enemy.y then
 				-- Boom
+				song:playSample(4, 80, 0, 1, 4, 0, 0, 0, 0, 0)
 				-- Add an extra frame so it ends on a blank
 				local a = newAnimation(imgs.explosion, 32, 32, 0.1, 5)
 				a:setMode('once')
@@ -205,6 +206,8 @@ function love.update(dt)
 				-- Compensate for slowed tempo
 				--rate_of_fire = math.floor(rate_of_fire / 2)
 			elseif powerup.type == 'candy' then
+			    -- woosh
+				song:playSample(1, 50, 0, 1, 4, 0, 0, 0, 0, 0)
 				-- Speed up fire
 				rate_of_fire = math.floor(NORMAL_RATE_OF_FIRE / 2)
 			end
