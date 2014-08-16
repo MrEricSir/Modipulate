@@ -56,12 +56,11 @@ class ModStreamPendingSample {
 public:
 	ModStreamPendingSample();
 
-    void set(int sample, int note, int velocity, unsigned channel, int modulus, 
-		unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value);
+    void set(int sample, int note, unsigned channel, int modulus, unsigned offset,
+		int volume_command, int volume_value, int effect_command, int effect_value);
 
 	int sample;
 	int note;
-	int velocity;
     unsigned channel;
 	int modulus;
 	unsigned offset;
@@ -166,7 +165,7 @@ public:
     int get_transposition(int channel);
 
 	// Play a sample.
-	void play_sample(int sample, int note, int velocity, unsigned channel, int modulus, unsigned offset,
+	void play_sample(int sample, int note, unsigned channel, int modulus, unsigned offset,
 		int volume_command, int volume_value, int effect_command, int effect_value);
 
 	// Check pending samples (used interally.)

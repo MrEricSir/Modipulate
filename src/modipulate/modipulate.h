@@ -320,7 +320,6 @@ Triggers a sample, either now, at an offset from now, or quantized to a row.
 @param song The song to act on.
 @param sample The sample to play.
 @param note The note to play.
-@param velocity The note's velocity.
 @param channel The channel to issue the note on.
 @param modulus If > 0, the note will be issued next time rowNum % modulus == 0.
 @param offset If > 0, play the note at row currentRow + offset.
@@ -330,7 +329,7 @@ Triggers a sample, either now, at an offset from now, or quantized to a row.
 @param effect_value   Value of the command.  Will be set to zero if effect_command is -1
 @return Error
 */
-ModipulateErr modipulate_song_play_sample(ModipulateSong song, int sample, int note, int velocity,
+ModipulateErr modipulate_song_play_sample(ModipulateSong song, int sample, int note,
 	unsigned channel, int modulus, unsigned offset, int volume_command, int volume_value,
 	int effect_command, int effect_value);
 

@@ -51,7 +51,6 @@ ModStreamNote::ModStreamNote() :
 ModStreamPendingSample::ModStreamPendingSample() :
 	sample(0),
 	note(0),
-	velocity(0),
     channel(0),
 	modulus(0),
 	offset(0),
@@ -62,11 +61,10 @@ ModStreamPendingSample::ModStreamPendingSample() :
 	used(true)
 {}
 
-void ModStreamPendingSample::set(int sample, int note, int velocity, unsigned channel, int modulus, 
+void ModStreamPendingSample::set(int sample, int note, unsigned channel, int modulus, 
     unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value) {
     this->sample = sample;
     this->note = note;
-    this->velocity = velocity;
     this->channel = channel;
     this->modulus = modulus;
     this->offset = offset;
@@ -493,11 +491,11 @@ int ModStream::get_transposition(int channel) {
 }
 
 
-void ModStream::play_sample(int sample, int note, int velocity, unsigned channel, int modulus,
+void ModStream::play_sample(int sample, int note, unsigned channel, int modulus,
 	unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value) {
     for (int i = 0; i < MAX_PENDING_SAMPLES; i++) {
         if (pending_samples[i].used) {
-            pending_samples[i].set(sample, note, velocity, channel, modulus,
+            pending_samples[i].set(sample, note, channel, modulus,
 		        offset, volume_command, volume_value, effect_command, effect_value);
 
             break;

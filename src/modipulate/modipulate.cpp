@@ -237,7 +237,7 @@ int modipulate_song_get_channel_enabled(ModipulateSong song, unsigned channel) {
 }
 
 
-ModipulateErr modipulate_song_play_sample(ModipulateSong song, int sample, int note, int velocity,
+ModipulateErr modipulate_song_play_sample(ModipulateSong song, int sample, int note,
 	unsigned channel, int modulus, unsigned offset, int volume_command, int volume_value,
 	int effect_command, int effect_value) {
 	
@@ -248,8 +248,8 @@ ModipulateErr modipulate_song_play_sample(ModipulateSong song, int sample, int n
     ModipulateErr ret = MODIPULATE_ERROR_NONE;
     
     try {
-        ((ModStream*) song)->play_sample(sample, note, velocity,
-			channel, modulus, offset, volume_command, volume_value,
+        ((ModStream*) song)->play_sample(sample, note, channel,
+			modulus, offset, volume_command, volume_value,
 			effect_command, effect_value);
     } catch (std::string e) {
         modipulate_set_error_string_cpp(e);

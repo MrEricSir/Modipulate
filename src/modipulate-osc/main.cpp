@@ -338,7 +338,6 @@ bool processSongPlaySample(oscpkt::Message *msg)
     std::int32_t song_id = 0;
     std::int32_t sample_id = 0;
     std::int32_t note = 0;
-    std::int32_t velocity = 0;
     std::int32_t channel = 0;
     std::int32_t modulus = 0;
     std::int32_t offset = 0;
@@ -346,7 +345,7 @@ bool processSongPlaySample(oscpkt::Message *msg)
     ModipulateSong song;
     if (!msg->match("/modipulate/song/play_sample")
         .popInt32(song_id).popInt32(sample_id)
-        .popInt32(note).popInt32(velocity).popInt32(channel)
+        .popInt32(note).popInt32(channel)
         .popInt32(modulus).popInt32(offset).isOkNoMoreArgs())
     {
         return false;
@@ -359,7 +358,7 @@ bool processSongPlaySample(oscpkt::Message *msg)
         std::cout << PFX_ERR << "Modipulate: No song with ID " << song_id << "\n";
         return true;
     }
-    modipulate_song_play_sample(song, sample_id, note, velocity, channel, modulus, offset, -1, 0, -1, 0);
+    modipulate_song_play_sample(song, sample_id, note, channel, modulus, offset, -1, 0, -1, 0);
     return true;
 }
 
