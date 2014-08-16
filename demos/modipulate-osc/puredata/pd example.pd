@@ -33,7 +33,7 @@
 it to any number. You can load and control multiple songs at once by
 sending OSC messages with different ID arguments.;
 #X text 44 420 Play a sample;
-#X msg 37 439 send /modipulate/song/play_sample 0 1 80 0 0 2 0;
+#X msg 37 439 send /modipulate/song/play_sample 0 1 80 0 2 0;
 #X connect 2 0 3 0;
 #X connect 4 0 1 0;
 #X connect 5 0 1 0;
