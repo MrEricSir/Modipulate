@@ -1,24 +1,24 @@
-#N canvas 138 22 437 600 10;
+#N canvas 178 70 648 641 10;
 #X declare -lib mrpeach;
 #X obj 7 2 import mrpeach;
-#X obj 7 560 udpsend;
+#X obj 7 610 udpsend;
 #X obj 211 27 unpackOSC;
 #X obj 211 51 print;
 #X msg 7 85 disconnect;
-#X obj 37 531 packOSC;
-#X msg 37 496 send /modipulate/quit;
+#X obj 37 581 packOSC;
+#X msg 37 546 send /modipulate/quit;
 #X obj 37 205 openpanel;
 #X obj 36 185 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
 -1;
 #X text 56 184 Load a song to play;
 #X text 43 317 Play the song;
-#X text 43 423 Unload the song;
+#X text 43 473 Unload the song;
 #X text 43 263 Print info about the song;
 #X obj 211 3 udpreceive 7071;
 #X msg 7 59 connect localhost 7070;
 #X msg 37 148 send /modipulate/ping 8009;
 #X text 44 370 Pause the song;
-#X text 44 479 Kill the OSC server;
+#X text 44 529 Kill the OSC server;
 #X text 8 39 First \, connect to the server;
 #X text 35 116 Test the connection \; watch output window for a response
 ;
@@ -28,10 +28,12 @@
 #X msg 37 281 send /modipulate/song/get_info 0;
 #X msg 37 335 send /modipulate/song/play 0;
 #X msg 37 389 send /modipulate/song/pause 0;
-#X msg 37 443 send /modipulate/song/unload 0;
+#X msg 37 493 send /modipulate/song/unload 0;
 #X text 258 223 This demo uses the song ID 0 \, but you can change
 it to any number. You can load and control multiple songs at once by
 sending OSC messages with different ID arguments.;
+#X text 44 420 Play a sample;
+#X msg 37 439 send /modipulate/song/play_sample 0 1 80 0 0 2 0;
 #X connect 2 0 3 0;
 #X connect 4 0 1 0;
 #X connect 5 0 1 0;
@@ -46,3 +48,4 @@ sending OSC messages with different ID arguments.;
 #X connect 23 0 5 0;
 #X connect 24 0 5 0;
 #X connect 25 0 5 0;
+#X connect 28 0 5 0;
