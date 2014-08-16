@@ -26,6 +26,7 @@
 #include <iostream> // cout
 #include <string>   // std::string
 #include <cstdint>  // int32_t, etc
+#include <map>      // map song IDs to song pointers
 
 // Modipulate
 #include <modipulate.h>
@@ -64,8 +65,7 @@
 
 // Modipulate: globals
 ModipulateErr err = MODIPULATE_ERROR_NONE;
-ModipulateSong song = 0;
-ModipulateSongInfo* song_info;
+std::map<std::int32_t, ModipulateSong> song_map;
 
 // oscpkt: globals
 oscpkt::UdpSocket socketSend;
@@ -76,6 +76,11 @@ int snd_port = 7071;
 std::string snd_address = "127.0.0.1";
 char snd_buffer[OUTPUT_BUFFER_SIZE] = "";
 
+static ModipulateSong get_song_from_id(std::int32_t song_id)
+{
+    std::map<std::int32_t, ModipulateSong>::iterator iter = song_map.find(song_id);
+    return iter != song_map.end() ? iter->second : NULL;
+}
 
 /***** 
        Modipulate Callbacks
@@ -118,14 +123,14 @@ void on_note(ModipulateSong song, unsigned channel, int note,
 
 
 /**
- * Ping/pong handshake.
- * input: /ping [n]
- * output: /pong [n+1]
+ * Ping/pong handshake to test connection.
+ * input: /modipulate/ping [n]
+ * output: /modipulate/pong [n+1]
  */
 bool processPing(oscpkt::Message *msg) 
 {
     std::int32_t port = 0;
-    if (!msg->match("/ping").popInt32(port).isOkNoMoreArgs())
+    if (!msg->match("/modipulate/ping").popInt32(port).isOkNoMoreArgs())
     {
         return false;
     }
@@ -134,7 +139,7 @@ bool processPing(oscpkt::Message *msg)
 
     oscpkt::Message reply;
     oscpkt::PacketWriter pw;
-    reply.init("/pong").pushInt32(port + 1);
+    reply.init("/modipulate/pong").pushInt32(port + 1);
     pw.init().addMessage(reply);
 
     socketSend.sendPacketTo(pw.packetData(), pw.packetSize(), socketSend.packetOrigin());
@@ -160,19 +165,44 @@ bool processQuit(oscpkt::Message *msg)
 }
 
 /**
- * Load a song
- * input: /modipulate/song/load
+ * Set global volume
+ * input: /modipulate/set_volume [float]
  */
-bool processSongLoad(oscpkt::Message *msg) 
+bool processSetVolume(oscpkt::Message *msg) 
 {
-    std::string filename;
-    if (!msg->match("/modipulate/song/load").popStr(filename).isOkNoMoreArgs())
+    float volume = 0.0;
+    if (!msg->match("/modipulate/set_volume").popFloat(volume).isOkNoMoreArgs())
     {
         return false;
     }
 
-    std::cout << PFX_CMD << "Modipulate: Loading song '" << filename << "'\n";
+    std::cout << PFX_CMD << "Modipulate: Setting global volume to " << volume << "\n";
+    modipulate_global_set_volume(volume);
+    return true;
+}
+
+/**
+ * Load a song
+ * input: /modipulate/song/load [int32]
+ */
+bool processSongLoad(oscpkt::Message *msg) 
+{
+    std::string filename;
+    std::int32_t song_id = 0;
+    ModipulateSong song;
+    if (!msg->match("/modipulate/song/load").popStr(filename).popInt32(song_id).isOkNoMoreArgs())
+    {
+        return false;
+    }
+    std::cout << PFX_CMD << "Modipulate: Loading song '" << filename << "' into ID " << song_id << "\n";
+    song = get_song_from_id(song_id);
+    if (song != NULL)
+    {
+        std::cout << PFX_INFO << "Modipulate: Song ID " << song_id << " occupied; unloading previous song\n";
+        err = modipulate_song_unload(song);
+    }
     err = modipulate_song_load(filename.c_str(), &song);
+    song_map[song_id] = song;
     if (!MODIPULATE_OK(err))
     {
         return false;
@@ -185,144 +215,230 @@ bool processSongLoad(oscpkt::Message *msg)
 }
 
 /**
- * Unloads a song
- * input: /modipulate/song/unload
+ * Unload a song
+ * input: /modipulate/song/unload [int32]
  */
 bool processSongUnload(oscpkt::Message *msg) 
 {
-    if (!msg->match("/modipulate/song/unload").isOkNoMoreArgs())
+    std::int32_t song_id = 0;
+    ModipulateSong song;
+    if (!msg->match("/modipulate/song/unload").popInt32(song_id).isOkNoMoreArgs())
     {
         return false;
     }
 
-    std::cout << PFX_CMD << "Modipulate: Unloading song\n";
+    std::cout << PFX_CMD << "Modipulate: Unloading song " << song_id << "\n";
+    song = get_song_from_id(song_id);
+    if (song == NULL)
+    {
+        std::cout << PFX_ERR << "Modipulate: No song with ID " << song_id << "\n";
+        return true;
+    }
     err = modipulate_song_unload(song);
-    song = NULL;
+    song_map.erase(song_id);
 
     return true;
 }
 
 /**
- * Gets song info.
- * input: /modipulate/song/unload
+ * Get song info
+ * input: /modipulate/song/get_info [int32]
  */
-bool processSongInfo(oscpkt::Message *msg) 
+bool processSongGetInfo(oscpkt::Message *msg) 
 {
-    if (!msg->match("/modipulate/song/info").isOkNoMoreArgs())
+    std::int32_t song_id = 0;
+    if (!msg->match("/modipulate/song/get_info").popInt32(song_id).isOkNoMoreArgs())
     {
         return false;
     }
 
     // TODO: send song info
-    std::cout << PFX_CMD << "Modipulate: Requesting song info\n";
+    std::cout << PFX_CMD << "Modipulate: Requesting info for song " << song_id << "\n";
     return true;
 }
 
 /**
- * Plays a song
- * input: /modipulate/transport/play
+ * Play a song
+ * input: /modipulate/song/play [int32]
  */
 bool processSongPlay(oscpkt::Message *msg) 
 {
-    if (!msg->match("/modipulate/transport/play").isOkNoMoreArgs())
+    std::int32_t song_id = 0;
+    ModipulateSong song;
+    if (!msg->match("/modipulate/song/play").popInt32(song_id).isOkNoMoreArgs())
     {
         return false;
     }
-
-    std::cout << PFX_CMD << "Modipulate: Playing song\n";
+    std::cout << PFX_CMD << "Modipulate: Playing song " << song_id << "\n";
+    song = get_song_from_id(song_id);
+    if (song == NULL)
+    {
+        std::cout << PFX_ERR << "Modipulate: No song with ID " << song_id << "\n";
+        return true;
+    }
     err = modipulate_song_play(song, 1);
     return true;
 }
 
 /**
- * Stops a song
- * input: /modipulate/transport/stop
+ * Stop a song
+ * input: /modipulate/song/pause [int32]
  */
-bool processSongStop(oscpkt::Message *msg) 
+bool processSongPause(oscpkt::Message *msg) 
 {
-    if (!msg->match("/modipulate/transport/stop").isOkNoMoreArgs())
+    std::int32_t song_id = 0;
+    ModipulateSong song;
+    if (!msg->match("/modipulate/song/pause").popInt32(song_id).isOkNoMoreArgs())
     {
         return false;
     }
 
     std::cout << PFX_CMD << "Modipulate: Stopping song\n";
+    song = get_song_from_id(song_id);
+    if (song == NULL)
+    {
+        std::cout << PFX_ERR << "Modipulate: No song with ID " << song_id << "\n";
+        return true;
+    }
     err = modipulate_song_play(song, 0);
     return true;
 }
 
 /**
- * Sets global volume
- * input: /modipulate/mixer/setvolume [float]
+ * Set song volume
+ * input: /modipulate/song/set_volume [int32] [float]
  */
-bool processSetVolume(oscpkt::Message *msg) 
+bool processSongSetVolume(oscpkt::Message *msg) 
 {
+    std::int32_t song_id = 0;
     float volume = 0.0;
-    if (!msg->match("/modipulate/mixer/setvolume").popFloat(volume).isOkNoMoreArgs())
+    ModipulateSong song;
+    if (!msg->match("/modipulate/song/set_volume").popInt32(song_id).popFloat(volume).isOkNoMoreArgs())
     {
         return false;
     }
 
-    std::cout << PFX_CMD << "Modipulate: Setting volume to " << volume << "\n";
-    modipulate_global_set_volume(volume);
+    std::cout << PFX_CMD << "Modipulate: Setting volume to " << volume << " on song " << song_id << "\n";
+    song = get_song_from_id(song_id);
+    if (song == NULL)
+    {
+        std::cout << PFX_ERR << "Modipulate: No song with ID " << song_id << "\n";
+        return true;
+    }
+    modipulate_song_set_volume(song, volume);
     return true;
 }
 
 /**
- * Disables a channel.
- * input: /modipulate/song/channel/disable [int32]
+ * Disable a channel
+ * input: /modipulate/song/channel/disable [int32] [int32]
  */
-bool processSetSongChannelDisable(oscpkt::Message *msg) 
+bool processSongChannelDisable(oscpkt::Message *msg) 
 {
+    std::int32_t song_id = 0;
     std::int32_t channel = 0;
-    if (!msg->match("/modipulate/song/channel/disable").popInt32(channel).isOkNoMoreArgs())
+    ModipulateSong song;
+    if (!msg->match("/modipulate/song/channel/disable").popInt32(song_id).popInt32(channel).isOkNoMoreArgs())
     {
         return false;
     }
 
-    std::cout << PFX_CMD << "Modipulate: Disabling channel " << channel << "\n";
+    std::cout << PFX_CMD << "Modipulate: Disabling channel " << channel << " on song " << song_id << "\n";
+    song = get_song_from_id(song_id);
+    if (song == NULL)
+    {
+        std::cout << PFX_ERR << "Modipulate: No song with ID " << song_id << "\n";
+        return true;
+    }
     modipulate_song_set_channel_enabled(song, channel, 0);
     return true;
 }
 
 /**
- * Enables a channel.
- * input: /modipulate/song/channel/enable [int32]
+ * Enables a channel
+ * input: /modipulate/song/channel/enable [int32] [int32]
  */
-bool processSetSongChannelEnable(oscpkt::Message *msg) 
+bool processSongChannelEnable(oscpkt::Message *msg) 
 {
+    std::int32_t song_id = 0;
     std::int32_t channel = 0;
-    if (!msg->match("/modipulate/song/channel/enable").popInt32(channel).isOkNoMoreArgs())
+    ModipulateSong song;
+    if (!msg->match("/modipulate/song/channel/enable").popInt32(song_id).popInt32(channel).isOkNoMoreArgs())
     {
         return false;
     }
 
-    std::cout << PFX_CMD << "Modipulate: Enabling channel " << channel << "\n";
+    std::cout << PFX_CMD << "Modipulate: Enabling channel " << channel << " on song " << song_id << "\n";
+    song = get_song_from_id(song_id);
+    if (song == NULL)
+    {
+        std::cout << PFX_ERR << "Modipulate: No song with ID " << song_id << "\n";
+        return true;
+    }
     modipulate_song_set_channel_enabled(song, channel, 1);
     return true;
 }
 
 /**
- * Sets an effect on a channel.
- * input: /modipulate/song/channel/effect [int32] [int32] [int32]
+ * Issue an effect column command on a channel
+ * input: /modipulate/song/channel/fx_cmd [int32] [int32] [int32] [int32]
  */
-bool processSetSongChannelEffect(oscpkt::Message *msg) 
+bool processSongChannelEffectCommand(oscpkt::Message *msg) 
 {
+    std::int32_t song_id = 0;
     std::int32_t channel = 0;
     std::int32_t effect_command = 0;
     std::int32_t effect_value = 0;
-    if (!msg->match("/modipulate/song/channel/effect").popInt32(channel).popInt32(effect_command).popInt32(effect_value).isOkNoMoreArgs())
+    ModipulateSong song;
+    if (!msg->match("/modipulate/song/channel/fx_cmd").popInt32(song_id).popInt32(channel)
+            .popInt32(effect_command).popInt32(effect_value).isOkNoMoreArgs())
     {
         return false;
     }
 
     std::cout << PFX_CMD << "Modipulate: Executing command " << effect_command
                 << " value " << effect_value << " on channel " << channel << "\n";
+    song = get_song_from_id(song_id);
+    if (song == NULL)
+    {
+        std::cout << PFX_ERR << "Modipulate: No song with ID " << song_id << "\n";
+        return true;
+    }
     err = modipulate_song_effect_command(song, channel, effect_command, effect_value);
     return true;
 }
 
+/**
+ * Issue a volume column command on a channel
+ * input: /modipulate/song/channel/vol_cmd [int32] [int32] [int32] [int32]
+ */
+bool processSongChannelVolumeCommand(oscpkt::Message *msg) 
+{
+    std::int32_t song_id = 0;
+    std::int32_t channel = 0;
+    std::int32_t volume_command = 0;
+    std::int32_t volume_value = 0;
+    ModipulateSong song;
+    if (!msg->match("/modipulate/song/channel/vol_cmd").popInt32(song_id).popInt32(channel)
+            .popInt32(volume_command).popInt32(volume_value).isOkNoMoreArgs())
+    {
+        return false;
+    }
 
-/***** 
+    std::cout << PFX_CMD << "Modipulate: Executing command " << volume_command
+                << " value " << volume_value << " on channel " << channel << "\n";
+    song = get_song_from_id(song_id);
+    if (song == NULL)
+    {
+        std::cout << PFX_ERR << "Modipulate: No song with ID " << song_id << "\n";
+        return true;
+    }
+    err = modipulate_song_volume_command(song, channel, volume_command, volume_value);
+    return true;
+}
+
+
+/*****
        The Good Stuff
                       *****/
 
@@ -347,15 +463,19 @@ bool doReceive(void)
         // Check each command.
         if (processPing(msg)) goto runtimeErrorCheck;
         if (processQuit(msg)) return false;
+        if (processSetVolume(msg)) goto runtimeErrorCheck;
         if (processSongLoad(msg)) goto runtimeErrorCheck;
         if (processSongUnload(msg)) goto runtimeErrorCheck;
-        if (processSongInfo(msg)) goto runtimeErrorCheck;
+        if (processSongGetInfo(msg)) goto runtimeErrorCheck;
         if (processSongPlay(msg)) goto runtimeErrorCheck;
-        if (processSongStop(msg)) goto runtimeErrorCheck;
-        if (processSetVolume(msg)) goto runtimeErrorCheck;
-        if (processSetSongChannelDisable(msg)) goto runtimeErrorCheck;
-        if (processSetSongChannelEnable(msg)) goto runtimeErrorCheck;
-        if (processSetSongChannelEffect(msg)) goto runtimeErrorCheck;
+        if (processSongPause(msg)) goto runtimeErrorCheck;
+        if (processSongSetVolume(msg)) goto runtimeErrorCheck;
+        //if (processSongSetTempo(msg)) goto runtimeErrorCheck; // For the future...
+        if (processSongChannelEnable(msg)) goto runtimeErrorCheck;
+        if (processSongChannelDisable(msg)) goto runtimeErrorCheck;
+        if (processSongChannelEffectCommand(msg)) goto runtimeErrorCheck;
+        if (processSongChannelVolumeCommand(msg)) goto runtimeErrorCheck;
+        //if (processSongChannelSetVolume(msg)) goto runtimeErrorCheck; // For the future...
 
 
 runtimeErrorCheck:
