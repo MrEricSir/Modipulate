@@ -315,6 +315,25 @@ void modipulate_song_set_channel_enabled(ModipulateSong song, unsigned channel, 
 int modipulate_song_get_channel_enabled(ModipulateSong song, unsigned channel);
 
 /**
+Triggers a sample, either now, at an offset from now, or quantized to a row.
+
+@param song The song to act on.
+@param sample The sample to play.
+@param note The note to play.
+@param channel The channel to issue the note on.
+@param modulus If > 0, the note will be issued next time rowNum % modulus == 0.
+@param offset If > 0, play the note at row currentRow + offset.
+@param volume_command Identifier for the volume command type, or -1 if none
+@param volume_value   Value of the command.  Will be set to zero if volume_command is -1
+@param effect_command Identifier for the effect command type, or -1 if none
+@param effect_value   Value of the command.  Will be set to zero if effect_command is -1
+@return Error
+*/
+ModipulateErr modipulate_song_play_sample(ModipulateSong song, int sample, int note,
+	unsigned channel, int modulus, unsigned offset, int volume_command, int volume_value,
+	int effect_command, int effect_value);
+
+/**
 Sets a callback to be triggered on a pattern change.
 
 @param cb your callback function

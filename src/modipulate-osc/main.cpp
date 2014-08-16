@@ -330,6 +330,39 @@ bool processSongSetVolume(oscpkt::Message *msg)
 }
 
 /**
+ * Play a sample
+ * input: /modipulate/song/play_sample [int32] [int32] [int32] [int32] [int32] [int32] [int32]
+ */
+bool processSongPlaySample(oscpkt::Message *msg) 
+{
+    std::int32_t song_id = 0;
+    std::int32_t sample_id = 0;
+    std::int32_t note = 0;
+    std::int32_t channel = 0;
+    std::int32_t modulus = 0;
+    std::int32_t offset = 0;
+
+    ModipulateSong song;
+    if (!msg->match("/modipulate/song/play_sample")
+        .popInt32(song_id).popInt32(sample_id)
+        .popInt32(note).popInt32(channel)
+        .popInt32(modulus).popInt32(offset).isOkNoMoreArgs())
+    {
+        return false;
+    }
+
+    std::cout << PFX_CMD << "Modipulate: Playing sample " << sample_id << " on song " << song_id << "\n";
+    song = get_song_from_id(song_id);
+    if (song == NULL)
+    {
+        std::cout << PFX_ERR << "Modipulate: No song with ID " << song_id << "\n";
+        return true;
+    }
+    modipulate_song_play_sample(song, sample_id, note, channel, modulus, offset, -1, 0, -1, 0);
+    return true;
+}
+
+/**
  * Disable a channel
  * input: /modipulate/song/channel/disable [int32] [int32]
  */
@@ -470,6 +503,7 @@ bool doReceive(void)
         if (processSongPlay(msg)) goto runtimeErrorCheck;
         if (processSongPause(msg)) goto runtimeErrorCheck;
         if (processSongSetVolume(msg)) goto runtimeErrorCheck;
+        if (processSongPlaySample(msg)) goto runtimeErrorCheck;
         //if (processSongSetTempo(msg)) goto runtimeErrorCheck; // For the future...
         if (processSongChannelEnable(msg)) goto runtimeErrorCheck;
         if (processSongChannelDisable(msg)) goto runtimeErrorCheck;

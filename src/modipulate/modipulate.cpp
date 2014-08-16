@@ -237,6 +237,29 @@ int modipulate_song_get_channel_enabled(ModipulateSong song, unsigned channel) {
 }
 
 
+ModipulateErr modipulate_song_play_sample(ModipulateSong song, int sample, int note,
+	unsigned channel, int modulus, unsigned offset, int volume_command, int volume_value,
+	int effect_command, int effect_value) {
+	
+	if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
+    ModipulateErr ret = MODIPULATE_ERROR_NONE;
+    
+    try {
+        ((ModStream*) song)->play_sample(sample, note, channel,
+			modulus, offset, volume_command, volume_value,
+			effect_command, effect_value);
+    } catch (std::string e) {
+        modipulate_set_error_string_cpp(e);
+        ret = MODIPULATE_ERROR_GENERAL;
+    }
+    
+    return ret;
+}
+
+
 float modipulate_global_get_volume(void) {
     if (!modipulateIsInitialized) {
         return -1.0;

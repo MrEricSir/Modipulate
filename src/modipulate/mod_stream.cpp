@@ -48,6 +48,35 @@ ModStreamNote::ModStreamNote() :
     volume(-1)
 {}
 
+ModStreamPendingSample::ModStreamPendingSample() :
+	sample(0),
+	note(0),
+    channel(0),
+	modulus(0),
+	offset(0),
+	volume_command(0),
+	volume_value(0),
+	effect_command(0),
+	effect_value(0),
+	used(true)
+{}
+
+void ModStreamPendingSample::set(int sample, int note, unsigned channel, int modulus, 
+    unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value) {
+    this->sample = sample;
+    this->note = note;
+    this->channel = channel;
+    this->modulus = modulus;
+    this->offset = offset;
+    this->volume_command = volume_command;
+    this->volume_value = volume_value;
+    this->effect_command = effect_command;
+    this->effect_value = effect_value;
+
+    this->used = false; // duh
+}
+
+
 ModStream::ModStream() :
     mod(NULL),
     file_length(0),
@@ -459,6 +488,57 @@ void ModStream::set_transposition(int channel, int offset) {
 
 int ModStream::get_transposition(int channel) {
     return transposition_offset[channel];
+}
+
+
+void ModStream::play_sample(int sample, int note, unsigned channel, int modulus,
+	unsigned offset, int volume_command, int volume_value, int effect_command, int effect_value) {
+    for (int i = 0; i < MAX_PENDING_SAMPLES; i++) {
+        if (pending_samples[i].used) {
+            pending_samples[i].set(sample, note, channel, modulus,
+		        offset, volume_command, volume_value, effect_command, effect_value);
+
+            break;
+        }
+    }
+}
+
+
+ModStreamPendingSample* ModStream::get_pending_for(unsigned channel, unsigned row) {
+	ModStreamPendingSample* ret = NULL;
+
+    // Iterate over all pending samples.
+    for (int i = 0; i < MAX_PENDING_SAMPLES; i++) {
+        // Skip the ones we don't care about.
+        if (pending_samples[i].used || pending_samples[i].channel != channel) {
+            continue;
+        }
+
+        // We got one, bro!
+        ModStreamPendingSample* sample = &(pending_samples[i]);
+        if (sample->modulus > 0 && row % sample->modulus == 0) {
+			// Okay! We got one!  Clear the modulus, now the offset
+			// is what we're interested in.
+			sample->modulus = 0;
+		}
+
+		if (0 == sample->modulus) {
+			if (0 == sample->offset) {
+				if (ret) {
+					// Since we can only return one, mark the previous one as used.
+					ret->used = true;
+				}
+
+				// We got one!  Return the sample.
+				ret = sample;
+			} else {
+				// Decrement the offset until it's zero.
+				sample->offset--;
+			}
+		}
+    }
+
+	return ret;
 }
 
 

@@ -13,6 +13,7 @@
 #include <list>
 #include <queue>
 #include <map>
+#include <vector>
 #include "modipulate_common.h"
 #include <portaudio.h>
 #include "modipulate.h"
@@ -22,6 +23,8 @@
 #include "libopenmpt-forked/libopenmpt/libopenmpt.hpp"
 
 #include "libopenmpt-forked/soundlib/Snd_defs.h"
+
+#define MAX_PENDING_SAMPLES 20
 
 
 class ModStreamNote {
@@ -47,6 +50,26 @@ public:
     int change_pattern;              // Positive on pattern change: represents new pattern number.
     
     std::list<ModStreamNote*> notes;  // List of notes for this row.
+};
+
+class ModStreamPendingSample {
+public:
+	ModStreamPendingSample();
+
+    void set(int sample, int note, unsigned channel, int modulus, unsigned offset,
+		int volume_command, int volume_value, int effect_command, int effect_value);
+
+	int sample;
+	int note;
+    unsigned channel;
+	int modulus;
+	unsigned offset;
+	int volume_command;
+	int volume_value;
+	int effect_command;
+	int effect_value;
+
+	bool used; // Set to true when you want this cleaned up!
 };
 
 
@@ -140,6 +163,14 @@ public:
     // Transposition offset.
     void set_transposition(int channel, int offset);
     int get_transposition(int channel);
+
+	// Play a sample.
+	void play_sample(int sample, int note, unsigned channel, int modulus, unsigned offset,
+		int volume_command, int volume_value, int effect_command, int effect_value);
+
+	// Check pending samples (used interally.)
+	// Returns null if none are pending.
+	ModStreamPendingSample* get_pending_for(unsigned channel, unsigned row);
     
     void set_pattern_change_cb(modipulate_song_pattern_change_cb cb, void* user_data);
     
@@ -213,6 +244,9 @@ private:
     
     // Cached data for upcoming callbacks.
     std::queue<ModStreamRow*> rows;
+
+	// Samples to play at some future date.
+	ModStreamPendingSample pending_samples[MAX_PENDING_SAMPLES];
 
 	// Last pattern # we saw.
 	int lastPattern;
