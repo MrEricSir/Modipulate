@@ -83,6 +83,8 @@ public:
 		floatPCM23,         // Floating point PCM with 2^23 full scale
 		floatPCMnormalize,  // Floating point PCM and data will be normalized while reading
 		signedPCMnormalize, // Integer PCM and data will be normalized while reading
+		vorbis,
+		flac,
 	};
 
 	SampleIO(Bitdepth bits = _8bit, Channels channels = mono, Endianness endianness = littleEndian, Encoding encoding = signedPCM)

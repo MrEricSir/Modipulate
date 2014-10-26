@@ -541,7 +541,7 @@ void ITSample::ConvertToIT(const ModSample &mptSmp, MODTYPE fromType, bool compr
 uint32 ITSample::ConvertToMPT(ModSample &mptSmp) const
 //----------------------------------------------------
 {
-	if(memcmp(id, "IMPS", 4))
+	if(memcmp(id, "IMPS", 4) || memcmp(id, "ITQS", 4)) // #ITQ
 	{
 		return 0;
 	}
@@ -585,6 +585,18 @@ uint32 ITSample::ConvertToMPT(ModSample &mptSmp) const
 	mptSmp.nVibSweep = vir;
 
 	return samplepointer;
+}
+
+
+SampleIO ITQSample::GetSampleFormat(uint16 cwtv) const
+{
+	SampleIO io(
+		SampleIO::_16bit,
+		(flags & ITSample::sampleStereo) ? SampleIO::stereo : SampleIO::mono,
+		SampleIO::littleEndian,
+		SampleIO::vorbis);
+
+	return io;
 }
 
 

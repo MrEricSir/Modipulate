@@ -12,10 +12,12 @@ set(demo_path ${CMAKE_SOURCE_DIR}/demos)
 project(modipulate)
 
 find_package(portaudio REQUIRED)
+find_package(Vorbis REQUIRED)
 find_package(Lua51)
 find_package(Threads)
 
 include_directories(${PORTAUDIO_INCLUDE_DIRS})
+include_directories(${VORBIS_INCLUDE_DIRS})
 include_directories(${libopenmpt_path} ${libopenmpt_path}/common ${libopenmpt_path}/libopenmpt ${libopenmpt_path}/include ${modipulate_path})
 
 if (UNIX AND NOT APPLE)
@@ -57,7 +59,7 @@ file(GLOB libopenmpt_sources
     )
 add_library(libopenmpt-forked STATIC ${libopenmpt_sources})
 set_target_properties(libopenmpt-forked PROPERTIES PREFIX "")
-target_link_libraries(libopenmpt-forked ${PORTAUDIO_LIBRARIES})
+target_link_libraries(libopenmpt-forked ${PORTAUDIO_LIBRARIES} ${VORBIS_LIBRARIES})
 if(APPLE) # -- TODO: Linux too?
     target_link_libraries(libopenmpt-forked iconv)
 endif(APPLE)
@@ -75,10 +77,12 @@ set_target_properties(libmodipulate-static PROPERTIES PREFIX "")
 set_target_properties(libmodipulate PROPERTIES PREFIX "")
 target_link_libraries(libmodipulate-static
     ${PORTAUDIO_LIBRARIES} 
+    ${VORBIS_LIBRARIES}
     libopenmpt-forked
     )
 target_link_libraries(libmodipulate 
-    ${PORTAUDIO_LIBRARIES} 
+    ${PORTAUDIO_LIBRARIES}
+    ${VORBIS_LIBRARIES}
     libopenmpt-forked
     )
 

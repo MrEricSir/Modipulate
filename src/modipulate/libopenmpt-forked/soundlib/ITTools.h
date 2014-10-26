@@ -270,11 +270,20 @@ struct PACKED ITSample
 	// Convert an ITSample to OpenMPT's internal sample representation.
 	uint32 ConvertToMPT(ModSample &mptSmp) const;
 	// Retrieve the internal sample format flags for this instrument.
-	SampleIO GetSampleFormat(uint16 cwtv = 0x214) const;
+	virtual SampleIO GetSampleFormat(uint16 cwtv = 0x214) const;
 };
 
 STATIC_ASSERT(sizeof(ITSample) == 80);
 
+
+// #ITQ
+struct ITQSample : public ITSample
+{
+	uint32 nbytes;			// Number of bytes in compressed sample
+	uint8 samplecodec;		// OGG Vorbis, FLAC, etc.
+
+	virtual SampleIO GetSampleFormat(uint16 cwtv = 0x214) const;
+};
 
 struct FileHistory;
 
