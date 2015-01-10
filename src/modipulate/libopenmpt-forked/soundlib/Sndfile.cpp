@@ -772,6 +772,7 @@ BOOL CSoundFile::Create(FileReader file, ModLoadingFlags loadFlags)
 // -> DESC="IT project files (.itp)"
 		 && !ReadITProject(file, loadFlags)
 // -! NEW_FEATURE#0023
+		 && !ReadITQ(file, loadFlags)
 		 && !ReadIT(file, loadFlags)
 		 && !ReadS3M(file, loadFlags)
 #ifdef MODPLUG_TRACKER

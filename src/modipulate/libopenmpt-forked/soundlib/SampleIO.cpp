@@ -15,6 +15,7 @@
 #include "SampleIO.h"
 #include "SampleFormatConverters.h"
 #include "ITCompression.h"
+#include "decode_vorbis.h"
 
 
 #if MPT_COMPILER_GCC
@@ -59,8 +60,15 @@ size_t SampleIO::ReadSample(ModSample &sample, FileReader &file) const
 	ASSERT(sampleSize >= sample.GetSampleSizeInBytes());
 
 	//////////////////////////////////////////////////////
+	// Ogg Vorbis
+	if(GetEncoding() == vorbis)
+	{
+		decode_vorbis(sourceBuf, fileSize, (int16_t*)sample.pSample);
+	}
+
+	//////////////////////////////////////////////////////
 	// 8-Bit / Mono / PCM
-	if(GetBitDepth() == 8 && GetChannelFormat() == mono)
+	else if(GetBitDepth() == 8 && GetChannelFormat() == mono)
 	{
 		switch(GetEncoding())
 		{

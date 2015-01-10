@@ -58,6 +58,10 @@ file(GLOB libopenmpt_sources
     "${libopenmpt_path}/soundlib/Tunings/*.c*"
     )
 add_library(libopenmpt-forked STATIC ${libopenmpt_sources})
+
+message(status "portaudio libraries" ${PORTAUDIO_LIBRARIES})
+message(status "vorbis libraries" ${VORBIS_LIBRARIES})
+
 set_target_properties(libopenmpt-forked PROPERTIES PREFIX "")
 target_link_libraries(libopenmpt-forked ${PORTAUDIO_LIBRARIES} ${VORBIS_LIBRARIES})
 if(APPLE) # -- TODO: Linux too?
@@ -108,6 +112,7 @@ if (LUA51_FOUND)
     target_link_libraries(libmodipulatelua 
         ${PORTAUDIO_LIBRARIES}
         ${LUA_LIBRARIES}
+        ${VORBIS_LIBRARIES}
         libopenmpt-forked
         libmodipulate-static
     )
@@ -123,6 +128,7 @@ if(CMAKE_USE_PTHREADS_INIT OR CMAKE_USE_WIN32_THREADS_INIT)
     add_executable(modipulate-osc ${modipulateosc_sources})
     target_link_libraries(modipulate-osc
         ${PORTAUDIO_LIBRARIES}
+        ${VORBIS_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
         libmodipulate-static
     )
@@ -135,7 +141,8 @@ file(GLOB demo_console_sources
     )
 add_executable(console ${demo_console_sources})
 target_link_libraries(console
-    ${PORTAUDIO_LIBRARIES} 
+    ${PORTAUDIO_LIBRARIES}
+    ${VORBIS_LIBRARIES}
     libmodipulate-static
     )
 

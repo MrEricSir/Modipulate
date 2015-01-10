@@ -592,7 +592,7 @@ SampleIO ITQSample::GetSampleFormat(uint16 cwtv) const
 {
 	SampleIO io(
 		SampleIO::_16bit,
-		(flags & ITSample::sampleStereo) ? SampleIO::stereo : SampleIO::mono,
+		(flags & ITSample::sampleStereo) ? SampleIO::stereoInterleaved : SampleIO::mono,
 		SampleIO::littleEndian,
 		SampleIO::vorbis);
 

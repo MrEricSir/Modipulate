@@ -598,6 +598,7 @@ public:
 	bool ReadMTM(FileReader &file, ModLoadingFlags loadFlags = loadCompleteModule);
 	bool ReadSTM(FileReader &file, ModLoadingFlags loadFlags = loadCompleteModule);
 	bool ReadIT(FileReader &file, ModLoadingFlags loadFlags = loadCompleteModule);
+	bool ReadITQ(FileReader &file, ModLoadingFlags loadFlags = loadCompleteModule);
 	bool ReadITProject(FileReader &file, ModLoadingFlags loadFlags = loadCompleteModule);
 	bool Read669(FileReader &file, ModLoadingFlags loadFlags = loadCompleteModule);
 	bool ReadUlt(FileReader &file, ModLoadingFlags loadFlags = loadCompleteModule);
