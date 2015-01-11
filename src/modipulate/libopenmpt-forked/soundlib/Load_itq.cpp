@@ -55,7 +55,7 @@ MPTM version history for cwtv-field in "IT" header (only for MPTM files!):
 
 // #ifndef MODPLUG_NO_FILESAVE
 
-static bool AreNonDefaultTuningsUsed(CSoundFile& sf);
+//static bool AreNonDefaultTuningsUsed(CSoundFile& sf);
 // static bool AreNonDefaultTuningsUsed(CSoundFile& sf)
 // //--------------------------------------------------
 // {
@@ -68,10 +68,10 @@ static bool AreNonDefaultTuningsUsed(CSoundFile& sf);
 // 	return false;
 // }
 
-static void WriteTuningCollection(std::ostream& oStrm, const CTuningCollection& tc) {tc.Serialize(oStrm);}
+//static void WriteTuningCollection(std::ostream& oStrm, const CTuningCollection& tc) {tc.Serialize(oStrm);}
 // static void WriteTuningCollection(std::ostream& oStrm, const CTuningCollection& tc) {tc.Serialize(oStrm);}
 
-static void WriteTuningMap(std::ostream& oStrm, const CSoundFile& sf);
+//static void WriteTuningMap(std::ostream& oStrm, const CSoundFile& sf);
 // static void WriteTuningMap(std::ostream& oStrm, const CSoundFile& sf)
 // //-------------------------------------------------------------------
 // {
@@ -241,7 +241,7 @@ static void ReadTuningMap(std::istream& iStrm, CSoundFile& csf, const size_t = 0
 
 // #ifndef MODPLUG_NO_FILESAVE
 
-static uint8 ConvertVolParam(const ModCommand *m);
+//static uint8 ConvertVolParam(const ModCommand *m);
 // static uint8 ConvertVolParam(const ModCommand *m)
 // //-----------------------------------------------
 // {
@@ -671,7 +671,7 @@ bool CSoundFile::ReadITQ(FileReader &file, ModLoadingFlags loadFlags)
 
 				if((loadFlags & loadSampleData) && file.Seek(sampleOffset))
 				{
-					sampleHeader.GetSampleFormat(fileHeader.cwtv).ReadSample(Samples[i + 1], file);
+					sampleHeader.GetSampleFormatITQ(fileHeader.cwtv).ReadSample(Samples[i + 1], file);
 					lastSampleOffset = std::max(lastSampleOffset, file.GetPosition());
 				}
 			}
@@ -1066,7 +1066,7 @@ bool CSoundFile::ReadITQ(FileReader &file, ModLoadingFlags loadFlags)
 // #ifndef MODPLUG_NO_FILESAVE
 
 // // Save edit history. Pass a null pointer for *f to retrieve the number of bytes that would be written.
-static uint32 SaveITEditHistory(const CSoundFile *pSndFile, FILE *f);
+//static uint32 SaveITEditHistory(const CSoundFile *pSndFile, FILE *f);
 // static uint32 SaveITEditHistory(const CSoundFile *pSndFile, FILE *f)
 // //------------------------------------------------------------------
 // {
@@ -2123,8 +2123,8 @@ static uint32 SaveITEditHistory(const CSoundFile *pSndFile, FILE *f);
 // }
 
 
-template<typename T>
-void ReadField(FileReader &chunk, std::size_t size, T &field);
+//template<typename T>
+//void ReadField(FileReader &chunk, std::size_t size, T &field);
 // template<typename T>
 // void ReadField(FileReader &chunk, std::size_t size, T &field)
 // //-----------------------------------------------------------
@@ -2133,8 +2133,8 @@ void ReadField(FileReader &chunk, std::size_t size, T &field);
 // }
 
 
-template<typename Tenum, typename Tstore>
-void ReadFieldFlagSet(FileReader &chunk, std::size_t size, FlagSet<Tenum, Tstore> &field);
+//template<typename Tenum, typename Tstore>
+//void ReadFieldFlagSet(FileReader &chunk, std::size_t size, FlagSet<Tenum, Tstore> &field);
 // template<typename Tenum, typename Tstore>
 // void ReadFieldFlagSet(FileReader &chunk, std::size_t size, FlagSet<Tenum, Tstore> &field)
 // //---------------------------------------------------------------------------------------
@@ -2143,8 +2143,8 @@ void ReadFieldFlagSet(FileReader &chunk, std::size_t size, FlagSet<Tenum, Tstore
 // }
 
 
-template<typename T>
-void ReadFieldCast(FileReader &chunk, std::size_t size, T &field);
+//template<typename T>
+//void ReadFieldCast(FileReader &chunk, std::size_t size, T &field);
 // template<typename T>
 // void ReadFieldCast(FileReader &chunk, std::size_t size, T &field)
 // //---------------------------------------------------------------
