@@ -671,6 +671,7 @@ bool CSoundFile::ReadITQ(FileReader &file, ModLoadingFlags loadFlags)
 
 				if((loadFlags & loadSampleData) && file.Seek(sampleOffset))
 				{
+					Samples[i+1].originalSize = sampleHeader.nbytes;
 					sampleHeader.GetSampleFormatITQ(fileHeader.cwtv).ReadSample(Samples[i + 1], file);
 					lastSampleOffset = std::max(lastSampleOffset, file.GetPosition());
 				}

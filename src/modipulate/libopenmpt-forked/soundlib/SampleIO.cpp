@@ -63,7 +63,7 @@ size_t SampleIO::ReadSample(ModSample &sample, FileReader &file) const
 	// Ogg Vorbis
 	if(GetEncoding() == vorbis)
 	{
-		decode_vorbis(sourceBuf, fileSize, (int16_t*)sample.pSample);
+		decode_vorbis(sourceBuf, sample.originalSize, (int16_t*)sample.pSample);
 	}
 
 	//////////////////////////////////////////////////////

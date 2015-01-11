@@ -25,7 +25,7 @@
 
 #define BLOCK_SIZE 4096
 
-int decode_vorbis(const char* const inbuf, size_t bufsize, int16_t* outbuf)
+int decode_vorbis(const char* const inbuf, std::size_t bufsize, int16_t* outbuf)
 {
     ogg_int16_t convbuffer[BLOCK_SIZE];
     int convsize = BLOCK_SIZE;
