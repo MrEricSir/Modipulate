@@ -19,7 +19,12 @@ find_package(Threads)
 include_directories(${PORTAUDIO_INCLUDE_DIRS})
 include_directories(${VORBIS_INCLUDE_DIR})
 include_directories(${OGG_INCLUDE_DIR})
-include_directories(${libopenmpt_path} ${libopenmpt_path}/common ${libopenmpt_path}/libopenmpt ${libopenmpt_path}/include ${modipulate_path})
+include_directories(${libopenmpt_path}
+    ${libopenmpt_path}/common
+    ${libopenmpt_path}/libopenmpt
+    ${libopenmpt_path}/include
+    ${modipulate_path}
+)
 
 if (UNIX AND NOT APPLE)
     # -fPIC for Linux
@@ -57,7 +62,7 @@ file(GLOB libopenmpt_sources
     "${libopenmpt_path}/soundlib/*.c*"
     "${libopenmpt_path}/soundlib/plugins/*.c*"
     "${libopenmpt_path}/soundlib/Tunings/*.c*"
-    )
+)
 add_library(libopenmpt-forked STATIC ${libopenmpt_sources})
 
 message(status "portaudio libraries" ${PORTAUDIO_LIBRARIES})
@@ -65,7 +70,11 @@ message(status "vorbis libraries" ${VORBIS_LIBRARIES})
 message(status "ogg libraries" ${OGG_LIBRARY})
 
 set_target_properties(libopenmpt-forked PROPERTIES PREFIX "")
-target_link_libraries(libopenmpt-forked ${PORTAUDIO_LIBRARIES} ${OGG_LIBRARY} ${VORBIS_LIBRARIES})
+target_link_libraries(libopenmpt-forked
+    ${PORTAUDIO_LIBRARIES}
+    ${OGG_LIBRARY}
+    ${VORBIS_LIBRARIES}
+)
 if(APPLE) # -- TODO: Linux too?
     target_link_libraries(libopenmpt-forked iconv)
 endif(APPLE)
@@ -76,7 +85,7 @@ file(GLOB modipulate_sources
     "${modipulate_path}/*.h*"
     "${modipulate_path}/timer/*.c*"
     "${modipulate_path}/timer/*.h*"
-    )
+)
 add_library(libmodipulate-static STATIC ${modipulate_sources})
 add_library(libmodipulate SHARED ${modipulate_sources})
 set_target_properties(libmodipulate-static PROPERTIES PREFIX "")
@@ -86,13 +95,13 @@ target_link_libraries(libmodipulate-static
     ${OGG_LIBRARY}
     ${VORBIS_LIBRARIES}
     libopenmpt-forked
-    )
+)
 target_link_libraries(libmodipulate 
     ${PORTAUDIO_LIBRARIES}
     ${OGG_LIBRARY}
     ${VORBIS_LIBRARIES}
     libopenmpt-forked
-    )
+)
 
 
 # modipulate-lua
@@ -106,7 +115,7 @@ if (LUA51_FOUND)
     file(GLOB modipulatelua_sources 
         "${modipulatelua_path}/*.c*"
         "${modipulatelua_path}/*.def*"
-        )
+    )
     if (NOT WIN32)
         remove_from_list(modipulatelua_sources "dllmain.cpp")
     endif ()
@@ -144,12 +153,11 @@ endif(CMAKE_USE_PTHREADS_INIT OR CMAKE_USE_WIN32_THREADS_INIT)
 # demo: console
 file(GLOB demo_console_sources 
     "${demo_path}/modipulate/console/*.c*"
-    )
+)
 add_executable(console ${demo_console_sources})
 target_link_libraries(console
     ${PORTAUDIO_LIBRARIES}
     ${OGG_LIBRARY}
     ${VORBIS_LIBRARIES}
     libmodipulate-static
-    )
-
+)
