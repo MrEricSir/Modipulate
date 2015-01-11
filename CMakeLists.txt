@@ -17,7 +17,8 @@ find_package(Lua51)
 find_package(Threads)
 
 include_directories(${PORTAUDIO_INCLUDE_DIRS})
-include_directories(${VORBIS_INCLUDE_DIRS})
+include_directories(${VORBIS_INCLUDE_DIR})
+include_directories(${OGG_INCLUDE_DIR})
 include_directories(${libopenmpt_path} ${libopenmpt_path}/common ${libopenmpt_path}/libopenmpt ${libopenmpt_path}/include ${modipulate_path})
 
 if (UNIX AND NOT APPLE)
