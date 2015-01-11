@@ -160,7 +160,7 @@ inline void MemsetZero(T &a)
 {
 #ifdef HAS_TYPE_TRAITS
 	static_assert(std::is_pointer<T>::value == false, "Won't memset pointers.");
-	static_assert(std::is_pod<T>::value == true, "Won't memset non-pods.");
+//	static_assert(std::is_pod<T>::value == true, "Won't memset non-pods.");
 #endif
 	memset(&a, 0, sizeof(T));
 }

@@ -1,73 +1,45 @@
-# Locate OGG
-# This module defines
-# OGG_LIBRARIES
-# OGG_FOUND, if false, do not try to link to OGG 
-# OGG_INCLUDE_DIRS, where to find the headers
+# - Try to find ogg
+# Once done this will define
 #
-# $OGGDIR is an environment variable that would
-# correspond to the ./configure --prefix=$OGGDIR
-# used in building OGG.
+# OGG_FOUND - system has ogg
+# OGG_INCLUDE_DIR
+# OGG_LIBRARY
 #
-# Created by Sukender (Benoit Neil). Based on FindOGG.cmake module.
+# $OGGDIR is an environment variable used
+# for finding ogg.
+#
+# Several changes and additions by Fabian 'x3n' Landau
+# Most of all rewritten by Adrian Friedli
+# Debug versions and simplifications by Reto Grieder
+# > www.orxonox.net <
 
-FIND_PATH(OGG_INCLUDE_DIRS
-	NAMES ogg/ogg.h ogg/os_types.h
-	HINTS
-	$ENV{OGGDIR}
-    $ENV{CSP_DEVPACK}
-	$ENV{OGG_PATH}
-	PATH_SUFFIXES include
-	PATHS
-	~/Library/Frameworks
-	/Library/Frameworks
-	/usr/local
-	/usr
-	/sw # Fink
-	/opt/local # DarwinPorts
-	/opt/csw # Blastwave
-	/opt
+INCLUDE(FindPackageHandleStandardArgs)
+
+FIND_PATH(OGG_INCLUDE_DIR ogg/ogg.h
+PATHS $ENV{OGGDIR}
+PATH_SUFFIXES include
+)
+IF (WIN32)
+FIND_LIBRARY(OGG_LIBRARY
+NAMES libogg libogg-static-mt
+PATHS $ENV{OGGDIR}
+PATH_SUFFIXES Release
+)
+ELSE()
+FIND_LIBRARY(OGG_LIBRARY
+NAMES ogg
+PATH_SUFFIXES lib
+)
+ENDIF(WIN32)
+
+
+# Handle the REQUIRED argument and set OGG_FOUND
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Ogg DEFAULT_MSG
+OGG_LIBRARY
+OGG_INCLUDE_DIR
 )
 
-FIND_LIBRARY(OGG_LIBRARIES 
-	ogg
-	HINTS
-	$ENV{OGGDIR}
-    $ENV{CSP_DEVPACK}
-	$ENV{OGG_PATH}
-	PATH_SUFFIXES win32/Dynamic_Release lib
-	PATHS
-	~/Library/Frameworks
-	/Library/Frameworks
-	/usr/local
-	/usr
-	/sw
-	/opt/local
-	/opt/csw
-	/opt
-)
-
-FIND_LIBRARY(OGG_LIBRARIES_DEBUG 
-	ogg_d
-	HINTS
-	$ENV{OGGDIR}
-    $ENV{CSP_DEVPACK}
-	$ENV{OGG_PATH}
-	PATH_SUFFIXES win32/Dynamic_Debug lib
-	PATHS
-	~/Library/Frameworks
-	/Library/Frameworks
-	/usr/local
-	/usr
-	/sw
-	/opt/local
-	/opt/csw
-	/opt
-)
-
-SET(OGG_FOUND "NO")
-IF(OGG_LIBRARIES AND OGG_INCLUDE_DIRS)
-	SET(OGG_FOUND "YES")
-	MARK_AS_ADVANCED(OGG_LIBRARIES OGG_LIBRARIES_DEBUG OGG_INCLUDE_DIRS)
-ELSEIF(OGG_FIND_REQUIRED)
-	MESSAGE(FATAL_ERROR "Required library OGG not found! Install the library (including dev packages) and try again. If the library is already installed, set the missing variables manually in cmake.")
-ENDIF()
+MARK_AS_ADVANCED(
+OGG_INCLUDE_DIR
+OGG_LIBRARY
+) 

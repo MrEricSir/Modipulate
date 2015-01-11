@@ -62,9 +62,10 @@ add_library(libopenmpt-forked STATIC ${libopenmpt_sources})
 
 message(status "portaudio libraries" ${PORTAUDIO_LIBRARIES})
 message(status "vorbis libraries" ${VORBIS_LIBRARIES})
+message(status "ogg libraries" ${OGG_LIBRARY})
 
 set_target_properties(libopenmpt-forked PROPERTIES PREFIX "")
-target_link_libraries(libopenmpt-forked ${PORTAUDIO_LIBRARIES} ${VORBIS_LIBRARIES})
+target_link_libraries(libopenmpt-forked ${PORTAUDIO_LIBRARIES} ${OGG_LIBRARY} ${VORBIS_LIBRARIES})
 if(APPLE) # -- TODO: Linux too?
     target_link_libraries(libopenmpt-forked iconv)
 endif(APPLE)
@@ -72,9 +73,9 @@ endif(APPLE)
 # modipulate
 file(GLOB modipulate_sources 
     "${modipulate_path}/*.c*" 
-	"${modipulate_path}/*.h*"
+    "${modipulate_path}/*.h*"
     "${modipulate_path}/timer/*.c*"
-	"${modipulate_path}/timer/*.h*"
+    "${modipulate_path}/timer/*.h*"
     )
 add_library(libmodipulate-static STATIC ${modipulate_sources})
 add_library(libmodipulate SHARED ${modipulate_sources})
@@ -82,11 +83,13 @@ set_target_properties(libmodipulate-static PROPERTIES PREFIX "")
 set_target_properties(libmodipulate PROPERTIES PREFIX "")
 target_link_libraries(libmodipulate-static
     ${PORTAUDIO_LIBRARIES} 
+    ${OGG_LIBRARY}
     ${VORBIS_LIBRARIES}
     libopenmpt-forked
     )
 target_link_libraries(libmodipulate 
     ${PORTAUDIO_LIBRARIES}
+    ${OGG_LIBRARY}
     ${VORBIS_LIBRARIES}
     libopenmpt-forked
     )
@@ -113,6 +116,7 @@ if (LUA51_FOUND)
     target_link_libraries(libmodipulatelua 
         ${PORTAUDIO_LIBRARIES}
         ${LUA_LIBRARIES}
+        ${OGG_LIBRARY}
         ${VORBIS_LIBRARIES}
         libopenmpt-forked
         libmodipulate-static
@@ -129,6 +133,7 @@ if(CMAKE_USE_PTHREADS_INIT OR CMAKE_USE_WIN32_THREADS_INIT)
     add_executable(modipulate-osc ${modipulateosc_sources})
     target_link_libraries(modipulate-osc
         ${PORTAUDIO_LIBRARIES}
+        ${OGG_LIBRARY}
         ${VORBIS_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
         libmodipulate-static
@@ -143,6 +148,7 @@ file(GLOB demo_console_sources
 add_executable(console ${demo_console_sources})
 target_link_libraries(console
     ${PORTAUDIO_LIBRARIES}
+    ${OGG_LIBRARY}
     ${VORBIS_LIBRARIES}
     libmodipulate-static
     )

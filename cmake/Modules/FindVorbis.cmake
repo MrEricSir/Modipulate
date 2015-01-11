@@ -1,45 +1,52 @@
-# - Find vorbis
-# Find the native vorbis includes and libraries
+# - Try to find ogg/vorbis
+# Once done this will define
 #
-#  VORBIS_INCLUDE_DIR - where to find vorbis.h, etc.
-#  VORBIS_LIBRARIES   - List of libraries when using vorbis(file).
-#  VORBIS_FOUND       - True if vorbis found.
+# VORBIS_FOUND - system has vorbis
+# VORBIS_INCLUDE_DIR
+# VORBIS_LIBRARIES - vorbis and vorbisfile libraries
+#
+# $VORBISDIR is an environment variable used
+# for finding vorbis.
+#
+# Several changes and additions by Fabian 'x3n' Landau
+# Most of all rewritten by Adrian Friedli
+# Debug versions and simplifications by Reto Grieder
+# > www.orxonox.net <
 
-if(NOT GP2XWIZ)
-    if(VORBIS_INCLUDE_DIR)
-        # Already in cache, be silent
-        set(VORBIS_FIND_QUIETLY TRUE)
-    endif(VORBIS_INCLUDE_DIR)
-    find_path(OGG_INCLUDE_DIR ogg/ogg.h)
-    find_path(VORBIS_INCLUDE_DIR vorbis/vorbisfile.h vorbis/vorbisenc.h)
-    # MSVC built ogg/vorbis may be named ogg_static and vorbis_static
-    find_library(OGG_LIBRARY NAMES ogg ogg_static)
-    find_library(VORBIS_LIBRARY NAMES vorbis vorbis_static)
-    find_library(VORBISFILE_LIBRARY NAMES vorbisfile vorbisfile_static)
-    find_library(VORBISENC_LIBRARY NAMES vorbisenc vorbisenc_static)
-    # Handle the QUIETLY and REQUIRED arguments and set VORBIS_FOUND
-    # to TRUE if all listed variables are TRUE.
-    include(FindPackageHandleStandardArgs)
-    find_package_handle_standard_args(VORBIS DEFAULT_MSG
-        OGG_INCLUDE_DIR VORBIS_INCLUDE_DIR
-        OGG_LIBRARY VORBIS_LIBRARY VORBISFILE_LIBRARY VORBISENC_LIBRARY)
-else(NOT GP2XWIZ)
-    find_path(VORBIS_INCLUDE_DIR tremor/ivorbisfile.h)
-    find_library(VORBIS_LIBRARY NAMES vorbis_dec)
-    find_package_handle_standard_args(VORBIS DEFAULT_MSG
-        VORBIS_INCLUDE_DIR VORBIS_LIBRARY)
-endif(NOT GP2XWIZ)
-    
-if(VORBIS_FOUND)
-  if(NOT GP2XWIZ)
-     set(VORBIS_LIBRARIES ${VORBISFILE_LIBRARY} ${VORBISENC_LIBRARY} ${VORBIS_LIBRARY}
-           ${OGG_LIBRARY})
-  else(NOT GP2XWIZ)
-     set(VORBIS_LIBRARIES ${VORBIS_LIBRARY})
-  endif(NOT GP2XWIZ)
-else(VORBIS_FOUND)
-  set(VORBIS_LIBRARIES)
-endif(VORBIS_FOUND)
+INCLUDE(FindPackageHandleStandardArgs)
 
-mark_as_advanced(OGG_INCLUDE_DIR VORBIS_INCLUDE_DIR)
-mark_as_advanced(OGG_LIBRARY VORBIS_LIBRARY VORBISFILE_LIBRARY VORBISENC_LIBRARY)
+FIND_PATH(VORBIS_INCLUDE_DIR vorbis/codec.h
+PATHS $ENV{VORBISDIR}
+PATH_SUFFIXES include
+)
+
+IF(WIN32)
+FIND_LIBRARY(VORBIS_LIBRARIES
+NAMES libvorbis libvorbis-static-mt
+PATHS $ENV{VORBISDIR}
+PATH_SUFFIXES Release
+)
+ELSE()
+FIND_LIBRARY(VORBIS_LIBRARIES
+NAMES vorbis
+PATH_SUFFIXES lib
+)
+ENDIF(WIN32)
+
+# Handle the REQUIRED argument and set VORBIS_FOUND
+IF(NOT WIN32)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Vorbis DEFAULT_MSG
+VORBIS_LIBRARIES
+VORBIS_INCLUDE_DIR
+)
+ELSE()
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Vorbis DEFAULT_MSG
+VORBIS_LIBRARIES
+VORBIS_INCLUDE_DIR
+)
+ENDIF(NOT WIN32)
+
+MARK_AS_ADVANCED(
+VORBIS_INCLUDE_DIR
+VORBIS_LIBRARIES
+)
