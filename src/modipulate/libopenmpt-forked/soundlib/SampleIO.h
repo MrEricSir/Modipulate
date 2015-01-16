@@ -166,8 +166,8 @@ public:
 	// Read a sample from memory
 	size_t ReadSample(ModSample &sample, FileReader &file) const;
 
-#ifndef MODPLUG_NO_FILESAVE
+// #ifndef MODPLUG_NO_FILESAVE
 	// Write a sample to file
 	size_t WriteSample(FILE *f, const ModSample &sample, SmpLength maxSamples = 0) const;
-#endif // MODPLUG_NO_FILESAVE
+// #endif // MODPLUG_NO_FILESAVE
 };

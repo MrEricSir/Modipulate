@@ -637,10 +637,11 @@ public:
 	void UpgradeSong();
 
 	// Save Functions
-#ifndef MODPLUG_NO_FILESAVE
+//#ifndef MODPLUG_NO_FILESAVE
 	bool SaveXM(const mpt::PathString &filename, bool compatibilityExport = false);
 	bool SaveS3M(const mpt::PathString &filename) const;
 	bool SaveMod(const mpt::PathString &filename) const;
+	bool SaveITQ(const mpt::PathString &filename, float quality = 0.2f);
 	bool SaveIT(const mpt::PathString &filename, bool compatibilityExport = false);
 	bool SaveITProject(const mpt::PathString &filename); // -> CODE#0023 -> DESC="IT project files (.itp)" -! NEW_FEATURE#0023
 	UINT SaveMixPlugins(FILE *f=NULL, BOOL bUpdate=TRUE);
@@ -648,7 +649,7 @@ public:
 	void SaveExtendedInstrumentProperties(UINT nInstruments, FILE* f) const;
 	void SaveExtendedSongProperties(FILE* f) const;
 	size_t SaveModularInstrumentData(FILE *f, const ModInstrument *pIns) const;
-#endif // MODPLUG_NO_FILESAVE
+//#endif // MODPLUG_NO_FILESAVE
 	void LoadExtendedSongProperties(const MODTYPE modtype, FileReader &file, bool* pInterpretMptMade = nullptr);
 	static size_t LoadModularInstrumentData(FileReader &file, ModInstrument &ins);
 

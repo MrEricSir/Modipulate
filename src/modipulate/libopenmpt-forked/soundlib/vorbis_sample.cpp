@@ -16,14 +16,17 @@
  ********************************************************************/
 
 
-#include <vorbis/codec.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
+#include <cstdlib>
+#include <cstring>
+#include <cstdint>
 #include <math.h>
-#include "decode_vorbis.h"
+#include <time.h>
+#include <vorbis/codec.h>
+#include <vorbis/vorbisenc.h>
+#include "vorbis_sample.h"
 
 #define BLOCK_SIZE 4096
+#define READ 2048
 
 int decode_vorbis(const char* const inbuf, std::size_t bufsize, int16_t* outbuf)
 {
@@ -231,4 +234,104 @@ int decode_vorbis(const char* const inbuf, std::size_t bufsize, int16_t* outbuf)
     
     // fprintf(stderr,"Done.\n");
     return 0;
+}
+
+int encode_vorbis(const char* const insample, std::size_t len, FILE* outfile,
+    const uint8_t channels, const uint8_t bitdepth, const uint32_t rate, float quality)
+{
+    int eos = 0;
+    int i, ret;
+    unsigned long readpos = 0;
+    unsigned long totalsamps = 0;
+    ogg_stream_state os;
+    ogg_page         og;
+    ogg_packet       op;
+    vorbis_info      vi;
+    vorbis_comment   vc;
+    vorbis_dsp_state vd;
+    vorbis_block     vb;
+
+    vorbis_info_init(&vi);
+    ret = vorbis_encode_init_vbr(&vi, channels, rate, quality);
+    if (ret)
+        return ret;
+    vorbis_comment_init(&vc);
+    vorbis_comment_add_tag(&vc, "ENCODER", "ITQ inside hacked libopenmpt");
+    vorbis_analysis_init(&vd,&vi);
+    vorbis_block_init(&vd,&vb);
+    srand(time(NULL));
+    ogg_stream_init(&os,rand());
+    {
+        ogg_packet header;
+        ogg_packet header_comm;
+        ogg_packet header_code;
+        vorbis_analysis_headerout(&vd, &vc, &header, &header_comm, &header_code);
+        ogg_stream_packetin(&os, &header);
+        ogg_stream_packetin(&os, &header_comm);
+        ogg_stream_packetin(&os, &header_code);
+        while (!eos)
+        {
+            int result = ogg_stream_flush(&os, &og);
+            if (result == 0)
+                break;
+            fwrite(og.header, 1, og.header_len, outfile);
+            fwrite(og.body, 1, og.body_len, outfile);
+        }
+    }
+
+    while (!eos)
+    {
+        int bytespersamp = (bitdepth / 8);
+        int ch;
+        unsigned long samp = 0;
+        float** buffer = vorbis_analysis_buffer(&vd, READ);
+
+        while ((readpos < len) && (samp < READ))
+        {
+            for (ch = 0; ch < channels; ch++)
+            {
+                if (bitdepth == 8)
+                {
+                    buffer[ch][samp] = insample[readpos] / 128.f;
+                }
+                else if (bitdepth == 16)
+                {
+                    buffer[ch][samp] = ((insample[readpos + 1] << 8)
+                        | (0x00ff & (int)insample[readpos])) / 32768.f;
+                }
+                else
+                    return -1;
+                readpos += bytespersamp;
+            }
+            samp++;
+            totalsamps++;
+        }
+        vorbis_analysis_wrote(&vd, samp);
+        while (vorbis_analysis_blockout(&vd, &vb) == 1)
+        {
+            vorbis_analysis(&vb, NULL);
+            vorbis_bitrate_addblock(&vb);
+            while (vorbis_bitrate_flushpacket(&vd, &op))
+            {
+                ogg_stream_packetin(&os, &op);
+                while (!eos)
+                {
+                    int result = ogg_stream_pageout(&os, &og);
+                    if (result == 0)
+                        break;
+                    fwrite(og.header, 1, og.header_len, outfile);
+                    fwrite(og.body, 1, og.body_len, outfile);
+                    if (ogg_page_eos(&og))
+                        eos = 1;
+                }
+            }
+        }
+    }
+    ogg_stream_clear(&os);
+    vorbis_block_clear(&vb);
+    vorbis_dsp_clear(&vd);
+    vorbis_comment_clear(&vc);
+    vorbis_info_clear(&vi);
+
+    return totalsamps;
 }

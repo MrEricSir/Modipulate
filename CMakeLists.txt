@@ -6,6 +6,7 @@ set(modipulate_path ${CMAKE_SOURCE_DIR}/src/modipulate)
 set(libopenmpt_path ${modipulate_path}/libopenmpt-forked)
 set(modipulatelua_path ${CMAKE_SOURCE_DIR}/src/modipulate_lua)
 set(modipulateosc_path ${CMAKE_SOURCE_DIR}/src/modipulate-osc)
+set(itq_path ${CMAKE_SOURCE_DIR}/src/itq)
 set(oscpkt_path ${modipulateosc_path}/oscpkt)
 set(demo_path ${CMAKE_SOURCE_DIR}/demos)
 
@@ -149,6 +150,19 @@ if(CMAKE_USE_PTHREADS_INIT OR CMAKE_USE_WIN32_THREADS_INIT)
     )
 endif(CMAKE_USE_PTHREADS_INIT OR CMAKE_USE_WIN32_THREADS_INIT)
 
+
+# ITQ
+include_directories(${itq_path})
+set(itq_sources
+    "${itq_path}/itq.cpp"
+)
+add_executable(itq ${itq_sources})
+target_link_libraries(itq
+    ${PORTAUDIO_LIBRARIES}
+    ${OGG_LIBRARY}
+    ${VORBIS_LIBRARIES}
+    libopenmpt-forked
+)
 
 # demo: console
 file(GLOB demo_console_sources 

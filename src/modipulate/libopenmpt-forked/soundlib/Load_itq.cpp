@@ -24,6 +24,7 @@
 #include <list>
 #include "../common/version.h"
 #include "ITTools.h"
+#include "vorbis_sample.h"
 #include <time.h>
 #if MPT_COMPILER_GCC
 #include <ext/stdio_sync_filebuf.h>
@@ -52,6 +53,77 @@ MPTM version history for cwtv-field in "IT" header (only for MPTM files!):
 0x88A -> 0x88B: Changed order-to-pattern-index table type from BYTE-array to vector<UINT>.
 */
 
+
+static bool AreNonDefaultTuningsUsed(CSoundFile& sf)
+//--------------------------------------------------
+{
+	const INSTRUMENTINDEX iCount = sf.GetNumInstruments();
+	for(INSTRUMENTINDEX i = 1; i <= iCount; i++)
+	{
+		if(sf.Instruments[i] != nullptr && sf.Instruments[i]->pTuning != 0)
+			return true;
+	}
+	return false;
+}
+
+static void WriteTuningCollection(std::ostream& oStrm, const CTuningCollection& tc) {tc.Serialize(oStrm);}
+
+static void WriteTuningMap(std::ostream& oStrm, const CSoundFile& sf)
+//-------------------------------------------------------------------
+{
+	if(sf.GetNumInstruments() > 0)
+	{
+		//Writing instrument tuning data: first creating
+		//tuning name <-> tuning id number map,
+		//and then writing the tuning id for every instrument.
+		//For example if there are 6 instruments and
+		//first half use tuning 'T1', and the other half
+		//tuning 'T2', the output would be something like
+		//T1 1 T2 2 1 1 1 2 2 2
+
+		//Creating the tuning address <-> tuning id number map.
+		typedef std::map<CTuning*, uint16> TNTS_MAP;
+		typedef TNTS_MAP::iterator TNTS_MAP_ITER;
+		TNTS_MAP tNameToShort_Map;
+
+		unsigned short figMap = 0;
+		for(UINT i = 1; i <= sf.GetNumInstruments(); i++) if (sf.Instruments[i] != nullptr)
+		{
+			TNTS_MAP_ITER iter = tNameToShort_Map.find(sf.Instruments[i]->pTuning);
+			if(iter != tNameToShort_Map.end())
+				continue; //Tuning already mapped.
+
+			tNameToShort_Map[sf.Instruments[i]->pTuning] = figMap;
+			figMap++;
+		}
+
+		//...and write the map with tuning names replacing
+		//the addresses.
+		const uint16 tuningMapSize = static_cast<uint16>(tNameToShort_Map.size());
+		oStrm.write(reinterpret_cast<const char*>(&tuningMapSize), sizeof(tuningMapSize));
+		for(TNTS_MAP_ITER iter = tNameToShort_Map.begin(); iter != tNameToShort_Map.end(); iter++)
+		{
+			if(iter->first)
+				srlztn::StringToBinaryStream<uint8>(oStrm, iter->first->GetName());
+			else //Case: Using original IT tuning.
+				srlztn::StringToBinaryStream<uint8>(oStrm, "->MPT_ORIGINAL_IT<-");
+
+			srlztn::Binarywrite<uint16>(oStrm, iter->second);
+		}
+
+		//Writing tuning data for instruments.
+		for(UINT i = 1; i <= sf.GetNumInstruments(); i++)
+		{
+			TNTS_MAP_ITER iter = tNameToShort_Map.find(sf.Instruments[i]->pTuning);
+			if(iter == tNameToShort_Map.end()) //Should never happen
+			{
+				sf.AddToLog("Error: 210807_1");
+				return;
+			}
+			srlztn::Binarywrite(oStrm, iter->second);
+		}
+	}
+}
 
 static void ReadTuningCollection(std::istream& iStrm, CTuningCollection& tc, const size_t)
 {
@@ -159,6 +231,12 @@ static void ReadTuningMap(std::istream& iStrm, CSoundFile& csf, const size_t = 0
 	//End read&set instrument tunings
 }
 
+
+static uint8 ConvertVolParam(const ModCommand *m)
+//-----------------------------------------------
+{
+	return MIN(m->vol, 9);
+}
 
 static void CopyPatternName(CPattern &pattern, FileReader &file)
 //--------------------------------------------------------------
@@ -906,5 +984,642 @@ bool CSoundFile::ReadITQ(FileReader &file, ModLoadingFlags loadFlags)
 	}
 
 	return true;
+}
+
+// Save edit history. Pass a null pointer for *f to retrieve the number of bytes that would be written.
+static uint32 SaveITEditHistory(const CSoundFile *pSndFile, FILE *f)
+//------------------------------------------------------------------
+{
+	size_t num = pSndFile->GetFileHistory().size();
+#ifdef MODPLUG_TRACKER
+	CModDoc *pModDoc = pSndFile->GetpModDoc();
+	num += (pModDoc != nullptr) ? 1 : 0;	// + 1 for this session
+#endif // MODPLUG_TRACKER
+
+	uint16 fnum = (uint16)MIN(num, uint16_max);		// Number of entries that are actually going to be written
+	const uint32 bytes_written = 2 + fnum * 8;		// Number of bytes that are actually going to be written
+
+	if(f == nullptr)
+		return bytes_written;
+
+	// Write number of history entries
+	SwapBytesLE(fnum);
+	fwrite(&fnum, 2, 1, f);
+
+	// Write history data
+	const size_t start = (num > uint16_max) ? num - uint16_max : 0;
+	for(size_t n = start; n < num; n++)
+	{
+		FileHistory mptHistory;
+
+#ifdef MODPLUG_TRACKER
+		if(n < pSndFile->GetFileHistory().size())
+#endif // MODPLUG_TRACKER
+		{
+			// Previous timestamps
+			mptHistory = pSndFile->GetFileHistory().at(n);
+#ifdef MODPLUG_TRACKER
+		} else
+		{
+			// Current ("new") timestamp
+			const time_t creationTime = pModDoc->GetCreationTime();
+
+			MemsetZero(mptHistory.loadDate);
+			//localtime_s(&loadDate, &creationTime);
+			const tm* const p = localtime(&creationTime);
+			if (p != nullptr)
+				mptHistory.loadDate = *p;
+			else
+				pSndFile->AddToLog("localtime() returned nullptr.");
+
+			mptHistory.openTime = (uint32)(difftime(time(nullptr), creationTime) * (double)HISTORY_TIMER_PRECISION);
+#endif // MODPLUG_TRACKER
+		}
+
+		ITHistoryStruct itHistory;
+		itHistory.ConvertToIT(mptHistory);
+		itHistory.ConvertEndianness();
+		fwrite(&itHistory, 1, sizeof(itHistory), f);
+	}
+
+	return bytes_written;
+}
+
+bool CSoundFile::SaveITQ(const mpt::PathString &filename, float quality)
+//--------------------------------------------------------------------------------
+{
+	bool compatibilityExport = false;
+	const CModSpecifications &specs = (GetType() == MOD_TYPE_MPT ? ModSpecs::mptm : (compatibilityExport ? ModSpecs::it : ModSpecs::itEx));
+
+	DWORD dwChnNamLen;
+	ITFileHeader itHeader;
+	DWORD dwPos = 0, dwHdrPos = 0, dwExtra = 0;
+	FILE *f;
+
+	if(filename.empty() || ((f = mpt_fopen(filename, "wb")) == NULL)) return false;
+
+	// Writing Header
+	MemsetZero(itHeader);
+	dwChnNamLen = 0;
+	memcpy(itHeader.id, "IMPM", 4);
+	mpt::String::Write<mpt::String::nullTerminated>(itHeader.songname, songName);
+
+	itHeader.highlight_minor = (uint8)std::min(m_nDefaultRowsPerBeat, ROWINDEX(uint8_max));
+	itHeader.highlight_major = (uint8)std::min(m_nDefaultRowsPerMeasure, ROWINDEX(uint8_max));
+
+	if(GetType() == MOD_TYPE_MPT)
+	{
+		if(!Order.NeedsExtraDatafield()) itHeader.ordnum = Order.size();
+		else itHeader.ordnum = MIN(Order.size(), MAX_ORDERS); //Writing MAX_ORDERS at max here, and if there's more, writing them elsewhere.
+
+		//Crop unused orders from the end.
+		while(itHeader.ordnum > 1 && Order[itHeader.ordnum - 1] == Order.GetInvalidPatIndex()) itHeader.ordnum--;
+	} else
+	{
+		// An additional "---" pattern is appended so Impulse Tracker won't ignore the last order item.
+		// Interestingly, this can exceed IT's 256 order limit. Also, IT will always save at least two orders.
+		itHeader.ordnum = std::min(Order.GetLengthTailTrimmed(), specs.ordersMax) + 1;
+		if(itHeader.ordnum < 2) itHeader.ordnum = 2;
+	}
+
+	itHeader.insnum = std::min(m_nInstruments, specs.instrumentsMax);
+	itHeader.smpnum = std::min(m_nSamples, specs.samplesMax);
+	itHeader.patnum = std::min(Patterns.GetNumPatterns(), specs.patternsMax);
+
+	// Parapointers
+	std::vector<uint32> patpos(itHeader.patnum, 0);
+	std::vector<uint32> smppos(itHeader.smpnum, 0);
+	std::vector<uint32> inspos(itHeader.insnum, 0);
+
+	//VERSION
+	if(GetType() == MOD_TYPE_MPT)
+	{
+		// MPTM
+		itHeader.cwtv = verMptFileVer;	// Used in OMPT-hack versioning.
+		itHeader.cmwt = 0x888;
+	} else
+	{
+		// IT
+		MptVersion::VersionNum vVersion = MptVersion::num;
+		itHeader.cwtv = 0x5000 | (uint16)((vVersion >> 16) & 0x0FFF); // format: txyy (t = tracker ID, x = version major, yy = version minor), e.g. 0x5117 (OpenMPT = 5, 117 = v1.17)
+		itHeader.cmwt = 0x0214;	// Common compatible tracker :)
+		// Hack from schism tracker:
+		for(INSTRUMENTINDEX nIns = 1; nIns <= GetNumInstruments(); nIns++)
+		{
+			if(Instruments[nIns] && Instruments[nIns]->PitchEnv.dwFlags[ENV_FILTER])
+			{
+				itHeader.cmwt = 0x0216;
+				break;
+			}
+		}
+
+		if(!compatibilityExport)
+		{
+			// This way, we indicate that the file will most likely contain OpenMPT hacks. Compatibility export puts 0 here.
+			memcpy(itHeader.reserved, "OMPT", 4);
+		}
+	}
+
+	itHeader.flags = ITFileHeader::useStereoPlayback | ITFileHeader::useMIDIPitchController;
+	itHeader.special = ITFileHeader::embedEditHistory | ITFileHeader::embedPatternHighlights;
+	if(m_nInstruments) itHeader.flags |= ITFileHeader::instrumentMode;
+	if(m_SongFlags[SONG_LINEARSLIDES]) itHeader.flags |= ITFileHeader::linearSlides;
+	if(m_SongFlags[SONG_ITOLDEFFECTS]) itHeader.flags |= ITFileHeader::itOldEffects;
+	if(m_SongFlags[SONG_ITCOMPATGXX]) itHeader.flags |= ITFileHeader::itCompatGxx;
+	if(m_SongFlags[SONG_EXFILTERRANGE] && !compatibilityExport) itHeader.flags |= ITFileHeader::extendedFilterRange;
+
+	itHeader.globalvol = (uint8)(m_nDefaultGlobalVolume >> 1);
+	itHeader.mv = (uint8)MIN(m_nSamplePreAmp, 128);
+	itHeader.speed = (uint8)MIN(m_nDefaultSpeed, 255);
+ 	itHeader.tempo = (uint8)MIN(m_nDefaultTempo, 255);  //Limit this one to 255, we save the real one as an extension below.
+	itHeader.sep = 128; // pan separation
+	// IT doesn't have a per-instrument Pitch Wheel Depth setting, so we just store the first non-zero PWD setting in the header.
+	for(INSTRUMENTINDEX ins = 1; ins < GetNumInstruments(); ins++)
+	{
+		if(Instruments[ins] != nullptr && Instruments[ins]->midiPWD != 0)
+		{
+			itHeader.pwd = (uint8)abs(Instruments[ins]->midiPWD);
+			break;
+		}
+	}
+
+	dwHdrPos = sizeof(itHeader) + itHeader.ordnum;
+	// Channel Pan and Volume
+	memset(itHeader.chnpan, 0xA0, 64);
+	memset(itHeader.chnvol, 64, 64);
+
+	for (CHANNELINDEX ich = 0; ich < MIN(m_nChannels, 64); ich++) // Header only has room for settings for 64 chans...
+	{
+		itHeader.chnpan[ich] = (uint8)(ChnSettings[ich].nPan >> 2);
+		if (ChnSettings[ich].dwFlags[CHN_SURROUND]) itHeader.chnpan[ich] = 100;
+		itHeader.chnvol[ich] = (uint8)(ChnSettings[ich].nVolume);
+		if (ChnSettings[ich].dwFlags[CHN_MUTE]) itHeader.chnpan[ich] |= 0x80;
+	}
+
+	// Channel names
+	if(!compatibilityExport)
+	{
+		for (UINT ich=0; ich<m_nChannels; ich++)
+		{
+			if (ChnSettings[ich].szName[0])
+			{
+				dwChnNamLen = (ich + 1) * MAX_CHANNELNAME;
+			}
+		}
+		if (dwChnNamLen) dwExtra += dwChnNamLen + 8;
+	}
+
+	if(m_SongFlags[SONG_EMBEDMIDICFG])
+	{
+		itHeader.flags |= ITFileHeader::reqEmbeddedMIDIConfig;
+		itHeader.special |= ITFileHeader::embedMIDIConfiguration;
+		dwExtra += sizeof(MIDIMacroConfigData);
+	}
+
+	// Pattern Names
+	const PATTERNINDEX numNamedPats = compatibilityExport ? 0 : Patterns.GetNumNamedPatterns();
+	if(numNamedPats > 0)
+	{
+		dwExtra += (numNamedPats * MAX_PATTERNNAME) + 8;
+	}
+
+	// Mix Plugins. Just calculate the size of this extra block for now.
+	if(!compatibilityExport)
+	{
+		dwExtra += SaveMixPlugins(NULL, TRUE);
+	}
+
+	// Edit History. Just calculate the size of this extra block for now.
+	dwExtra += SaveITEditHistory(this, nullptr);
+
+	// Comments
+	uint16 msglength = 0;
+	if(!songMessage.empty())
+	{
+		itHeader.special |= ITFileHeader::embedSongMessage;
+		itHeader.msglength = msglength = (uint16)MIN(songMessage.length() + 1, uint16_max);
+		itHeader.msgoffset = dwHdrPos + dwExtra + (itHeader.insnum + itHeader.smpnum + itHeader.patnum) * 4;
+	}
+
+	// Write file header
+	itHeader.ConvertEndianness();
+	fwrite(&itHeader, 1, sizeof(itHeader), f);
+	// Convert endianness again as we access some of the header variables with native endianness here.
+	itHeader.ConvertEndianness();
+
+	Order.WriteAsByte(f, itHeader.ordnum);
+	if(itHeader.insnum) fwrite(&inspos[0], 4, itHeader.insnum, f);
+	if(itHeader.smpnum) fwrite(&smppos[0], 4, itHeader.smpnum, f);
+	if(itHeader.patnum) fwrite(&patpos[0], 4, itHeader.patnum, f);
+
+	// Writing edit history information
+	SaveITEditHistory(this, f);
+
+	// Writing midi cfg
+	if(itHeader.flags & ITFileHeader::reqEmbeddedMIDIConfig)
+	{
+		fwrite(static_cast<MIDIMacroConfigData*>(&m_MidiCfg), 1, sizeof(MIDIMacroConfigData), f);
+	}
+
+	// Writing pattern names
+	if(numNamedPats)
+	{
+		char magic[4];
+		memcpy(magic, "PNAM", 4);
+		fwrite(magic, 4, 1, f);
+		uint32 d = numNamedPats * MAX_PATTERNNAME;
+		fwrite(&d, 4, 1, f);
+
+		for(PATTERNINDEX nPat = 0; nPat < numNamedPats; nPat++)
+		{
+			char name[MAX_PATTERNNAME];
+			MemsetZero(name);
+			Patterns[nPat].GetName(name);
+			fwrite(name, 1, MAX_PATTERNNAME, f);
+		}
+	}
+
+	// Writing channel names
+	if(dwChnNamLen && !compatibilityExport)
+	{
+		char magic[4];
+		memcpy(magic, "CNAM", 4);
+		fwrite(magic, 4, 1, f);
+		fwrite(&dwChnNamLen, 1, 4, f);
+		UINT nChnNames = dwChnNamLen / MAX_CHANNELNAME;
+		for(UINT inam = 0; inam < nChnNames; inam++)
+		{
+			fwrite(ChnSettings[inam].szName, 1, MAX_CHANNELNAME, f);
+		}
+	}
+
+	// Writing mix plugins info
+	if(!compatibilityExport)
+	{
+		SaveMixPlugins(f, FALSE);
+	}
+
+	// Writing song message
+	dwPos = dwHdrPos + dwExtra + (itHeader.insnum + itHeader.smpnum + itHeader.patnum) * 4;
+	if(itHeader.special & ITFileHeader::embedSongMessage)
+	{
+		dwPos += msglength;
+		fwrite(songMessage.c_str(), 1, msglength, f);
+	}
+
+	// Writing instruments
+	for(UINT nins = 1; nins <= itHeader.insnum; nins++)
+	{
+		ITInstrumentEx iti;
+		uint32 instSize;
+
+		if(Instruments[nins])
+		{
+			instSize = iti.ConvertToIT(*Instruments[nins], compatibilityExport, *this);
+		} else
+		{
+			// Save Empty Instrument
+			ModInstrument dummy;
+			instSize = iti.ConvertToIT(dummy, compatibilityExport, *this);
+		}
+
+		// Writing instrument
+		inspos[nins - 1] = dwPos;
+		dwPos += instSize;
+		iti.ConvertEndianness();
+		fwrite(&iti, 1, instSize, f);
+
+		//------------ rewbs.modularInstData
+		if (Instruments[nins] && !compatibilityExport)
+		{
+			dwPos += SaveModularInstrumentData(f, Instruments[nins]);
+		}
+		//------------ end rewbs.modularInstData
+	}
+
+	// Writing sample headers
+	ITQSample itss;
+	MemsetZero(itss);
+	for(UINT hsmp=0; hsmp<itHeader.smpnum; hsmp++)
+	{
+		smppos[hsmp] = dwPos;
+		dwPos += sizeof(ITSample);
+		fwrite(&itss, 1, sizeof(ITQSample), f);
+	}
+
+	// Writing Patterns
+	bool bNeedsMptPatSave = false;
+	for(PATTERNINDEX pat = 0; pat < itHeader.patnum; pat++)
+	{
+		uint32 dwPatPos = dwPos;
+		if (!Patterns[pat]) continue;
+
+		if(Patterns[pat].GetOverrideSignature())
+			bNeedsMptPatSave = true;
+
+		// Check for empty pattern
+		if(Patterns[pat].GetNumRows() == 64 && Patterns.IsPatternEmpty(pat))
+		{
+			patpos[pat] = 0;
+			continue;
+		}
+
+		patpos[pat] = dwPos;
+
+		// Write pattern header
+		ROWINDEX writeRows = std::min(Patterns[pat].GetNumRows(), ROWINDEX(uint16_max));
+		uint16 patinfo[4];
+		patinfo[0] = 0;
+		patinfo[1] = (uint16)writeRows;
+		patinfo[2] = 0;
+		patinfo[3] = 0;
+		SwapBytesLE(patinfo[1]);
+
+		fwrite(patinfo, 8, 1, f);
+		dwPos += 8;
+
+		const CHANNELINDEX maxChannels = MIN(specs.channelsMax, GetNumChannels());
+		std::vector<uint8> chnmask(maxChannels, 0xFF);
+		std::vector<ModCommand> lastvalue(maxChannels, ModCommand::Empty());
+
+		for(ROWINDEX row = 0; row < writeRows; row++)
+		{
+			uint32 len = 0;
+			uint8 buf[8 * MAX_BASECHANNELS];
+			const ModCommand *m = Patterns[pat].GetRow(row);
+
+			for(CHANNELINDEX ch = 0; ch < maxChannels; ch++, m++)
+			{
+				// Skip mptm-specific notes.
+				if(m->IsPcNote())
+				{
+					bNeedsMptPatSave = true;
+					continue;
+				}
+
+				uint8 b = 0;
+				uint8 command = m->command;
+				uint8 param = m->param;
+				uint8 vol = 0xFF;
+				uint8 note = m->note;
+				if (note != NOTE_NONE) b |= 1;
+				if (m->IsNote()) note--;
+				if (note == NOTE_FADE && GetType() != MOD_TYPE_MPT) note = 0xF6;
+				if (m->instr) b |= 2;
+				if (m->volcmd != VOLCMD_NONE)
+				{
+					switch(m->volcmd)
+					{
+					case VOLCMD_VOLUME:			vol = m->vol; if (vol > 64) vol = 64; break;
+					case VOLCMD_PANNING:		vol = m->vol + 128; if (vol > 192) vol = 192; break;
+					case VOLCMD_VOLSLIDEUP:		vol = 85 + ConvertVolParam(m); break;
+					case VOLCMD_VOLSLIDEDOWN:	vol = 95 + ConvertVolParam(m); break;
+					case VOLCMD_FINEVOLUP:		vol = 65 + ConvertVolParam(m); break;
+					case VOLCMD_FINEVOLDOWN:	vol = 75 + ConvertVolParam(m); break;
+					case VOLCMD_VIBRATODEPTH:	vol = 203 + ConvertVolParam(m); break;
+					case VOLCMD_VIBRATOSPEED:	if(command == CMD_NONE)
+												{
+													// illegal command -> move if possible
+													command = CMD_VIBRATO;
+													param = ConvertVolParam(m) << 4;
+												} else
+												{
+													vol = 203;
+												}
+												break;
+					case VOLCMD_TONEPORTAMENTO:	vol = 193 + ConvertVolParam(m); break;
+					case VOLCMD_PORTADOWN:		vol = 105 + ConvertVolParam(m); break;
+					case VOLCMD_PORTAUP:		vol = 115 + ConvertVolParam(m); break;
+					case VOLCMD_OFFSET:			if(!compatibilityExport) vol = 223 + ConvertVolParam(m); //rewbs.volOff
+												break;
+					default:					vol = 0xFF;
+					}
+				}
+				if (vol != 0xFF) b |= 4;
+				if (command != CMD_NONE)
+				{
+					S3MSaveConvert(command, param, true, compatibilityExport);
+					if (command) b |= 8;
+				}
+				// Packing information
+				if (b)
+				{
+					// Same note ?
+					if (b & 1)
+					{
+						if ((note == lastvalue[ch].note) && (lastvalue[ch].volcmd & 1))
+						{
+							b &= ~1;
+							b |= 0x10;
+						} else
+						{
+							lastvalue[ch].note = note;
+							lastvalue[ch].volcmd |= 1;
+						}
+					}
+					// Same instrument ?
+					if (b & 2)
+					{
+						if ((m->instr == lastvalue[ch].instr) && (lastvalue[ch].volcmd & 2))
+						{
+							b &= ~2;
+							b |= 0x20;
+						} else
+						{
+							lastvalue[ch].instr = m->instr;
+							lastvalue[ch].volcmd |= 2;
+						}
+					}
+					// Same volume column byte ?
+					if (b & 4)
+					{
+						if ((vol == lastvalue[ch].vol) && (lastvalue[ch].volcmd & 4))
+						{
+							b &= ~4;
+							b |= 0x40;
+						} else
+						{
+							lastvalue[ch].vol = vol;
+							lastvalue[ch].volcmd |= 4;
+						}
+					}
+					// Same command / param ?
+					if (b & 8)
+					{
+						if ((command == lastvalue[ch].command) && (param == lastvalue[ch].param) && (lastvalue[ch].volcmd & 8))
+						{
+							b &= ~8;
+							b |= 0x80;
+						} else
+						{
+							lastvalue[ch].command = command;
+							lastvalue[ch].param = param;
+							lastvalue[ch].volcmd |= 8;
+						}
+					}
+					if (b != chnmask[ch])
+					{
+						chnmask[ch] = b;
+						buf[len++] = uint8((ch + 1) | 0x80);
+						buf[len++] = b;
+					} else
+					{
+						buf[len++] = uint8(ch + 1);
+					}
+					if (b & 1) buf[len++] = note;
+					if (b & 2) buf[len++] = m->instr;
+					if (b & 4) buf[len++] = vol;
+					if (b & 8)
+					{
+						buf[len++] = command;
+						buf[len++] = param;
+					}
+				}
+			}
+			buf[len++] = 0;
+			if(patinfo[0] > uint16_max - len)
+			{
+				AddToLog(mpt::String::Print("%1 (%2 %3)", str_tooMuchPatternData, str_pattern, pat));
+				break;
+			} else
+			{
+				dwPos += len;
+				patinfo[0] += (uint16)len;
+				fwrite(buf, 1, len, f);
+			}
+		}
+		fseek(f, dwPatPos, SEEK_SET);
+		SwapBytesLE(patinfo[0]);
+		fwrite(patinfo, 8, 1, f);
+		fseek(f, dwPos, SEEK_SET);
+	}
+	// Writing Sample Data
+	for (UINT nsmp=1; nsmp<=itHeader.smpnum; nsmp++)
+	{
+#ifdef MODPLUG_TRACKER
+		int type = GetType() == MOD_TYPE_IT ? 1 : 4;
+		if(compatibilityExport) type = 2;
+		bool compress = (Samples[nsmp].GetNumChannels() > 1) ? TrackerSettings::Instance().MiscITCompressionStereo : TrackerSettings::Instance().MiscITCompressionMono;
+#else
+		bool compress = false;
+#endif // MODPLUG_TRACKER
+		// Old MPT, DUMB and probably other libraries will only consider the IT2.15 compression flag if the header version also indicates IT2.15.
+		// Old MilkyTracker will only assume IT2.15 compression with cmwt == 0x215, ignoring the delta flag completely.
+//		itss.ConvertToIT(Samples[nsmp], GetType(), compress, itHeader.cmwt >= 0x215);
+
+		mpt::String::Write<mpt::String::nullTerminated>(itss.name, m_szNames[nsmp]);
+
+		itss.nbytes = 0;
+		itss.samplecodec = SampleIO::vorbis;
+		itss.samplepointer = dwPos;
+		itss.ConvertEndianness();
+		fseek(f, smppos[nsmp - 1], SEEK_SET);
+		fwrite(&itss, 1, sizeof(ITQSample), f);
+		fseek(f, dwPos, SEEK_SET);
+		ModSample s = Samples[nsmp];
+		if ((s.pSample) && (s.nLength))
+		{
+			dwPos += encode_vorbis((const char* const)s.pSample,
+				(std::size_t)s.originalSize, f,
+				s.GetNumChannels(), s.GetBytesPerSample(),
+				44100, quality);
+			// dwPos += itss.GetSampleFormat().WriteSample(f, Samples[nsmp]);
+		}
+	}
+
+	//Save hacked-on extra info
+	if(!compatibilityExport)
+	{
+		SaveExtendedInstrumentProperties(itHeader.insnum, f);
+		SaveExtendedSongProperties(f);
+	}
+
+	// Updating offsets
+	fseek(f, dwHdrPos, SEEK_SET);
+	if(itHeader.insnum) fwrite(&inspos[0], 4, itHeader.insnum, f);
+	if(itHeader.smpnum) fwrite(&smppos[0], 4, itHeader.smpnum, f);
+	if(itHeader.patnum) fwrite(&patpos[0], 4, itHeader.patnum, f);
+
+	if(GetType() == MOD_TYPE_IT)
+	{
+		fclose(f);
+		return true;
+	}
+
+	//hack
+	//BEGIN: MPT SPECIFIC:
+	//--------------------
+
+	fseek(f, 0, SEEK_END);
+	fflush(f);
+#if MPT_COMPILER_MSVC
+	std::ofstream fout(f);
+#elif MPT_COMPILER_GCC
+	__gnu_cxx::stdio_sync_filebuf<char> fout_buf(f);
+	std::ostream fout(&fout_buf);
+#else
+	fclose(f);
+	f = nullptr;
+	// Using std::ofstream implies std::ios::out, which implies truncation when std::ios::app or std::ios::in is not also set. (At least, it does so for MSVC2010 and GNU libstdc++).
+	// std::ios::app is not suitable for us, because it is very well allowed for called functions to seek and write somewhere else than the end,
+	//  and std::ios::app implies writing goes always to the end, regardless of the output position.
+	// Using std::ios::in | std::ios::out | std::ios::ate prevents truncation and sets the file pointer to the end of the so-far saved file,
+	//  but it also allows reading, which does no harm but is not what we actually really want here.
+	// That's a very broken interface.
+	mpt::ofstream fout(filename, std::ios::binary | std::ios::ate | std::ios::in);
+#endif
+
+	const uint32 MPTStartPos = (uint32)fout.tellp();
+	
+	// catch standard library truncating files
+	ALWAYS_ASSERT(MPTStartPos > 0);
+
+	srlztn::SsbWrite ssb(fout);
+	ssb.BeginWrite("mptm", MptVersion::num);
+
+	if(GetTuneSpecificTunings().GetNumTunings() > 0)
+		ssb.WriteItem(GetTuneSpecificTunings(), "0", 1, &WriteTuningCollection);
+	if(AreNonDefaultTuningsUsed(*this))
+		ssb.WriteItem(*this, "1", 1, &WriteTuningMap);
+	if(Order.NeedsExtraDatafield())
+		ssb.WriteItem(Order, "2", 1, &WriteModSequenceOld);
+	if(bNeedsMptPatSave)
+		ssb.WriteItem(Patterns, FileIdPatterns, strlen(FileIdPatterns), &WriteModPatterns);
+	ssb.WriteItem(Order, FileIdSequences, strlen(FileIdSequences), &WriteModSequences);
+
+	ssb.FinishWrite();
+
+	if(ssb.m_Status & srlztn::SNT_FAILURE)
+	{
+		AddToLog("Error occured in writing MPTM extensions.");
+	}
+
+	bool success = true;
+
+	//Last 4 bytes should tell where the hack mpt things begin.
+	if(!fout.good())
+	{
+		fout.clear();
+		success = false;
+	}
+	fout.write(reinterpret_cast<const char*>(&MPTStartPos), sizeof(MPTStartPos));
+
+	fout.flush();
+#if MPT_COMPILER_MSVC
+	fout.close();
+#elif MPT_COMPILER_GCC
+	fflush(f);
+	fclose(f);
+	f = nullptr;
+#else
+	fout.close();
+#endif
+
+	//END  : MPT SPECIFIC
+	//-------------------
+
+	//NO WRITING HERE ANYMORE.
+
+	return success;
 }
 

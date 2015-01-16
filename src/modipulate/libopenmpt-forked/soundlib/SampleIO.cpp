@@ -15,7 +15,7 @@
 #include "SampleIO.h"
 #include "SampleFormatConverters.h"
 #include "ITCompression.h"
-#include "decode_vorbis.h"
+#include "vorbis_sample.h"
 
 
 #if MPT_COMPILER_GCC
@@ -592,7 +592,7 @@ size_t SampleIO::ReadSample(ModSample &sample, FileReader &file) const
 #endif
 
 
-#ifndef MODPLUG_NO_FILESAVE
+// #ifndef MODPLUG_NO_FILESAVE
 
 // Write a sample to file
 size_t SampleIO::WriteSample(FILE *f, const ModSample &sample, SmpLength maxSamples) const
@@ -782,4 +782,4 @@ size_t SampleIO::WriteSample(FILE *f, const ModSample &sample, SmpLength maxSamp
 	return len;
 }
 
-#endif // MODPLUG_NO_FILESAVE
+// #endif // MODPLUG_NO_FILESAVE

@@ -51,7 +51,7 @@ MPTM version history for cwtv-field in "IT" header (only for MPTM files!):
 */
 
 
-#ifndef MODPLUG_NO_FILESAVE
+//#ifndef MODPLUG_NO_FILESAVE
 
 static bool AreNonDefaultTuningsUsed(CSoundFile& sf)
 //--------------------------------------------------
@@ -124,7 +124,7 @@ static void WriteTuningMap(std::ostream& oStrm, const CSoundFile& sf)
 	}
 }
 
-#endif // MODPLUG_NO_FILESAVE
+//#endif // MODPLUG_NO_FILESAVE
 
 
 static void ReadTuningCollection(std::istream& iStrm, CTuningCollection& tc, const size_t) {tc.Deserialize(iStrm);}
@@ -234,7 +234,7 @@ static void ReadTuningMap(std::istream& iStrm, CSoundFile& csf, const size_t = 0
 //////////////////////////////////////////////////////////
 // Impulse Tracker IT file support
 
-#ifndef MODPLUG_NO_FILESAVE
+//#ifndef MODPLUG_NO_FILESAVE
 
 static uint8 ConvertVolParam(const ModCommand *m)
 //-----------------------------------------------
@@ -242,7 +242,7 @@ static uint8 ConvertVolParam(const ModCommand *m)
 	return MIN(m->vol, 9);
 }
 
-#endif // MODPLUG_NO_FILESAVE
+//#endif // MODPLUG_NO_FILESAVE
 
 
 size_t CSoundFile::ITInstrToMPT(FileReader &file, ModInstrument &ins, uint16 trkvers)
@@ -1049,7 +1049,7 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 	return true;
 }
 
-#ifndef MODPLUG_NO_FILESAVE
+//#ifndef MODPLUG_NO_FILESAVE
 
 // Save edit history. Pass a null pointer for *f to retrieve the number of bytes that would be written.
 static uint32 SaveITEditHistory(const CSoundFile *pSndFile, FILE *f)
@@ -1682,10 +1682,10 @@ bool CSoundFile::SaveIT(const mpt::PathString &filename, bool compatibilityExpor
 }
 
 
-#endif // MODPLUG_NO_FILESAVE
+//#endif // MODPLUG_NO_FILESAVE
 
 
-#ifndef MODPLUG_NO_FILESAVE
+//#ifndef MODPLUG_NO_FILESAVE
 
 UINT CSoundFile::SaveMixPlugins(FILE *f, BOOL bUpdate)
 //----------------------------------------------------
@@ -1780,7 +1780,7 @@ UINT CSoundFile::SaveMixPlugins(FILE *f, BOOL bUpdate)
 	return nTotalSize;
 }
 
-#endif // MODPLUG_NO_FILESAVE
+//#endif // MODPLUG_NO_FILESAVE
 
 
 void CSoundFile::LoadMixPlugins(FileReader &file)
@@ -1878,7 +1878,7 @@ void CSoundFile::LoadMixPlugins(FileReader &file)
 }
 
 
-#ifndef MODPLUG_NO_FILESAVE
+//#ifndef MODPLUG_NO_FILESAVE
 
 // Used only when saving IT, XM and MPTM.
 // ITI, ITP saves using Ericus' macros etc...
@@ -2064,7 +2064,7 @@ void CSoundFile::SaveExtendedSongProperties(FILE* f) const
 	return;
 }
 
-#endif // MODPLUG_NO_FILESAVE
+//#endif // MODPLUG_NO_FILESAVE
 
 
 void CSoundFile::LoadExtendedInstrumentProperties(FileReader &file, bool *pInterpretMptMade)
@@ -2218,7 +2218,7 @@ void CSoundFile::LoadExtendedSongProperties(const MODTYPE modtype, FileReader &f
 }
 
 
-#ifndef MODPLUG_NO_FILESAVE
+//#ifndef MODPLUG_NO_FILESAVE
 
 size_t CSoundFile::SaveModularInstrumentData(FILE *f, const ModInstrument *pIns) const
 //------------------------------------------------------------------------------------
@@ -2267,7 +2267,7 @@ size_t CSoundFile::SaveModularInstrumentData(FILE *f, const ModInstrument *pIns)
 	return sizeof(id) + sizeof(modularInstSize) + modularInstSize;
 }
 
-#endif // MODPLUG_NO_FILESAVE
+//#endif // MODPLUG_NO_FILESAVE
 
 
 size_t CSoundFile::LoadModularInstrumentData(FileReader &file, ModInstrument &ins)
