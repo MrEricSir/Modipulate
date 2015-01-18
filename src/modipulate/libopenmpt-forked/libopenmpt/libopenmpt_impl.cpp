@@ -1090,9 +1090,20 @@ void module_impl::ctl_set( const std::string & ctl, const std::string & value ) 
 	}
 }
 
+// Modipulate
 void module_impl::set_mod_stream(ModStream* modStream) {
 	this->modStream = modStream;
 	m_sndFile->modStream = modStream;
+}
+
+// ITQ
+bool module_impl::save_itq(const std::string &filename, float quality)
+{
+	return m_sndFile->SaveITQ(MPT_PATHSTRING(filename), quality);
+}
+bool module_impl::save_it(const std::string &filename)
+{
+	return m_sndFile->SaveIT(MPT_PATHSTRING(filename));
 }
 
 } // namespace openmpt

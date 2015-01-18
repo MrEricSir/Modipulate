@@ -161,7 +161,7 @@ target_link_libraries(itq
     ${PORTAUDIO_LIBRARIES}
     ${OGG_LIBRARY}
     ${VORBIS_LIBRARIES}
-    libopenmpt-forked
+    libmodipulate-static
 )
 
 # demo: console

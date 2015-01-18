@@ -14,8 +14,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <Sndfile.h>
+#include <string>
+#include <fstream>
+#include <libopenmpt.hpp>
 
 #define USAGE \
 "Usage:\n" \
@@ -31,14 +32,7 @@
 int main(int argc, char** argv)
 {
 	int action = 0;
-	FILE* infile = 0;
-	FILE* outfile = 0;
-	char* inbuffer = 0;
-	long int insize = 0;
-	long int bytesread = 0;
-	CSoundFile src_sndfile;
-	CSoundFile dest_sndfile;
-	FileReader filereader;
+	openmpt::module* modfile;
 
 	/* Check command line arguments */
 	if (argc != 3)
@@ -58,57 +52,43 @@ int main(int argc, char** argv)
 	}
 
 	/* Read the source file */
-	infile = fopen(ARG_FILE, "rb");
-	if (!infile)
-	{
+	std::ifstream file(std::string(ARG_FILE), std::ios::binary);
+
+    if (file.fail() || !file.good())
+    {
 		printf("Error: Could not open source file %s\n", ARG_FILE);
 		return 1;
-	}
-	fseek(infile, 0, SEEK_END);
-	insize = ftell(infile);
-	fseek(infile, 0, SEEK_SET);
-	inbuffer = malloc(insize);
-	if (!inbuffer)
-	{
-		printf("Error: Could not allocate memory for mod file\n");
+    }
+    
+    try
+    {
+	    modfile = new openmpt::module(file);
+    }
+    catch(const openmpt::exception& e)
+    {
+		printf("Error: Could not open source file %s\n", ARG_FILE);
 		return 1;
-	}
-	bytesread = fread(inbuffer, 1, insize, infile);
-	if (bytesread != insize)
-	{
-		printf("Error: Could not read entire file into memory\n");
-		printf("File size determined as %ld, read %ld\n", insize, bytesread);
-		return 1;
-	}
-
-	/* Turn source file into CSoundFile */
-	filereader = FileReader(file, insize);
-	src_sndfile = ReadIT(filereader);
-	if (!src_sndfile)
-	{
-		printf("Error: Could not load %s -- invalid mod file?\n", ARG_FILE);
-		return 1;
-	}
+    }
 
 	/* Encode or decode and save new file */
 	if (action == OUTPUT_ITQ)
 	{
 		printf("Encoding to out.itq ...\n");
-		if (!src_sndfile::SaveITQ("out.itq", FALSE))
+		if (!modfile->save_itq("out.itq", 0.2f))
 		{
 			printf("Error: Problem writing output file\n");
 			return 1;
 		}
 	}
-	// else if (action == OUTPUT_IT)
-	// {
-	// 	printf("Decoding to out.it ...\n");
-	// 	if (!ModPlug_ExportIT(modfile, "out.it"))
-	// 	{
-	// 		printf("Error: Problem writing output file\n");
-	// 		return 1;
-	// 	}
-	// }
+	else if (action == OUTPUT_IT)
+	{
+		printf("Decoding to out.it ...\n");
+		if (!modfile->save_it("out.it"))
+		{
+			printf("Error: Problem writing output file\n");
+			return 1;
+		}
+	}
 	else /* Should not happen */
 	{
 		printf("Something went wrong and I have no idea what!\n");

@@ -315,6 +315,17 @@ void module::ctl_set( const std::string & ctl, const std::string & value ) {
 // MODIPULATE!!!11
 void module::set_mod_stream(ModStream* modStream) {
 	impl->set_mod_stream(modStream);
+
+}
+
+// ITQ
+bool module::save_itq(const std::string &filename, float quality)
+{
+	impl->save_itq(filename, quality);
+}
+bool module::save_it(const std::string &filename)
+{
+	impl->save_itq(filename);
 }
 
 } // namespace openmpt

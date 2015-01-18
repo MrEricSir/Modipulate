@@ -559,6 +559,13 @@ public:
 
 	void set_mod_stream(ModStream* modStream);
 
+	/************************************************************************/
+	/* ITQ                                                                  */
+	/************************************************************************/
+
+	bool save_itq(const std::string &filename, float quality = 0.2f);
+	bool save_it(const std::string &filename);
+
 }; // class module
 
 } // namespace openmpt
