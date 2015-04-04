@@ -1,4 +1,4 @@
-/* Copyright 2011-2014 Eric Gregory and Stevie Hryciw
+/* Copyright 2011-2015 Eric Gregory and Stevie Hryciw
  *
  * Modipulate.
  * https://github.com/MrEricSir/Modipulate/

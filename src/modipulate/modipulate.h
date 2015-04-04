@@ -1,5 +1,5 @@
 /*! \mainpage Modipulate home page
- \author Copyright 2011-2014 Eric Gregory and Stevie Hryciw
+ \author Copyright 2011-2015 Eric Gregory and Stevie Hryciw
  \section intro What is Modipulate?
  
  Modipulate is a library for modipulating games and MOD-style music.
