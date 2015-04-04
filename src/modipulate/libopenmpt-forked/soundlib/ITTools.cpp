@@ -541,7 +541,7 @@ void ITSample::ConvertToIT(const ModSample &mptSmp, MODTYPE fromType, bool compr
 uint32 ITSample::ConvertToMPT(ModSample &mptSmp) const
 //----------------------------------------------------
 {
-	if(memcmp(id, "IMPS", 4))
+	if(memcmp(id, "IMPS", 4) != 0 && memcmp(id, "ITQS", 4 ) != 0) // #ITQ
 	{
 		return 0;
 	}
@@ -586,6 +586,19 @@ uint32 ITSample::ConvertToMPT(ModSample &mptSmp) const
 
 	return samplepointer;
 }
+
+
+SampleIO ITQSample::GetSampleFormatITQ(uint16 cwtv) const
+{
+	SampleIO io(
+		SampleIO::_16bit,
+		(flags & ITSample::sampleStereo) ? SampleIO::stereoInterleaved : SampleIO::mono,
+		SampleIO::littleEndian,
+		SampleIO::vorbis);
+
+	return io;
+}
+
 
 
 // Retrieve the internal sample format flags for this instrument.

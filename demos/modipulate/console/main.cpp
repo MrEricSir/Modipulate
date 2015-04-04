@@ -78,7 +78,6 @@ public:
 };
 
 
-const char* filename = "../demos/media/v-cf.it";
 ModipulateSong song;
 ModipulateErr err;
 ModipulateSongInfo* song_info;
@@ -116,6 +115,13 @@ void on_row_change(ModipulateSong song, int row, void* user_data) {
 
 
 int main(int argc, char **argv) {
+    if (argc < 2)
+    {
+        printf("Error: Please specify a filename.\n");
+        return 1;
+    }
+    const char* filename = argv[1];
+
     printf("Modipulate console demo\n");
     printf("Playing: %s\n", filename);
     printf("Use ctrl-c to quit.\n");

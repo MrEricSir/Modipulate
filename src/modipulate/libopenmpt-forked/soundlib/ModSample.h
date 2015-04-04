@@ -35,6 +35,7 @@ struct ModSample
 
 	// MODIPULATE
 	int index;
+	std::size_t originalSize; // for ITQ
 
 	ModSample(MODTYPE type = MOD_TYPE_NONE)
 	{
