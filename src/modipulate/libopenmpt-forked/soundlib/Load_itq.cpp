@@ -617,6 +617,7 @@ bool CSoundFile::ReadITQ(FileReader &file, ModLoadingFlags loadFlags)
 	// We need to do this here, because if there no samples (so lastSampleOffset = 0), we need to look after the last pattern (sample data normally follows pattern data).
 	// And we need to do this before reading the patterns because m_nChannels might be modified by LoadExtendedSongProperties. *sigh*
 	LoadExtendedSongProperties(GetType(), file, &interpretModPlugMade);
+	m_nTempoMode = tempo_mode_modern;
 
 	// Reading Patterns
 	Patterns.ResizeArray(std::max(MAX_PATTERNS, numPats));
