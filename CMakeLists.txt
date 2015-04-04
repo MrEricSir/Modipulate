@@ -13,6 +13,7 @@ project(modipulate)
 
 find_package(portaudio REQUIRED)
 find_package(Vorbis REQUIRED)
+find_package(Ogg REQUIRED)
 find_package(Lua51)
 find_package(Threads)
 
@@ -65,9 +66,10 @@ file(GLOB libopenmpt_sources
 )
 add_library(libopenmpt-forked STATIC ${libopenmpt_sources})
 
-message(status "portaudio libraries" ${PORTAUDIO_LIBRARIES})
-message(status "vorbis libraries" ${VORBIS_LIBRARIES})
-message(status "ogg libraries" ${OGG_LIBRARY})
+message(STATUS "library path: " ${CMAKE_LIBRARY_PATH})
+message(STATUS "portaudio libraries: " ${PORTAUDIO_LIBRARIES})
+message(STATUS "vorbis libraries: " ${VORBIS_LIBRARIES})
+message(STATUS "ogg libraries: " ${OGG_LIBRARY})
 
 set_target_properties(libopenmpt-forked PROPERTIES PREFIX "")
 target_link_libraries(libopenmpt-forked
