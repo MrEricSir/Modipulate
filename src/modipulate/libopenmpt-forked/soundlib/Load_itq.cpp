@@ -1061,7 +1061,7 @@ bool CSoundFile::SaveITQ(const mpt::PathString &filename, float quality)
 	// Writing Header
 	MemsetZero(itHeader);
 	dwChnNamLen = 0;
-	memcpy(itHeader.id, "IMPM", 4);
+	memcpy(itHeader.id, "ITQM", 4);
 	mpt::String::Write<mpt::String::nullTerminated>(itHeader.songname, songName);
 
 	itHeader.highlight_minor = (uint8)std::min(m_nDefaultRowsPerBeat, ROWINDEX(uint8_max));
