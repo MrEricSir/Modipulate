@@ -1097,13 +1097,27 @@ void module_impl::set_mod_stream(ModStream* modStream) {
 }
 
 // ITQ
-bool module_impl::save_itq(const std::string &filename, float quality)
+bool module_impl::save_itq(const std::string &_filename, float quality)
 {
-	return m_sndFile->SaveITQ(MPT_PATHSTRING(filename), quality);
+#if defined(WIN32)
+    // Convert to wide string
+    std::wstring filename = mpt::ToWide(mpt::CharsetLocale, _filename);
+#else
+    std::string filename = _filename;
+#endif
+
+    return m_sndFile->SaveITQ(mpt::PathString::FromNative(filename), quality);
 }
-bool module_impl::save_it(const std::string &filename)
+bool module_impl::save_it(const std::string &_filename)
 {
-	return m_sndFile->SaveIT(MPT_PATHSTRING(filename));
+    #if defined(WIN32)
+    // Convert to wide string
+    std::wstring filename = mpt::ToWide(mpt::CharsetLocale, _filename);
+#else
+    std::string filename = _filename;
+#endif
+
+	return m_sndFile->SaveIT( mpt::PathString::FromNative(filename));
 }
 
 } // namespace openmpt

@@ -321,11 +321,11 @@ void module::set_mod_stream(ModStream* modStream) {
 // ITQ
 bool module::save_itq(const std::string &filename, float quality)
 {
-	impl->save_itq(filename, quality);
+    return impl->save_itq(filename, quality);
 }
 bool module::save_it(const std::string &filename)
 {
-	impl->save_itq(filename);
+    return impl->save_itq(filename);
 }
 
 } // namespace openmpt
