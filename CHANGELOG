@@ -1,3 +1,10 @@
+2015-04-03  Stevie Hryciw <codroid@gmail.com>
+
+    * Support for ITQ mods - IT files with Ogg Vorbis
+    compressed sample data. ITQs always use the
+    "modern" (accurate) tempo mode.
+
+
 2014-05-03  Eric Gregory <mrericsir@gmail.com>
 
     * Modipulate-OSC is now based on oscpkt
