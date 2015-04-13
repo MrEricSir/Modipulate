@@ -271,7 +271,9 @@ void CSoundFile::CreateStereoMix(int count)
 {
 	mixsample_t *pOfsL, *pOfsR;
 
-	if (!count) return;
+	if (!count) {
+        return;
+    }
 
 	// Resetting sound buffer
 	StereoFill(MixSoundBuffer, count, gnDryROfsVol, gnDryLOfsVol);
@@ -282,10 +284,29 @@ void CSoundFile::CreateStereoMix(int count)
 	const bool ITPingPongMode = IsITPingPongMode();
 	const bool realtimeMix = !IsRenderingToDisc();
 
+    // MODIPULATE
+    // (This handles channel fading.)
+    for(uint32 i = 0; i < MAX_CHANNELS; i++) {
+        ModChannel &chn = Chn[i];
+       
+        if (chn.fade_in_progress) {
+            // Recalculate amplitude.
+            chn.current_amplitude = (chn.fade_count / chn.fade_total_samples) *
+                (chn.destination_amplitude - chn.starting_amplitude) + chn.starting_amplitude;
+
+            chn.fade_count += count;
+            if (chn.fade_count >= chn.fade_total_samples) {
+                chn.fade_in_progress = false;
+                chn.current_amplitude = chn.destination_amplitude;
+            }
+        }
+    }
+
 	for(uint32 nChn = 0; nChn < m_nMixChannels; nChn++)
 	{
 		ModChannel &chn = Chn[ChnMix[nChn]];
 		uint32 functionNdx = 0;
+
 
 		if(!chn.pCurrentSample) continue;
 		pOfsR = &gnDryROfsVol;
@@ -395,7 +416,8 @@ void CSoundFile::CreateStereoMix(int count)
 				chn.nROfs = chn.nLOfs = 0;
 				pbuffer += nSmpCount * 2;
 				naddmix = 0;
-			} else
+			} 
+            else
 			{
 				// Do mixing
 

@@ -334,6 +334,16 @@ ModipulateErr modipulate_song_play_sample(ModipulateSong song, int sample, int n
 	int effect_command, int effect_value);
 
 /**
+Fades a channel (or channels).
+
+@param song The song to act on.
+@param msec The number of milliseconds of the fade.
+@param channel Which channel to act on, or -1 for all.
+@param destination_amp The desired amplitude at the end of this fade.
+*/
+ModipulateErr modipulate_song_fade_channel(ModipulateSong song, unsigned msec, int channel, double destination_amp);
+
+/**
 Sets a callback to be triggered on a pattern change.
 
 @param cb your callback function

@@ -83,12 +83,18 @@ static void SampleLoop(ModChannel &chn, const CResampler &resampler, typename Tr
 	do
 	{
 		typename Traits::outbuf_t outSample;
+
 		interpolate(outSample, inSample + (smpPos >> 16) * Traits::numChannelsIn, (smpPos & 0xFFFF));
+
+        // /MODIPULATE
+        outSample[0] *= chn.current_amplitude;
+        outSample[1] *= chn.current_amplitude;
+
 		filter(outSample, c);
 		mix(outSample, c, outBuffer);
 		outBuffer += Traits::numChannelsOut;
-
-		smpPos += c.nInc;
+        smpPos += c.nInc;
+        
 	} while(--samples);
 
 	mix.End(c);

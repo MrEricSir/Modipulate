@@ -317,6 +317,10 @@ void module::set_mod_stream(ModStream* modStream) {
 	impl->set_mod_stream(modStream);
 }
 
+void module::fade_channel(std::uint32_t msec, std::int32_t channel, double destination_amp) {
+    impl->fade_channel(msec, channel, destination_amp);
+}
+
 } // namespace openmpt
 
 #endif // NO_LIBOPENMPT_CXX

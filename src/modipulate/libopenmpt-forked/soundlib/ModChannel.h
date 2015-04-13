@@ -131,6 +131,15 @@ struct ALIGN(32) ModChannel
 	bool m_CalculateFreq;
 	//<----
 
+    // MODIPULATE!!
+    double fade_total_samples;      // Total number of samples in the fade.
+    double fade_count;              // Current position in those samples (starts at max, then decreases to 0)
+    bool fade_in_progress;          // Whether we have a fade in progress or not?
+    double starting_amplitude;      // Amplitude start
+    double destination_amplitude;   // Amplitude destination
+    double current_amplitude;       // What's the amplitude right now?
+    // /MODIPULATE
+
 	void ClearRowCmd() { rowCommand = ModCommand::Empty(); }
 
 	// Get a reference to a specific envelope of this channel
@@ -183,6 +192,10 @@ struct ALIGN(32) ModChannel
 	ModChannel()
 	{
 		memset(this, 0, sizeof(*this));
+
+        starting_amplitude = 0.0;
+        destination_amplitude = 0.0;
+        current_amplitude = 1.0;
 	}
 
 };

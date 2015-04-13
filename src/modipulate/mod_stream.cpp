@@ -503,6 +503,10 @@ void ModStream::play_sample(int sample, int note, unsigned channel, int modulus,
     }
 }
 
+void ModStream::fade_channel(unsigned msec, int channel, double destination) {
+    mod->fade_channel(msec, channel, destination);
+}
+
 
 ModStreamPendingSample* ModStream::get_pending_for(unsigned channel, unsigned row) {
 	ModStreamPendingSample* ret = NULL;

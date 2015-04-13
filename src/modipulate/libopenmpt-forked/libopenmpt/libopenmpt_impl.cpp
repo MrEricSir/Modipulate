@@ -1095,4 +1095,26 @@ void module_impl::set_mod_stream(ModStream* modStream) {
 	m_sndFile->modStream = modStream;
 }
 
+ void module_impl::fade_channel(std::uint32_t msec, std::int32_t channel, double destination_amp) {
+     if (channel < -1 || channel > m_sndFile->m_nChannels) {
+         // TODO: throw some kinda exception?
+         return;
+     }
+
+     for (int i = 0; i < m_sndFile->m_nChannels; i++) {
+        if (channel != i && channel != -1) {
+            continue;
+        }
+
+        ModChannel* c = &m_sndFile->Chn[i];
+        c->fade_total_samples = (msec / 1000.0) * m_sndFile->GetSampleRate();
+        c->fade_count = 0;
+        c->starting_amplitude = c->current_amplitude;
+        c->destination_amplitude = destination_amp;
+
+        // And awaaaaay we go!
+        c->fade_in_progress = true;
+     }
+ }
+
 } // namespace openmpt
