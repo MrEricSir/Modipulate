@@ -33,7 +33,7 @@ ModipulateErr modipulate_global_init(void) {
 
 	for (int i = 0; i < MAX_MODSTREAMS; i++)
 		mods[i] = NULL;
-    
+
     modipulateIsInitialized = true;
 
     // Start PortAudio.
@@ -49,7 +49,7 @@ ModipulateErr modipulate_global_deinit(void) {
 
     DPRINT("Quiting Modipulate");
     ModipulateErr ret = MODIPULATE_ERROR_NONE;
-    
+
     // Close mod players.
 	for (int i = 0; i < MAX_MODSTREAMS; i++) {
 		try {
@@ -64,10 +64,10 @@ ModipulateErr modipulate_global_deinit(void) {
 		delete mods[i];
 		mods[i] = NULL;
 	}
-    
+
     // Stop PortAudio.
     Pa_Terminate();
-    
+
     return ret;
 }
 
@@ -119,7 +119,7 @@ ModipulateErr modipulate_song_load(const char* filename, ModipulateSong* song) {
 
         return MODIPULATE_ERROR_GENERAL;
 	}
-    
+
     try {
         stream->open(filename);
 		*song = stream;
@@ -131,7 +131,7 @@ ModipulateErr modipulate_song_load(const char* filename, ModipulateSong* song) {
         delete stream;
         mods[slot] = NULL;
     }
-    
+
     return ret;
 }
 
@@ -142,7 +142,7 @@ ModipulateErr modipulate_song_unload(ModipulateSong song) {
     }
 
     modipulate_song_play(song, false);
-    
+
     // Destroy object.
 	for (int i = 0; i < MAX_MODSTREAMS; i++) {
 		if (mods[i] == song) {
@@ -153,7 +153,7 @@ ModipulateErr modipulate_song_unload(ModipulateSong song) {
 			break;
 		}
 	}
-    
+
     return MODIPULATE_ERROR_NONE;
 }
 
@@ -163,14 +163,14 @@ ModipulateErr modipulate_song_play(ModipulateSong song, int play) {
     }
 
     ModipulateErr ret = MODIPULATE_ERROR_NONE;
-	
+
     try {
         ((ModStream*) song)->set_playing((bool) play);
     } catch (std::string e) {
         modipulate_set_error_string_cpp(e);
         ret = MODIPULATE_ERROR_GENERAL;
     }
-    
+
     return ret;
 }
 
@@ -180,14 +180,14 @@ ModipulateErr modipulate_song_get_info(ModipulateSong song, ModipulateSongInfo**
     }
 
     ModipulateErr ret = MODIPULATE_ERROR_NONE;
-    
+
     try {
         ((ModStream*) song)->get_info(song_info);
     } catch (std::string e) {
         modipulate_set_error_string_cpp(e);
         ret = MODIPULATE_ERROR_GENERAL;
     }
-    
+
     return ret;
 }
 
@@ -197,7 +197,7 @@ ModipulateErr modipulate_song_info_free(ModipulateSongInfo* song_info) {
     }
 
     ModStream::free_info(song_info);
-    
+
     return MODIPULATE_ERROR_NONE;
 }
 
@@ -223,7 +223,7 @@ void modipulate_song_set_channel_enabled(ModipulateSong song, unsigned channel, 
     }
 
     DPRINT("Channel %d is set to %s", channel, enabled ? "Enabled" : "Disabled");
-    
+
     ((ModStream*) song)->set_channel_enabled(channel, enabled);
 }
 
@@ -240,13 +240,13 @@ int modipulate_song_get_channel_enabled(ModipulateSong song, unsigned channel) {
 ModipulateErr modipulate_song_play_sample(ModipulateSong song, int sample, int note,
 	unsigned channel, int modulus, unsigned offset, int volume_command, int volume_value,
 	int effect_command, int effect_value) {
-	
+
 	if (!modipulateIsInitialized) {
         return MODIPULATE_ERROR_NOT_INITIALIZED;
     }
 
     ModipulateErr ret = MODIPULATE_ERROR_NONE;
-    
+
     try {
         ((ModStream*) song)->play_sample(sample, note, channel,
 			modulus, offset, volume_command, volume_value,
@@ -255,7 +255,7 @@ ModipulateErr modipulate_song_play_sample(ModipulateSong song, int sample, int n
         modipulate_set_error_string_cpp(e);
         ret = MODIPULATE_ERROR_GENERAL;
     }
-    
+
     return ret;
 }
 
@@ -264,16 +264,24 @@ ModipulateErr modipulate_song_fade_channel(ModipulateSong song, unsigned msec, i
     if (!modipulateIsInitialized) {
         return MODIPULATE_ERROR_NOT_INITIALIZED;
     }
+    if (destination_amp < 0.0 || destination_amp > 1.0) {
+        modipulate_set_error_string_cpp("Mix volume must be between 0.0 and 1.0");
+        return MODIPULATE_ERROR_INVALID_PARAMETERS;
+    }
+    if (channel < -1 || channel >= ((ModStream*) song)->get_num_channels()) {
+        modipulate_set_error_string_cpp("Invalid channel number");
+        return MODIPULATE_ERROR_INVALID_PARAMETERS;
+    }
 
-     ModipulateErr ret = MODIPULATE_ERROR_NONE;
-    
+    ModipulateErr ret = MODIPULATE_ERROR_NONE;
+
     try {
         ((ModStream*) song)->fade_channel(msec, channel, destination_amp);
     } catch (std::string e) {
         modipulate_set_error_string_cpp(e);
         ret = MODIPULATE_ERROR_GENERAL;
     }
-    
+
     return ret;
 }
 
@@ -302,7 +310,7 @@ ModipulateErr modipulate_song_set_transposition(ModipulateSong song, unsigned ch
     }
 
     ((ModStream*) song)->set_transposition(channel, offset);
-    
+
     return MODIPULATE_ERROR_NONE;
 }
 
@@ -313,7 +321,7 @@ ModipulateErr modipulate_song_get_transposition(ModipulateSong song, unsigned ch
     }
 
     *offset = ((ModStream*) song)->get_transposition(channel);
-    
+
     return MODIPULATE_ERROR_NONE;
 }
 
@@ -323,7 +331,7 @@ ModipulateErr modipulate_song_volume_command(ModipulateSong song, unsigned chann
     if (!modipulateIsInitialized) {
         return MODIPULATE_ERROR_NOT_INITIALIZED;
     }
-    
+
     ((ModStream*) song)->issue_volume_command(channel, volume_command, volume_value);
     return MODIPULATE_ERROR_NONE;
 }
@@ -369,7 +377,7 @@ ModipulateErr modipulate_song_on_pattern_change(ModipulateSong song,
     }
 
     ((ModStream*) song)->set_pattern_change_cb(cb, user_data);
-    
+
     return MODIPULATE_ERROR_NONE;
 }
 
@@ -381,7 +389,7 @@ ModipulateErr modipulate_song_on_row_change(ModipulateSong song,
     }
 
     ((ModStream*) song)->set_row_change_cb(cb, user_data);
-    
+
     return MODIPULATE_ERROR_NONE;
 }
 
@@ -393,6 +401,6 @@ ModipulateErr modipulate_song_on_note(ModipulateSong song,
     }
 
     ((ModStream*) song)->set_note_change_cb(cb, user_data);
-    
+
     return MODIPULATE_ERROR_NONE;
 }

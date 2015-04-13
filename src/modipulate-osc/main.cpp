@@ -82,7 +82,7 @@ static ModipulateSong get_song_from_id(std::int32_t song_id)
     return iter != song_map.end() ? iter->second : NULL;
 }
 
-/***** 
+/*****
        Modipulate Callbacks
                             *****/
 
@@ -97,7 +97,7 @@ void on_pattern_change(ModipulateSong song, int pattern_number, void* user_data)
     pw.startBundle().startBundle().addMessage(msg).endBundle().endBundle();
     socketSend.sendPacket(pw.packetData(), pw.packetSize());
 
-    std::cout << PFX_OSCOUT << "Modipulate: Pattern change: " << pattern_number << "\n";
+    // std::cout << PFX_OSCOUT << "Modipulate: Pattern change: " << pattern_number << "\n";
 }
 
 // Modipulate: row change callback
@@ -117,7 +117,7 @@ void on_note(ModipulateSong song, unsigned channel, int note,
 }
 
 
-/***** 
+/*****
        Command Handlers
                         *****/
 
@@ -127,7 +127,7 @@ void on_note(ModipulateSong song, unsigned channel, int note,
  * input: /modipulate/ping [n]
  * output: /modipulate/pong [n+1]
  */
-bool processPing(oscpkt::Message *msg) 
+bool processPing(oscpkt::Message *msg)
 {
     std::int32_t port = 0;
     if (!msg->match("/modipulate/ping").popInt32(port).isOkNoMoreArgs())
@@ -153,7 +153,7 @@ bool processPing(oscpkt::Message *msg)
  *
  * NOTE: Unlike other functions, this returns true if we should quit.
  */
-bool processQuit(oscpkt::Message *msg) 
+bool processQuit(oscpkt::Message *msg)
 {
     if (!msg->match("/modipulate/quit").isOkNoMoreArgs())
     {
@@ -168,7 +168,7 @@ bool processQuit(oscpkt::Message *msg)
  * Set global volume
  * input: /modipulate/set_volume [float]
  */
-bool processSetVolume(oscpkt::Message *msg) 
+bool processSetVolume(oscpkt::Message *msg)
 {
     float volume = 0.0;
     if (!msg->match("/modipulate/set_volume").popFloat(volume).isOkNoMoreArgs())
@@ -185,7 +185,7 @@ bool processSetVolume(oscpkt::Message *msg)
  * Load a song
  * input: /modipulate/song/load [int32]
  */
-bool processSongLoad(oscpkt::Message *msg) 
+bool processSongLoad(oscpkt::Message *msg)
 {
     std::string filename;
     std::int32_t song_id = 0;
@@ -218,7 +218,7 @@ bool processSongLoad(oscpkt::Message *msg)
  * Unload a song
  * input: /modipulate/song/unload [int32]
  */
-bool processSongUnload(oscpkt::Message *msg) 
+bool processSongUnload(oscpkt::Message *msg)
 {
     std::int32_t song_id = 0;
     ModipulateSong song;
@@ -244,7 +244,7 @@ bool processSongUnload(oscpkt::Message *msg)
  * Get song info
  * input: /modipulate/song/get_info [int32]
  */
-bool processSongGetInfo(oscpkt::Message *msg) 
+bool processSongGetInfo(oscpkt::Message *msg)
 {
     std::int32_t song_id = 0;
     if (!msg->match("/modipulate/song/get_info").popInt32(song_id).isOkNoMoreArgs())
@@ -261,7 +261,7 @@ bool processSongGetInfo(oscpkt::Message *msg)
  * Play a song
  * input: /modipulate/song/play [int32]
  */
-bool processSongPlay(oscpkt::Message *msg) 
+bool processSongPlay(oscpkt::Message *msg)
 {
     std::int32_t song_id = 0;
     ModipulateSong song;
@@ -284,7 +284,7 @@ bool processSongPlay(oscpkt::Message *msg)
  * Stop a song
  * input: /modipulate/song/pause [int32]
  */
-bool processSongPause(oscpkt::Message *msg) 
+bool processSongPause(oscpkt::Message *msg)
 {
     std::int32_t song_id = 0;
     ModipulateSong song;
@@ -308,7 +308,7 @@ bool processSongPause(oscpkt::Message *msg)
  * Set song volume
  * input: /modipulate/song/set_volume [int32] [float]
  */
-bool processSongSetVolume(oscpkt::Message *msg) 
+bool processSongSetVolume(oscpkt::Message *msg)
 {
     std::int32_t song_id = 0;
     float volume = 0.0;
@@ -333,7 +333,7 @@ bool processSongSetVolume(oscpkt::Message *msg)
  * Play a sample
  * input: /modipulate/song/play_sample [int32] [int32] [int32] [int32] [int32] [int32] [int32]
  */
-bool processSongPlaySample(oscpkt::Message *msg) 
+bool processSongPlaySample(oscpkt::Message *msg)
 {
     std::int32_t song_id = 0;
     std::int32_t sample_id = 0;
@@ -366,7 +366,7 @@ bool processSongPlaySample(oscpkt::Message *msg)
  * Disable a channel
  * input: /modipulate/song/channel/disable [int32] [int32]
  */
-bool processSongChannelDisable(oscpkt::Message *msg) 
+bool processSongChannelDisable(oscpkt::Message *msg)
 {
     std::int32_t song_id = 0;
     std::int32_t channel = 0;
@@ -391,7 +391,7 @@ bool processSongChannelDisable(oscpkt::Message *msg)
  * Enables a channel
  * input: /modipulate/song/channel/enable [int32] [int32]
  */
-bool processSongChannelEnable(oscpkt::Message *msg) 
+bool processSongChannelEnable(oscpkt::Message *msg)
 {
     std::int32_t song_id = 0;
     std::int32_t channel = 0;
@@ -413,10 +413,49 @@ bool processSongChannelEnable(oscpkt::Message *msg)
 }
 
 /**
+ * Fade channel volume
+ * Channel -1 represents all channels
+ * input: /modipulate/song/channel/fade [int32] [int32] [float] [int32]
+ */
+bool processSongChannelFade(oscpkt::Message *msg)
+{
+    std::int32_t song_id = 0;
+    std::int32_t channel = 0;
+    float volume = 0.0;
+    std::int32_t duration = 0.0;
+    ModipulateSong song;
+    if (!msg->match("/modipulate/song/channel/fade")
+        .popInt32(song_id)
+        .popInt32(channel)
+        .popFloat(volume)
+        .popInt32(duration)
+        .isOkNoMoreArgs())
+    {
+        return false;
+    }
+
+    std::cout << PFX_CMD << "Modipulate: Fading channel " << channel << " on song " << song_id
+        << " to " << volume << " over " << duration << "ms\n";
+    song = get_song_from_id(song_id);
+    if (song == NULL)
+    {
+        std::cout << PFX_ERR << "Modipulate: No song with ID " << song_id << "\n";
+        return true;
+    }
+    if (duration < 0)
+    {
+        std::cout << PFX_ERR << "Modipulate: Duration must be positive number of milliseconds\n";
+        return true;
+    }
+    err = modipulate_song_fade_channel(song, duration, channel, volume);
+    return true;
+}
+
+/**
  * Issue an effect column command on a channel
  * input: /modipulate/song/channel/fx_cmd [int32] [int32] [int32] [int32]
  */
-bool processSongChannelEffectCommand(oscpkt::Message *msg) 
+bool processSongChannelEffectCommand(oscpkt::Message *msg)
 {
     std::int32_t song_id = 0;
     std::int32_t channel = 0;
@@ -445,7 +484,7 @@ bool processSongChannelEffectCommand(oscpkt::Message *msg)
  * Issue a volume column command on a channel
  * input: /modipulate/song/channel/vol_cmd [int32] [int32] [int32] [int32]
  */
-bool processSongChannelVolumeCommand(oscpkt::Message *msg) 
+bool processSongChannelVolumeCommand(oscpkt::Message *msg)
 {
     std::int32_t song_id = 0;
     std::int32_t channel = 0;
@@ -476,7 +515,7 @@ bool processSongChannelVolumeCommand(oscpkt::Message *msg)
                       *****/
 
 
-/** 
+/**
  * Receive loop
  * Returns false when it's time to quit.
  */
@@ -507,6 +546,7 @@ bool doReceive(void)
         //if (processSongSetTempo(msg)) goto runtimeErrorCheck; // For the future...
         if (processSongChannelEnable(msg)) goto runtimeErrorCheck;
         if (processSongChannelDisable(msg)) goto runtimeErrorCheck;
+        if (processSongChannelFade(msg)) goto runtimeErrorCheck;
         if (processSongChannelEffectCommand(msg)) goto runtimeErrorCheck;
         if (processSongChannelVolumeCommand(msg)) goto runtimeErrorCheck;
         //if (processSongChannelSetVolume(msg)) goto runtimeErrorCheck; // For the future...
