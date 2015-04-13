@@ -447,7 +447,7 @@ bool processSongChannelFade(oscpkt::Message *msg)
         std::cout << PFX_ERR << "Modipulate: Duration must be positive number of milliseconds\n";
         return true;
     }
-    modipulate_song_fade_channel(song, duration, channel, volume);
+    err = modipulate_song_fade_channel(song, duration, channel, volume);
     return true;
 }
 
