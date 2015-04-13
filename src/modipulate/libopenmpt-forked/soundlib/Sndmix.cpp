@@ -140,7 +140,6 @@ BOOL CSoundFile::FadeSong(UINT msec)
 		pramp->nRampLength = nRampLength;
 		pramp->dwFlags.set(CHN_VOLUMERAMP);
 	}
-    m_SongFlags.set(SONG_FADINGSONG);
 	return TRUE;
 }
 
