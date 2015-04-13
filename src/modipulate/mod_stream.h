@@ -168,6 +168,10 @@ public:
 	void play_sample(int sample, int note, unsigned channel, int modulus, unsigned offset,
 		int volume_command, int volume_value, int effect_command, int effect_value);
 
+    // Fade a channel in or out.
+    // Set channel to -1 for all channels
+    void fade_channel(unsigned msec, int channel, double destination_amp);
+
 	// Check pending samples (used interally.)
 	// Returns null if none are pending.
 	ModStreamPendingSample* get_pending_for(unsigned channel, unsigned row);

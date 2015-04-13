@@ -147,6 +147,7 @@ public:
 	//
 public:
 	void set_mod_stream(ModStream* modStream);
+    void fade_channel(std::uint32_t msec, std::int32_t channel, double destination_amp);
 private:
 	ModStream* modStream;
 

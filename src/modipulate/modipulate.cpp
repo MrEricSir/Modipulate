@@ -260,6 +260,24 @@ ModipulateErr modipulate_song_play_sample(ModipulateSong song, int sample, int n
 }
 
 
+ModipulateErr modipulate_song_fade_channel(ModipulateSong song, unsigned msec, int channel, double destination_amp) {
+    if (!modipulateIsInitialized) {
+        return MODIPULATE_ERROR_NOT_INITIALIZED;
+    }
+
+     ModipulateErr ret = MODIPULATE_ERROR_NONE;
+    
+    try {
+        ((ModStream*) song)->fade_channel(msec, channel, destination_amp);
+    } catch (std::string e) {
+        modipulate_set_error_string_cpp(e);
+        ret = MODIPULATE_ERROR_GENERAL;
+    }
+    
+    return ret;
+}
+
+
 float modipulate_global_get_volume(void) {
     if (!modipulateIsInitialized) {
         return -1.0;

@@ -140,6 +140,7 @@ BOOL CSoundFile::FadeSong(UINT msec)
 		pramp->nRampLength = nRampLength;
 		pramp->dwFlags.set(CHN_VOLUMERAMP);
 	}
+    m_SongFlags.set(SONG_FADINGSONG);
 	return TRUE;
 }
 
@@ -170,10 +171,12 @@ CSoundFile::samplecount_t CSoundFile::Read(samplecount_t count, IAudioReadTarget
 		if(!m_nBufferCount)
 		{ // last tick or fade completely processed, find out what to do next
 
+            /*
 			if(m_SongFlags[SONG_FADINGSONG])
 			{ // song was faded out
-				m_SongFlags.set(SONG_ENDREACHED);
-			} else if(ReadNote())
+				//m_SongFlags.set(SONG_ENDREACHED);
+			} else if(ReadNote())*/
+            if (ReadNote())
 			{ // render next tick (normal progress)
 				ASSERT(m_nBufferCount > 0);
 				#ifdef MODPLUG_TRACKER

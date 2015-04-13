@@ -627,6 +627,10 @@ CSoundFile::CSoundFile() :
 	m_lTotalSampleCount = 0;
 	m_bPositionChanged = true;
 
+    for (int i = 0; i < MAX_CHANNELS; i++) {
+        Chn[i].current_amplitude = 1.0;
+    }
+
 #ifndef MODPLUG_TRACKER
 	m_pTuningsBuiltIn = new CTuningCollection();
 	LoadBuiltInTunings();
