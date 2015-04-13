@@ -1,4 +1,4 @@
-#N canvas 178 70 648 641 10;
+#N canvas 167 22 643 657 10;
 #X declare -lib mrpeach;
 #X obj 7 2 import mrpeach;
 #X obj 7 610 udpsend;
@@ -34,6 +34,13 @@ it to any number. You can load and control multiple songs at once by
 sending OSC messages with different ID arguments.;
 #X text 44 420 Play a sample;
 #X msg 37 439 send /modipulate/song/play_sample 0 1 80 0 2 0;
+#X msg 237 389 send /modipulate/song/channel/fade 0 0 \$1 2000;
+#X msg 237 361 1e-06;
+#X msg 300 361 0.999999;
+#X text 249 329 Fade a channel;
+#X text 251 342 out;
+#X text 319 342 in;
+#X text 359 358 (Small offsets needed to force float in Pd);
 #X connect 2 0 3 0;
 #X connect 4 0 1 0;
 #X connect 5 0 1 0;
@@ -49,3 +56,6 @@ sending OSC messages with different ID arguments.;
 #X connect 24 0 5 0;
 #X connect 25 0 5 0;
 #X connect 28 0 5 0;
+#X connect 29 0 5 0;
+#X connect 30 0 29 0;
+#X connect 31 0 29 0;
