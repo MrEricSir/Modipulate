@@ -97,7 +97,7 @@ void on_pattern_change(ModipulateSong song, int pattern_number, void* user_data)
     pw.startBundle().startBundle().addMessage(msg).endBundle().endBundle();
     socketSend.sendPacket(pw.packetData(), pw.packetSize());
 
-    std::cout << PFX_OSCOUT << "Modipulate: Pattern change: " << pattern_number << "\n";
+    // std::cout << PFX_OSCOUT << "Modipulate: Pattern change: " << pattern_number << "\n";
 }
 
 // Modipulate: row change callback
