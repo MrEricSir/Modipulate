@@ -185,8 +185,8 @@ file(GLOB gml_test_sources
     "${demo_path}/modipulate-gml/test/*.c"
     "${demo_path}/modipulate-gml/test/*.h"
 )
-add_executable(gml_test ${gml_test_sources})
-target_link_libraries(gml_test
+add_executable(gml-test ${gml_test_sources})
+target_link_libraries(gml-test
     ${PORTAUDIO_LIBRARIES}
     ${OGG_LIBRARY}
     ${VORBIS_LIBRARIES}

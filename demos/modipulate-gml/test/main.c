@@ -10,14 +10,17 @@
 #endif
 
 
-#define PRINT_RES_D printf("   %.3f\n", res_d)
-#define PRINT_RES_S printf("   %s\n", res_s)
+#define PRINT_RES_D printf("%.3f\n", res_d)
+#define PRINT_RES_S printf("%s\n", res_s)
 #define PRINT_ERROR printf("   Last error: %s\n", \
         modipulategml_global_get_last_error_string() ? \
         modipulategml_global_get_last_error_string() : "<none>")
+#define CHECK(err) if (err < 0.0) {printf("\n-- ERROR\n"); goto end;}
 
-#define SONG_ID (6)
+#define N_SONGS 6
 
+
+static double songs[N_SONGS];
 
 static void wait(unsigned ms) {
     #ifdef _WIN32
@@ -46,75 +49,104 @@ int main(int argc, char* argv[])
 
     /* -- Setup -- */
 
-    printf("-- Initializing\n");
+    printf("-- Initializing: ");
     res_d = modipulategml_global_init();
     PRINT_RES_D;
     PRINT_ERROR;
 
     /* -- Volume -- */
 
-    printf("-- Getting volume\n");
+    printf("-- Getting global volume: ");
     res_d = modipulategml_global_get_volume();
     PRINT_RES_D;
     PRINT_ERROR;
 
-    printf("-- Setting volume to 0.25\n");
+    printf("-- Setting global volume to 0.25: ");
     res_d = modipulategml_global_set_volume(0.25);
     PRINT_RES_D;
     PRINT_ERROR;
 
-    printf("-- Getting global mixer volume again\n");
+    printf("-- Getting global volume again: ");
     res_d = modipulategml_global_get_volume();
     PRINT_RES_D;
     PRINT_ERROR;
 
     /* -- Song loading -- */
 
-    printf("-- Loading song\n");
-    res_d = modipulategml_song_load(songfile, SONG_ID);
+    printf("-- Loading song to slots: ");
+    for (i = 0; i < N_SONGS; i++) {
+        res_d = modipulategml_song_load(songfile);
+        CHECK(res_d);
+        songs[i] = res_d;
+    }
     PRINT_RES_D;
     PRINT_ERROR;
 
-    printf("-- Attempting to re-load song\n");
-    res_d = modipulategml_song_load(songfile, SONG_ID);
+    printf("-- Unloading first song: ");
+    res_d = modipulategml_song_unload(songs[0]);
     PRINT_RES_D;
+    CHECK(res_d);
     PRINT_ERROR;
 
     /* -- Song playing -- */
 
-    printf("-- Playing song\n");
-    res_d = modipulategml_song_play(SONG_ID, 1.0);
+    printf("-- Playing song: ");
+    res_d = modipulategml_song_play(songs[1]);
     PRINT_RES_D;
+    CHECK(res_d);
     PRINT_ERROR;
 
-    printf("-- Waiting\n");
+    printf("-- Waiting...\n");
     wait(3000);
 
-    printf("-- Setting global mixer volume to 0.90\n");
+    printf("-- Pausing song: ");
+    res_d = modipulategml_song_stop(songs[1]);
+    PRINT_RES_D;
+    CHECK(res_d);
+    PRINT_ERROR;
+
+    printf("-- Waiting...\n");
+    wait(1000);
+
+    printf("-- Resuming song: ");
+    res_d = modipulategml_song_play(songs[1]);
+    PRINT_RES_D;
+    CHECK(res_d);
+    PRINT_ERROR;
+
+    /* -- Song manipulating -- */
+
+    printf("-- Setting global volume to 0.90: ");
     res_d = modipulategml_global_set_volume(0.90);
     PRINT_RES_D;
+    CHECK(res_d);
     PRINT_ERROR;
 
-    printf("-- Waiting\n");
+    printf("-- Waiting...\n");
     wait(3000);
 
-    printf("-- Updating a few times\n");
+    printf("-- Updating a few times: ");
     for (i = 0; i < 60; i++) {
         res_d = modipulategml_global_update();
         wait(1000/60);
     }
     PRINT_RES_D;
+    CHECK(res_d);
 
-    printf("-- Unloading song\n");
-    res_d = modipulategml_song_unload(SONG_ID);
+    printf("-- Unloading song: ");
+    res_d = modipulategml_song_unload(songs[1]);
     PRINT_RES_D;
+    CHECK(res_d);
     PRINT_ERROR;
 
     /* -- Cleanup -- */
 
-    printf("-- Deinitializing\n");
+    end:
+
+    printf("-- Deinitializing: ");
     res_d = modipulategml_global_deinit();
     PRINT_RES_D;
+    CHECK(res_d);
     PRINT_ERROR;
 
     return 0;

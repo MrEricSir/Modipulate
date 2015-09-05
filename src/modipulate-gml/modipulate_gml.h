@@ -42,16 +42,22 @@ double modipulategml_global_get_volume(void);
 double modipulategml_global_set_volume(double vol);
 
 /* Load a song file into a song ID
+ * Returns new song ID, or negative number upone error
  */
-double modipulategml_song_load(const char* filename, double songid);
+double modipulategml_song_load(const char* filename);
 
 /* Unload a song by its ID
+ * Returns 0, or negative number upone error
  */
 double modipulategml_song_unload(double songid);
 
-/* Play a song by its ID. When play is 0, stop; otherwise, play
+/* Play a song by its ID
  */
-double modipulategml_song_play(double songid, double play);
+double modipulategml_song_play(double songid);
+
+/* Stop (pause) a song by its ID
+ */
+double modipulategml_song_stop(double songid);
 
 /*char*  modipulategml_song_get_info(double songid);
 double modipulategml_song_get_volume(double songid);

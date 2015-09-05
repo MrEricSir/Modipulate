@@ -1,4 +1,7 @@
-/* Checkit
+/* modipulate-gml
+ *
+ * Modipulate wrapper layer which is compatible with GameMaker.
+ * Only doubles and char* are used for argument and return types.
  */
 
 /* ------------------------------------------------------------------------ */
@@ -7,11 +10,33 @@
 
 /* ------------------------------------------------------------------------ */
 
+#define NOSONG ((ModipulateSong)0)
+
 #define MAX_SONGS 100
+
+#define ERR_OK              0.0
+#define ERR_OUTOFRANGE     -1.0
+#define ERR_INVALIDSONGID  -2.0
+#define ERR_FULL           -3.0
+#define ERR_FAIL           -4.0
 
 /* ------------------------------------------------------------------------ */
 
-ModipulateSong songs[MAX_SONGS];
+static ModipulateSong songs[MAX_SONGS] = {0};
+
+static double invalid_song(double songid) {
+    unsigned int id;
+
+    if (songid < 0.0 || songid >= MAX_SONGS) {
+        return ERR_OUTOFRANGE;
+    }
+    id = songid;
+    if (songs[id] == NOSONG) {
+        return ERR_INVALIDSONGID;
+    }
+
+    return ERR_OK;
+}
 
 /* ------------------------------------------------------------------------ */
 
@@ -41,34 +66,73 @@ double modipulategml_global_set_volume(double vol) {
     return 0.0;
 }
 
-double modipulategml_song_load(const char* filename, double songid) {
-    unsigned int id = songid;
+double modipulategml_song_load(const char* filename) {
+    unsigned int id = 0;
 
-    if (id >= MAX_SONGS) {
-        return 0.0;
+    /* Find next available song ID */
+    for (id = 0; id < MAX_SONGS; id++) {
+        if (songs[id] == NOSONG) {
+            break;
+        }
+    }
+    /* All song slots filled */
+    if (id == MAX_SONGS) {
+        return ERR_FULL;
     }
 
-    return modipulate_song_load(filename, &songs[id]);
+    if (modipulate_song_load(filename, &songs[id]) != MODIPULATE_ERROR_NONE) {
+        return ERR_FAIL;
+    }
+
+    return id;
 }
 
 double modipulategml_song_unload(double songid) {
-    unsigned int id = songid;
+    ModipulateSong song;
+    unsigned int id;
 
-    if (id >= MAX_SONGS) {
-        return 0.0;
+    if (invalid_song(songid)) {
+        return invalid_song(songid);
+    }
+    id = songid;
+
+    if (modipulate_song_unload(songs[id]) != MODIPULATE_ERROR_NONE) {
+        return ERR_FAIL;
     }
 
-    return modipulate_song_unload(songs[id]);
+    return ERR_OK;
 }
 
-double modipulategml_song_play(double songid, double play) {
-    unsigned int id = songid;
+double modipulategml_song_play(double songid) {
+    ModipulateSong song;
+    unsigned int id;
 
-    if (id >= MAX_SONGS) {
-        return 0.0;
+    if (invalid_song(songid)) {
+        return invalid_song(songid);
+    }
+    id = songid;
+
+    if (modipulate_song_play(songs[id], 1) != MODIPULATE_ERROR_NONE) {
+        return ERR_FAIL;
     }
 
-    return modipulate_song_play(songs[id], (play != 0.0));
+    return ERR_OK;
+}
+
+double modipulategml_song_stop(double songid) {
+    ModipulateSong song;
+    unsigned int id;
+
+    if (invalid_song(songid)) {
+        return invalid_song(songid);
+    }
+    id = songid;
+
+    if (modipulate_song_play(songs[id], 0) != MODIPULATE_ERROR_NONE) {
+        return ERR_FAIL;
+    }
+
+    return ERR_OK;
 }
 
 /* ------------------------------------------------------------------------ */
