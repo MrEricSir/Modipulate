@@ -6,6 +6,7 @@ set(modipulate_path ${CMAKE_SOURCE_DIR}/src/modipulate)
 set(libopenmpt_path ${modipulate_path}/libopenmpt-forked)
 set(modipulatelua_path ${CMAKE_SOURCE_DIR}/src/modipulate_lua)
 set(modipulateosc_path ${CMAKE_SOURCE_DIR}/src/modipulate-osc)
+set(modipulategml_path ${CMAKE_SOURCE_DIR}/src/modipulate-gml)
 set(oscpkt_path ${modipulateosc_path}/oscpkt)
 set(demo_path ${CMAKE_SOURCE_DIR}/demos)
 
@@ -25,6 +26,7 @@ include_directories(${libopenmpt_path}
     ${libopenmpt_path}/libopenmpt
     ${libopenmpt_path}/include
     ${modipulate_path}
+    ${modipulategml_path}
 )
 
 if (UNIX AND NOT APPLE)
@@ -82,8 +84,8 @@ if(APPLE) # -- TODO: Linux too?
 endif(APPLE)
 
 # modipulate
-file(GLOB modipulate_sources 
-    "${modipulate_path}/*.c*" 
+file(GLOB modipulate_sources
+    "${modipulate_path}/*.c*"
     "${modipulate_path}/*.h*"
     "${modipulate_path}/timer/*.c*"
     "${modipulate_path}/timer/*.h*"
@@ -93,38 +95,52 @@ add_library(libmodipulate SHARED ${modipulate_sources})
 set_target_properties(libmodipulate-static PROPERTIES PREFIX "")
 set_target_properties(libmodipulate PROPERTIES PREFIX "")
 target_link_libraries(libmodipulate-static
-    ${PORTAUDIO_LIBRARIES} 
+    ${PORTAUDIO_LIBRARIES}
     ${OGG_LIBRARY}
     ${VORBIS_LIBRARIES}
     libopenmpt-forked
 )
-target_link_libraries(libmodipulate 
+target_link_libraries(libmodipulate
     ${PORTAUDIO_LIBRARIES}
     ${OGG_LIBRARY}
     ${VORBIS_LIBRARIES}
     libopenmpt-forked
 )
 
+# modipulate-gml
+file(GLOB modipulategml_sources
+    "${modipulategml_path}/*.c"
+    "${modipulategml_path}/*.h"
+)
+add_library(libmodipulategml SHARED ${modipulategml_sources})
+set_target_properties(libmodipulategml PROPERTIES PREFIX "")
+target_link_libraries(libmodipulategml
+    ${PORTAUDIO_LIBRARIES}
+    ${OGG_LIBRARY}
+    ${VORBIS_LIBRARIES}
+    libmodipulate-static
+)
+
 
 # modipulate-lua
 # Optional: will only be built if Lua is present.
 if (LUA51_FOUND)
-    # Takes care of a bug where lua.h 
+    # Takes care of a bug where lua.h
     # ends up in the library list.
     remove_from_list(LUA_LIBRARIES "lua.h")
-    
+
     include_directories(${LUA_INCLUDE_DIR})
-    file(GLOB modipulatelua_sources 
+    file(GLOB modipulatelua_sources
         "${modipulatelua_path}/*.c*"
         "${modipulatelua_path}/*.def*"
     )
     if (NOT WIN32)
         remove_from_list(modipulatelua_sources "dllmain.cpp")
     endif ()
-    
+
     add_library(libmodipulatelua SHARED ${modipulatelua_sources})
     set_target_properties(libmodipulatelua PROPERTIES PREFIX "")
-    target_link_libraries(libmodipulatelua 
+    target_link_libraries(libmodipulatelua
         ${PORTAUDIO_LIBRARIES}
         ${LUA_LIBRARIES}
         ${OGG_LIBRARY}
@@ -153,7 +169,7 @@ endif(CMAKE_USE_PTHREADS_INIT OR CMAKE_USE_WIN32_THREADS_INIT)
 
 
 # demo: console
-file(GLOB demo_console_sources 
+file(GLOB demo_console_sources
     "${demo_path}/modipulate/console/*.c*"
 )
 add_executable(console ${demo_console_sources})
@@ -162,4 +178,17 @@ target_link_libraries(console
     ${OGG_LIBRARY}
     ${VORBIS_LIBRARIES}
     libmodipulate-static
+)
+
+# demo: modipulate-gml test
+file(GLOB gml_test_sources
+    "${demo_path}/modipulate-gml/test/*.c"
+    "${demo_path}/modipulate-gml/test/*.h"
+)
+add_executable(gml_test ${gml_test_sources})
+target_link_libraries(gml_test
+    ${PORTAUDIO_LIBRARIES}
+    ${OGG_LIBRARY}
+    ${VORBIS_LIBRARIES}
+    libmodipulategml
 )
