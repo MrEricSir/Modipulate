@@ -3,12 +3,6 @@
  *
  * Copyright 2015 Eric Gregory and Stevie Hryciw
  *
- * Due to the type limitations of Game Maker Language (GML), the only types
- * which may be passed as arguments or returned are `string` and `double`.
- *
- * About Modipulate:
- * Modipulate is a library for modipulating games and MOD-style music.
- *
  * Modipulate home page:
  * https://github.com/MrEricSir/Modipulate/
  */
@@ -25,9 +19,9 @@ double modipulategml_global_init(void);
  */
 double modipulategml_global_deinit(void);
 
-/* Get the last error message (if it was set)
+/* Translate an error code to its corresponding message
  */
-char*  modipulategml_global_get_last_error_string(void);
+char*  modipulategml_error_to_string(double errno);
 
 /* Main update routine: call this every cycle
  */

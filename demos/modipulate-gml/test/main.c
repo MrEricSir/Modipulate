@@ -12,10 +12,12 @@
 
 #define PRINT_RES_D printf("%.3f\n", res_d)
 #define PRINT_RES_S printf("%s\n", res_s)
-#define PRINT_ERROR printf("   Last error: %s\n", \
-        modipulategml_global_get_last_error_string() ? \
-        modipulategml_global_get_last_error_string() : "<none>")
-#define CHECK(err) if (err < 0.0) {printf("\n-- ERROR\n"); goto end;}
+#define CHECK(err) \
+    if (err < 0.0) {\
+        printf("\n-- Error\n"); \
+        printf("   %s\n", modipulategml_error_to_string(err)); \
+        goto end;\
+    }
 
 #define N_SONGS 6
 
@@ -52,41 +54,35 @@ int main(int argc, char* argv[])
     printf("-- Initializing: ");
     res_d = modipulategml_global_init();
     PRINT_RES_D;
-    PRINT_ERROR;
 
     /* -- Volume -- */
 
     printf("-- Getting global volume: ");
     res_d = modipulategml_global_get_volume();
     PRINT_RES_D;
-    PRINT_ERROR;
 
     printf("-- Setting global volume to 0.25: ");
     res_d = modipulategml_global_set_volume(0.25);
     PRINT_RES_D;
-    PRINT_ERROR;
 
     printf("-- Getting global volume again: ");
     res_d = modipulategml_global_get_volume();
     PRINT_RES_D;
-    PRINT_ERROR;
 
     /* -- Song loading -- */
 
-    printf("-- Loading song to slots: ");
+    printf("-- Loading song to slot: ");
     for (i = 0; i < N_SONGS; i++) {
         res_d = modipulategml_song_load(songfile);
         CHECK(res_d);
         songs[i] = res_d;
     }
     PRINT_RES_D;
-    PRINT_ERROR;
 
     printf("-- Unloading first song: ");
     res_d = modipulategml_song_unload(songs[0]);
     PRINT_RES_D;
     CHECK(res_d);
-    PRINT_ERROR;
 
     /* -- Song playing -- */
 
@@ -94,7 +90,6 @@ int main(int argc, char* argv[])
     res_d = modipulategml_song_play(songs[1]);
     PRINT_RES_D;
     CHECK(res_d);
-    PRINT_ERROR;
 
     printf("-- Waiting...\n");
     wait(3000);
@@ -103,7 +98,6 @@ int main(int argc, char* argv[])
     res_d = modipulategml_song_stop(songs[1]);
     PRINT_RES_D;
     CHECK(res_d);
-    PRINT_ERROR;
 
     printf("-- Waiting...\n");
     wait(1000);
@@ -112,7 +106,6 @@ int main(int argc, char* argv[])
     res_d = modipulategml_song_play(songs[1]);
     PRINT_RES_D;
     CHECK(res_d);
-    PRINT_ERROR;
 
     /* -- Song manipulating -- */
 
@@ -120,7 +113,6 @@ int main(int argc, char* argv[])
     res_d = modipulategml_global_set_volume(0.90);
     PRINT_RES_D;
     CHECK(res_d);
-    PRINT_ERROR;
 
     printf("-- Waiting...\n");
     wait(3000);
@@ -137,7 +129,6 @@ int main(int argc, char* argv[])
     res_d = modipulategml_song_unload(songs[1]);
     PRINT_RES_D;
     CHECK(res_d);
-    PRINT_ERROR;
 
     /* -- Cleanup -- */
 
@@ -147,7 +138,6 @@ int main(int argc, char* argv[])
     res_d = modipulategml_global_deinit();
     PRINT_RES_D;
     CHECK(res_d);
-    PRINT_ERROR;
 
     return 0;
 }

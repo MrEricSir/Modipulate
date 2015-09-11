@@ -1,11 +1,11 @@
-/* modipulate-gml
+/* modipulate_gml.c
  *
- * Modipulate wrapper layer which is compatible with GameMaker.
- * Only doubles and char* are used for argument and return types.
+ * Copyright 2015 Eric Gregory and Stevie Hryciw
  */
 
 /* ------------------------------------------------------------------------ */
 
+#include <stdio.h>
 #include "modipulate.h"
 
 /* ------------------------------------------------------------------------ */
@@ -14,14 +14,15 @@
 
 #define MAX_SONGS 100
 
-#define ERR_OK              0.0
-#define ERR_OUTOFRANGE     -1.0
-#define ERR_INVALIDSONGID  -2.0
-#define ERR_FULL           -3.0
-#define ERR_FAIL           -4.0
+#define ERR_OK              0
+#define ERR_OUTOFRANGE     -1
+#define ERR_INVALIDSONGID  -2
+#define ERR_FULL           -3
+#define ERR_FAIL           -4
 
 /* ------------------------------------------------------------------------ */
 
+static char errbuf[1024] = "";
 static ModipulateSong songs[MAX_SONGS] = {0};
 
 static double invalid_song(double songid) {
@@ -48,8 +49,25 @@ double modipulategml_global_deinit(void) {
     return modipulate_global_deinit();
 }
 
-char* modipulategml_global_get_last_error_string(void) {
-    return modipulate_global_get_last_error_string();
+char* modipulategml_error_to_string(double errno) {
+    char* moderr = modipulate_global_get_last_error_string();
+
+    switch ((int)errno) {
+        case ERR_OK:
+            return "Everything is OK";
+        case ERR_OUTOFRANGE:
+            return "Song ID is outside of valid range";
+        case ERR_INVALIDSONGID:
+            return "Song ID does not point to a loaded song";
+        case ERR_FULL:
+            return "No more capacity to load songs";
+        case ERR_FAIL:
+            snprintf(errbuf, sizeof (errbuf),
+                "Internal Modipulate error: %s", moderr ? moderr : "?");
+            return errbuf;
+        default:
+            return "Unknown error";
+    }
 }
 
 double modipulategml_global_update(void) {
