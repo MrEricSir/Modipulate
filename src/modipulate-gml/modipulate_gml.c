@@ -93,7 +93,7 @@ double modipulategml_global_get_volume(void) {
 double modipulategml_global_set_volume(double vol) {
     modipulate_global_set_volume(vol);
 
-    return 0.0;
+    return ERR_OK;
 }
 
 double modipulategml_song_load(const char* filename) {
@@ -171,6 +171,19 @@ double modipulategml_song_get_volume(double songid) {
     }
 
     return modipulate_song_get_volume(song);
+}
+
+double modipulategml_song_set_volume(double songid, double volume) {
+    ModipulateSong song;
+
+    int err = get_song(songid, &song);
+    if (err != ERR_OK) {
+        return err;
+    }
+
+    modipulate_song_set_volume(song, volume);
+
+    return ERR_OK;
 }
 
 /* ------------------------------------------------------------------------ */

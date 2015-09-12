@@ -37,7 +37,6 @@ int main(int argc, char* argv[])
 {
     int i = 0;
     double res_d = 0.0;
-    char*  res_s = 0;
     char*  songfile = 0;
 
     /* -- Parse args -- */
@@ -116,6 +115,21 @@ int main(int argc, char* argv[])
 
     printf("-- Waiting...\n");
     wait(3000);
+
+    printf("-- Setting song volume to 0.40: ");
+    res_d = modipulategml_song_set_volume(songs[1], 0.40);
+    PRINT_RES_D;
+
+    printf("-- Getting song volume: ");
+    res_d = modipulategml_song_get_volume(songs[1]);
+    PRINT_RES_D;
+
+    printf("-- Waiting...\n");
+    wait(1000);
+
+    printf("-- Setting song volume back to 1.00: ");
+    res_d = modipulategml_song_set_volume(songs[1], 1.00);
+    PRINT_RES_D;
 
     printf("-- Updating a few times: ");
     for (i = 0; i < 60; i++) {

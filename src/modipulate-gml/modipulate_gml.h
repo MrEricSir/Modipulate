@@ -68,7 +68,7 @@ double modipulategml_song_get_volume(double songid);
 
 /* Set song volume
  */
-/*double modipulategml_song_set_volume(double songid, double volume);*/
+double modipulategml_song_set_volume(double songid, double volume);
 
 /* Execute a volume command on a song's channel
  * See your MOD format reference for command meanings
