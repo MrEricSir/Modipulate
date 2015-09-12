@@ -235,13 +235,13 @@ static double song_command(double songid, double channel, double command,
             if (err != MODIPULATE_ERROR_NONE) {
                 return ERR_FAIL;
             }
-            return ERR_OK;
+            break;
         case CMD_FX:
             err = modipulate_song_effect_command(song, ch, cmd, val);
             if (err != MODIPULATE_ERROR_NONE) {
                 return ERR_FAIL;
             }
-            return ERR_OK;
+            break;
         default:
             return ERR_ASSERT;
     }
@@ -262,8 +262,8 @@ double modipulategml_song_effect_command(double songid, double ch,
 }
 
 /* Internal helper */
-static double song_enable_volume(double songid, double channel,
-    double volume_command, int enabled) {
+static double song_enable_cmd(double songid, double channel,
+    double command, int type, int enabled) {
 
     ModipulateSong song;
     unsigned int ch;
@@ -277,26 +277,46 @@ static double song_enable_volume(double songid, double channel,
         return ERR_CHANNELOUTOFRANGE;
     }
     ch = channel;
-    cmd = volume_command;
+    cmd = command;
 
-    err = modipulate_song_enable_volume(song, channel, volume_command, enabled);
-    if (err != MODIPULATE_ERROR_NONE) {
-        return ERR_FAIL;
+    switch (type) {
+        case CMD_VOL:
+            err = modipulate_song_enable_volume(song, ch, command, enabled);
+            if (err != MODIPULATE_ERROR_NONE) {
+                return ERR_FAIL;
+            }
+            break;
+        case CMD_FX:
+            err = modipulate_song_enable_effect(song, ch, command, enabled);
+            if (err != MODIPULATE_ERROR_NONE) {
+                return ERR_FAIL;
+            }
+            break;
+        default:
+            return ERR_ASSERT;
     }
 
     return ERR_OK;
 }
 
-double modipulategml_song_enable_volume(double songid, double channel,
-    double volume_command) {
+double modipulategml_song_enable_volume(double songid, double ch, double cmd) {
 
-    return song_enable_volume(songid, channel, volume_command, 1);
+    return song_enable_cmd(songid, ch, cmd, CMD_VOL, 1);
 }
 
-double modipulategml_song_disable_volume(double songid, double channel,
-    double volume_command) {
+double modipulategml_song_disable_volume(double songid, double ch, double cmd) {
 
-    return song_enable_volume(songid, channel, volume_command, 0);
+    return song_enable_cmd(songid, ch, cmd, CMD_VOL, 0);
+}
+
+double modipulategml_song_enable_effect(double songid, double ch, double cmd) {
+
+    return song_enable_cmd(songid, ch, cmd, CMD_FX, 1);
+}
+
+double modipulategml_song_disable_effect(double songid, double ch, double cmd) {
+
+    return song_enable_cmd(songid, ch, cmd, CMD_FX, 0);
 }
 
 double modipulategml_song_play_sample(double songid, double sample,

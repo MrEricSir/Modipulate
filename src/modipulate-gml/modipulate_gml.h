@@ -76,6 +76,11 @@ double modipulategml_song_set_volume(double songid, double volume);
 double modipulategml_song_volume_command(double songid, double channel,
     double volume_command, double volume_value);
 
+/* Execute an FX column command on a song's channel
+ */
+double modipulategml_song_effect_command(double songid, double channel,
+    double effect_command, double effect_value);
+
 /* Enable processing of a specific volume command on a song channel
  */
 double modipulategml_song_enable_volume(double songid, double channel,
@@ -86,10 +91,15 @@ double modipulategml_song_enable_volume(double songid, double channel,
 double modipulategml_song_disable_volume(double songid, double channel,
     double volume_command);
 
-/* Execute an FX column command on a song's channel
+/* Enable processing of a specific FX command on a song channel
  */
-double modipulategml_song_effect_command(double songid, double channel,
-    double effect_command, double effect_value);
+double modipulategml_song_enable_volume(double songid, double channel,
+    double effect_command);
+
+/* Disable processing of a specific FX command on a song channel
+ */
+double modipulategml_song_disable_volume(double songid, double channel,
+    double effect_command);
 
 /* Play a sample stored in a song, referred by its internal sample number
  * Set volume and FX column commands to < 0 in order to bypass commands
