@@ -27,7 +27,9 @@
 static char errbuf[1024] = "";
 static ModipulateSong songs[MAX_SONGS] = {0};
 
-static double invalid_song(double songid) {
+/* Set song pointer. Return error if applicable.
+ */
+static int get_song(double songid, ModipulateSong* song) {
     unsigned int id;
 
     if (songid < 0.0 || songid >= MAX_SONGS) {
@@ -37,6 +39,7 @@ static double invalid_song(double songid) {
     if (songs[id] == NOSONG) {
         return ERR_INVALIDSONGID;
     }
+    *song = songs[id];
 
     return ERR_OK;
 }
@@ -116,14 +119,13 @@ double modipulategml_song_load(const char* filename) {
 
 double modipulategml_song_unload(double songid) {
     ModipulateSong song;
-    unsigned int id;
 
-    if (invalid_song(songid)) {
-        return invalid_song(songid);
+    int err = get_song(songid, &song);
+    if (err != ERR_OK) {
+        return err;
     }
-    id = songid;
 
-    if (modipulate_song_unload(songs[id]) != MODIPULATE_ERROR_NONE) {
+    if (modipulate_song_unload(song) != MODIPULATE_ERROR_NONE) {
         return ERR_FAIL;
     }
 
@@ -132,14 +134,13 @@ double modipulategml_song_unload(double songid) {
 
 double modipulategml_song_play(double songid) {
     ModipulateSong song;
-    unsigned int id;
 
-    if (invalid_song(songid)) {
-        return invalid_song(songid);
+    int err = get_song(songid, &song);
+    if (err != ERR_OK) {
+        return err;
     }
-    id = songid;
 
-    if (modipulate_song_play(songs[id], 1) != MODIPULATE_ERROR_NONE) {
+    if (modipulate_song_play(song, 1) != MODIPULATE_ERROR_NONE) {
         return ERR_FAIL;
     }
 
@@ -148,18 +149,28 @@ double modipulategml_song_play(double songid) {
 
 double modipulategml_song_stop(double songid) {
     ModipulateSong song;
-    unsigned int id;
 
-    if (invalid_song(songid)) {
-        return invalid_song(songid);
+    int err = get_song(songid, &song);
+    if (err != ERR_OK) {
+        return err;
     }
-    id = songid;
 
-    if (modipulate_song_play(songs[id], 0) != MODIPULATE_ERROR_NONE) {
+    if (modipulate_song_play(song, 0) != MODIPULATE_ERROR_NONE) {
         return ERR_FAIL;
     }
 
     return ERR_OK;
+}
+
+double modipulategml_song_get_volume(double songid) {
+    ModipulateSong song;
+
+    int err = get_song(songid, &song);
+    if (err != ERR_OK) {
+        return err;
+    }
+
+    return modipulate_song_get_volume(song);
 }
 
 /* ------------------------------------------------------------------------ */

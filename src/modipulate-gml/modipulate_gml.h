@@ -64,7 +64,7 @@ double modipulategml_song_stop(double songid);
 
 /* Get song volume
  */
-/*double modipulategml_song_get_volume(double songid);*/
+double modipulategml_song_get_volume(double songid);
 
 /* Set song volume
  */
