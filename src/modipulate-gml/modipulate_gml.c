@@ -15,15 +15,20 @@
 
 #define MAX_SONGS 100
 
-#define ERR_OK              0
-#define ERR_OUTOFRANGE     -1
-#define ERR_INVALIDSONGID  -2
-#define ERR_FULL           -3
-#define ERR_FAIL           -4
-#define ERR_NEG            -5
-#define ERR_ASSERT         -6
+typedef enum {
+    ERR_OK = 0,
+    LOADED_OK = -1000,
 
-#define LOADED_OK          -1000
+    ERR_MIN = -100,
+    ERR_ASSERT,
+    ERR_FAIL,
+    ERR_INVALIDSONGID,
+    ERR_SONGOUTOFRANGE,
+    ERR_CHANNELOUTOFRANGE,
+    ERR_AMPOUTOFRANGE,
+    ERR_VALUEOUTOFRANGE,
+    ERR_FULL,
+} MgmlError;
 
 #define CMD_VOL 0
 #define CMD_FX  1
@@ -39,7 +44,7 @@ static int get_song(double songid, ModipulateSong* song) {
     unsigned int id;
 
     if (songid < 0.0 || songid >= MAX_SONGS) {
-        return ERR_OUTOFRANGE;
+        return ERR_SONGOUTOFRANGE;
     }
     id = songid;
     if (songs[id] == NOSONG) {
@@ -71,20 +76,24 @@ char* modipulategml_error_to_string(double errno) {
         case ERR_OK:
         case LOADED_OK:
             return "Everything is OK";
-        case ERR_OUTOFRANGE:
-            return "Song ID is outside of valid range";
-        case ERR_INVALIDSONGID:
-            return "Song ID does not point to a loaded song";
-        case ERR_FULL:
-            return "No more capacity to load songs";
+        case ERR_ASSERT:
+            return "Error in modipulate-gml code";
         case ERR_FAIL:
             snprintf(errbuf, sizeof (errbuf),
                 "Internal Modipulate error: %s", moderr ? moderr : "?");
             return errbuf;
-        case ERR_NEG:
-            return "Negative values not allowed";
-        case ERR_ASSERT:
-            return "Error in modipulate-gml code";
+        case ERR_INVALIDSONGID:
+            return "Song ID does not point to a loaded song";
+        case ERR_SONGOUTOFRANGE:
+            return "Song ID is outside of valid range";
+        case ERR_CHANNELOUTOFRANGE:
+            return "Song channel is outside of valid range";
+        case ERR_AMPOUTOFRANGE:
+            return "Amplitude is outside of valid range";
+        case ERR_VALUEOUTOFRANGE:
+            return "Supplied value is outside of valid range";
+        case ERR_FULL:
+            return "No more capacity to load songs";
         default:
             return "Unknown error";
     }
@@ -101,6 +110,10 @@ double modipulategml_global_get_volume(void) {
 }
 
 double modipulategml_global_set_volume(double vol) {
+    if (vol < 0.0 || vol > 1.0) {
+        return ERR_AMPOUTOFRANGE;
+    }
+
     modipulate_global_set_volume(vol);
 
     return ERR_OK;
@@ -186,6 +199,9 @@ double modipulategml_song_set_volume(double songid, double volume) {
     if (err != ERR_OK) {
         return err;
     }
+    if (volume < 0.0 || volume > 1.0) {
+        return ERR_AMPOUTOFRANGE;
+    }
 
     modipulate_song_set_volume(song, volume);
 
@@ -207,7 +223,7 @@ static double song_command(double songid, double channel, double command,
         return err;
     }
     if (channel < 0) {
-        return ERR_NEG;
+        return ERR_CHANNELOUTOFRANGE;
     }
     ch = channel;
     cmd = command;
@@ -258,7 +274,7 @@ static double song_enable_volume(double songid, double channel,
         return err;
     }
     if (channel < 0) {
-        return ERR_NEG;
+        return ERR_CHANNELOUTOFRANGE;
     }
     ch = channel;
     cmd = volume_command;
@@ -295,8 +311,11 @@ double modipulategml_song_play_sample(double songid, double sample,
     if (err != ERR_OK) {
         return err;
     }
-    if (channel < 0 || offset < 0) {
-        return ERR_NEG;
+    if (channel < 0) {
+        return ERR_CHANNELOUTOFRANGE;
+    }
+    if (offset < 0) {
+        return ERR_VALUEOUTOFRANGE;
     }
     ch = channel;
     off = offset;
@@ -305,6 +324,21 @@ double modipulategml_song_play_sample(double songid, double sample,
         volume_command, volume_value, effect_command, effect_value);
     if (err != MODIPULATE_ERROR_NONE) {
         return ERR_FAIL;
+    }
+
+    return ERR_OK;
+}
+
+double modipulategml_song_fade_channel(double songid, double msec,
+    double channel, double destination_amp) {
+    ModipulateSong song;
+
+    int err = get_song(songid, &song);
+    if (err != ERR_OK) {
+        return err;
+    }
+    if (destination_amp < 0.0 || destination_amp > 1.0) {
+        return ERR_AMPOUTOFRANGE;
     }
 
     return ERR_OK;

@@ -100,9 +100,10 @@ double modipulategml_song_play_sample(double songid, double sample,
     double effect_command, double effect_value);
 
 /* Fade a channel to a specified volume over a specified duration
+ * Passing -1 to channel fades all channels
  */
-/*double modipulategml_song_fade_channel(double songid, double msec,
-    double channel, double destination_amp);*/
+double modipulategml_song_fade_channel(double songid, double msec,
+    double channel, double destination_amp);
 
 /* "C" */
 #ifdef __cplusplus
