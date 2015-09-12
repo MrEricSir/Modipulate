@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include "modipulate.h"
+#include "modipulate_gml.h"
 
 /* ------------------------------------------------------------------------ */
 
@@ -20,8 +21,12 @@
 #define ERR_FULL           -3
 #define ERR_FAIL           -4
 #define ERR_NEG            -5
+#define ERR_ASSERT         -6
 
 #define LOADED_OK          -1000
+
+#define CMD_VOL 0
+#define CMD_FX  1
 
 /* ------------------------------------------------------------------------ */
 
@@ -78,6 +83,8 @@ char* modipulategml_error_to_string(double errno) {
             return errbuf;
         case ERR_NEG:
             return "Negative values not allowed";
+        case ERR_ASSERT:
+            return "Error in modipulate-gml code";
         default:
             return "Unknown error";
     }
@@ -187,8 +194,9 @@ double modipulategml_song_set_volume(double songid, double volume) {
 
 /* ---- Song channel ------------------------------------------------------ */
 
-double modipulategml_song_volume_command(double songid, double channel,
-    double volume_command, double volume_value) {
+/* Internal helper */
+static double song_command(double songid, double channel, double command,
+    double value, int type) {
     ModipulateSong song;
     unsigned int ch;
     int cmd, val;
@@ -201,15 +209,39 @@ double modipulategml_song_volume_command(double songid, double channel,
         return ERR_NEG;
     }
     ch = channel;
-    cmd = volume_command;
-    val = volume_value;
+    cmd = command;
+    val = value;
 
-    err = modipulate_song_volume_command(song, ch, cmd, val);
-    if (err != MODIPULATE_ERROR_NONE) {
-        return ERR_FAIL;
+    switch (type) {
+        case CMD_VOL:
+            err = modipulate_song_volume_command(song, ch, cmd, val);
+            if (err != MODIPULATE_ERROR_NONE) {
+                return ERR_FAIL;
+            }
+            return ERR_OK;
+        case CMD_FX:
+            err = modipulate_song_effect_command(song, ch, cmd, val);
+            if (err != MODIPULATE_ERROR_NONE) {
+                return ERR_FAIL;
+            }
+            return ERR_OK;
+        default:
+            return ERR_ASSERT;
     }
 
     return ERR_OK;
+}
+
+double modipulategml_song_volume_command(double songid, double ch,
+    double cmd, double val) {
+
+    return song_command(songid, ch, cmd, val, CMD_VOL);
+}
+
+double modipulategml_song_effect_command(double songid, double ch,
+    double cmd, double val) {
+
+    return song_command(songid, ch, cmd, val, CMD_FX);
 }
 
 /* Internal helper */
@@ -234,7 +266,8 @@ static double song_enable_volume(double songid, double channel,
         return ERR_FAIL;
     }
 
-    return ERR_OK;}
+    return ERR_OK;
+}
 
 double modipulategml_song_enable_volume(double songid, double channel,
     double volume_command) {

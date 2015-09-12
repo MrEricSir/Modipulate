@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     PRINT_RES_D;
     CHECK(res_d);
 
-    /* -- Song manipulating -- */
+    /* -- Song volume -- */
 
     printf("-- Setting global volume to 0.90: ");
     res_d = modipulategml_global_set_volume(0.90);
@@ -131,13 +131,19 @@ int main(int argc, char* argv[])
     res_d = modipulategml_song_set_volume(songs[1], 1.00);
     PRINT_RES_D;
 
-    printf("-- Updating a few times: ");
-    for (i = 0; i < 60; i++) {
-        res_d = modipulategml_global_update();
-        wait(1000/60);
-    }
+    /* -- Execute FX -- */
+
+    printf("-- Executing FX command: ");
+    res_d = modipulategml_song_effect_command(songs[1], 1, 17, 200);
+    PRINT_RES_D;
+
+    printf("-- Updating: ");
+    res_d = modipulategml_global_update();
     PRINT_RES_D;
     CHECK(res_d);
+
+    printf("-- Waiting...\n");
+    wait(2000);
 
     printf("-- Unloading song: ");
     res_d = modipulategml_song_unload(songs[1]);

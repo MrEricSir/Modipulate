@@ -88,8 +88,8 @@ double modipulategml_song_disable_volume(double songid, double channel,
 
 /* Execute an FX column command on a song's channel
  */
-/*double modipulategml_song_effect_command(double songid, double channel,
-    double effect_command, double effect_value);*/
+double modipulategml_song_effect_command(double songid, double channel,
+    double effect_command, double effect_value);
 
 /* Play a sample stored in a song, referred by its internal sample number
  * Set volume and FX column commands to < 0 in order to bypass commands
