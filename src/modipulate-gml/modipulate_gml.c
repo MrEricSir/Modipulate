@@ -341,6 +341,11 @@ double modipulategml_song_fade_channel(double songid, double msec,
         return ERR_AMPOUTOFRANGE;
     }
 
+    err = modipulate_song_fade_channel(song, msec, channel, destination_amp);
+    if (err != MODIPULATE_ERROR_NONE) {
+        return ERR_FAIL;
+    }
+
     return ERR_OK;
 }
 

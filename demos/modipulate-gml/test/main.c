@@ -162,6 +162,26 @@ int main(int argc, char* argv[])
     printf("-- Waiting...\n");
     wait(2000);
 
+    /* -- Channel fading -- */
+
+    printf("-- Fading all channels out: ");
+    res_d = modipulategml_song_fade_channel(songs[1], 2000, -1, 0.0);
+    PRINT_RES_D;
+
+    printf("-- Updating a few times: ");
+    for (i = 0; i < 120; i++) {
+        res_d = modipulategml_global_update();
+        if (res_d < 0) {
+            break;
+        }
+        wait(1 / 60 * 1000);
+    }
+    PRINT_RES_D;
+    CHECK(res_d);
+
+    printf("-- Waiting...\n");
+    wait(2200);
+
     /* -- Cleanup -- */
 
     printf("-- Unloading song: ");
