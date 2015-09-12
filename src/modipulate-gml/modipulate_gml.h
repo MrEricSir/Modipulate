@@ -73,18 +73,18 @@ double modipulategml_song_set_volume(double songid, double volume);
 /* Execute a volume command on a song's channel
  * See your MOD format reference for command meanings
  */
-/*double modipulategml_song_volume_command(double songid, double channel,
-    double volume_command, double volume_value);*/
+double modipulategml_song_volume_command(double songid, double channel,
+    double volume_command, double volume_value);
 
 /* Enable processing of a specific volume command on a song channel
  */
-/*double modipulategml_song_enable_volume(double songid, double channel,
-    double volume_command);*/
+double modipulategml_song_enable_volume(double songid, double channel,
+    double volume_command);
 
 /* Disable processing of a specific volume command on a song channel
  */
-/*double modipulategml_song_disable_volume(double songid, double channel,
-    double volume_command);*/
+double modipulategml_song_disable_volume(double songid, double channel,
+    double volume_command);
 
 /* Execute an FX column command on a song's channel
  */

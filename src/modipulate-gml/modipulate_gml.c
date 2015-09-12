@@ -19,6 +19,7 @@
 #define ERR_INVALIDSONGID  -2
 #define ERR_FULL           -3
 #define ERR_FAIL           -4
+#define ERR_NEG            -5
 
 #define LOADED_OK          -1000
 
@@ -44,7 +45,7 @@ static int get_song(double songid, ModipulateSong* song) {
     return ERR_OK;
 }
 
-/* ------------------------------------------------------------------------ */
+/* ---- Global ------------------------------------------------------------ */
 
 double modipulategml_global_init(void) {
     ModipulateErr err = modipulate_global_init();
@@ -75,6 +76,8 @@ char* modipulategml_error_to_string(double errno) {
             snprintf(errbuf, sizeof (errbuf),
                 "Internal Modipulate error: %s", moderr ? moderr : "?");
             return errbuf;
+        case ERR_NEG:
+            return "Negative values not allowed";
         default:
             return "Unknown error";
     }
@@ -95,6 +98,8 @@ double modipulategml_global_set_volume(double vol) {
 
     return ERR_OK;
 }
+
+/* ---- Song -------------------------------------------------------------- */
 
 double modipulategml_song_load(const char* filename) {
     unsigned int id = 0;
@@ -132,7 +137,8 @@ double modipulategml_song_unload(double songid) {
     return ERR_OK;
 }
 
-double modipulategml_song_play(double songid) {
+/* Internal helper */
+static double song_play(double songid, int play) {
     ModipulateSong song;
 
     int err = get_song(songid, &song);
@@ -140,26 +146,19 @@ double modipulategml_song_play(double songid) {
         return err;
     }
 
-    if (modipulate_song_play(song, 1) != MODIPULATE_ERROR_NONE) {
+    if (modipulate_song_play(song, play) != MODIPULATE_ERROR_NONE) {
         return ERR_FAIL;
     }
 
     return ERR_OK;
 }
 
+double modipulategml_song_play(double songid) {
+    return song_play(songid, 1);
+}
+
 double modipulategml_song_stop(double songid) {
-    ModipulateSong song;
-
-    int err = get_song(songid, &song);
-    if (err != ERR_OK) {
-        return err;
-    }
-
-    if (modipulate_song_play(song, 0) != MODIPULATE_ERROR_NONE) {
-        return ERR_FAIL;
-    }
-
-    return ERR_OK;
+    return song_play(songid, 0);
 }
 
 double modipulategml_song_get_volume(double songid) {
@@ -184,6 +183,69 @@ double modipulategml_song_set_volume(double songid, double volume) {
     modipulate_song_set_volume(song, volume);
 
     return ERR_OK;
+}
+
+/* ---- Song channel ------------------------------------------------------ */
+
+double modipulategml_song_volume_command(double songid, double channel,
+    double volume_command, double volume_value) {
+    ModipulateSong song;
+    unsigned int ch;
+    int cmd, val;
+
+    int err = get_song(songid, &song);
+    if (err != ERR_OK) {
+        return err;
+    }
+    if (channel < 0) {
+        return ERR_NEG;
+    }
+    ch = channel;
+    cmd = volume_command;
+    val = volume_value;
+
+    err = modipulate_song_volume_command(song, ch, cmd, val);
+    if (err != MODIPULATE_ERROR_NONE) {
+        return ERR_FAIL;
+    }
+
+    return ERR_OK;
+}
+
+/* Internal helper */
+static double song_enable_volume(double songid, double channel,
+    double volume_command, int enabled) {
+    ModipulateSong song;
+    unsigned int ch;
+    int cmd;
+
+    int err = get_song(songid, &song);
+    if (err != ERR_OK) {
+        return err;
+    }
+    if (channel < 0) {
+        return ERR_NEG;
+    }
+    ch = channel;
+    cmd = volume_command;
+
+    err = modipulate_song_enable_volume(song, channel, volume_command, enabled);
+    if (err != MODIPULATE_ERROR_NONE) {
+        return ERR_FAIL;
+    }
+
+    return ERR_OK;}
+
+double modipulategml_song_enable_volume(double songid, double channel,
+    double volume_command) {
+
+    return song_enable_volume(songid, channel, volume_command, 1);
+}
+
+double modipulategml_song_disable_volume(double songid, double channel,
+    double volume_command) {
+
+    return song_enable_volume(songid, channel, volume_command, 0);
 }
 
 /* ------------------------------------------------------------------------ */
