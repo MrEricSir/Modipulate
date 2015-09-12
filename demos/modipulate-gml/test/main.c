@@ -145,12 +145,27 @@ int main(int argc, char* argv[])
     printf("-- Waiting...\n");
     wait(2000);
 
+    /* -- Samples -- */
+
+    printf("-- Playing a sample: ");
+    res_d = modipulategml_song_play_sample(songs[1], 1, 64, 1, 2, 0,
+        -1, -1, -1, -1);
+    PRINT_RES_D;
+
+    printf("-- Updating: ");
+    res_d = modipulategml_global_update();
+    PRINT_RES_D;
+    CHECK(res_d);
+
+    printf("-- Waiting...\n");
+    wait(2000);
+
+    /* -- Cleanup -- */
+
     printf("-- Unloading song: ");
     res_d = modipulategml_song_unload(songs[1]);
     PRINT_RES_D;
     CHECK(res_d);
-
-    /* -- Cleanup -- */
 
     end:
 

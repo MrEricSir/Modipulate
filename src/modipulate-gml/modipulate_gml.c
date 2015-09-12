@@ -197,6 +197,7 @@ double modipulategml_song_set_volume(double songid, double volume) {
 /* Internal helper */
 static double song_command(double songid, double channel, double command,
     double value, int type) {
+
     ModipulateSong song;
     unsigned int ch;
     int cmd, val;
@@ -247,6 +248,7 @@ double modipulategml_song_effect_command(double songid, double ch,
 /* Internal helper */
 static double song_enable_volume(double songid, double channel,
     double volume_command, int enabled) {
+
     ModipulateSong song;
     unsigned int ch;
     int cmd;
@@ -279,6 +281,33 @@ double modipulategml_song_disable_volume(double songid, double channel,
     double volume_command) {
 
     return song_enable_volume(songid, channel, volume_command, 0);
+}
+
+double modipulategml_song_play_sample(double songid, double sample,
+    double note, double channel, double modulus, double offset,
+    double volume_command, double volume_value,
+    double effect_command, double effect_value) {
+
+    ModipulateSong song;
+    unsigned int ch, off;
+
+    int err = get_song(songid, &song);
+    if (err != ERR_OK) {
+        return err;
+    }
+    if (channel < 0 || offset < 0) {
+        return ERR_NEG;
+    }
+    ch = channel;
+    off = offset;
+
+    err = modipulate_song_play_sample(song, sample, note, ch, modulus, off,
+        volume_command, volume_value, effect_command, effect_value);
+    if (err != MODIPULATE_ERROR_NONE) {
+        return ERR_FAIL;
+    }
+
+    return ERR_OK;
 }
 
 /* ------------------------------------------------------------------------ */

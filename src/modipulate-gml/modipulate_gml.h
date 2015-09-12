@@ -94,10 +94,10 @@ double modipulategml_song_effect_command(double songid, double channel,
 /* Play a sample stored in a song, referred by its internal sample number
  * Set volume and FX column commands to < 0 in order to bypass commands
  */
-/*double modipulategml_song_play_sample(double songid, double sample,
+double modipulategml_song_play_sample(double songid, double sample,
     double note, double channel, double modulus, double offset,
     double volume_command, double volume_value,
-    double effect_command, double effect_value);*/
+    double effect_command, double effect_value);
 
 /* Fade a channel to a specified volume over a specified duration
  */
