@@ -22,10 +22,12 @@ How behavior of this layer differs from base Modipulate:
 
 - The only data types used are `double` and `char*`.
 - A negative return value indicates an error.
+    - This is to avoid confusion when calling functions which should return a positive number (e.g., `*_set_volume()` and `*_load_song()`).
+    - The only exception is `modipulategml_global_init()`, which returns `-1000` upon success. Since GML initializes variables to `0`, failure to load the library would be hard to catch with a standard success value of `0`. Assert that this function returns `-1000` after calling.
 - Error strings are obtained with `modipulategml_error_to_string(errno)`.
 - Songs are referenced with _ID numbers_ instead of pointers.
-- Songs IDs are automatically assigned upon loading a song, and freed upon
-  unloading.
+- Songs IDs are automatically assigned upon loading a song, and freed upon unloading.
+- `*_song_play()` and `*_song_stop()` are separate functions.
 
 ## About Modipulate
 

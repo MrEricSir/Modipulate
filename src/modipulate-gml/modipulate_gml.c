@@ -20,6 +20,8 @@
 #define ERR_FULL           -3
 #define ERR_FAIL           -4
 
+#define LOADED_OK          -1000
+
 /* ------------------------------------------------------------------------ */
 
 static char errbuf[1024] = "";
@@ -42,11 +44,15 @@ static double invalid_song(double songid) {
 /* ------------------------------------------------------------------------ */
 
 double modipulategml_global_init(void) {
-    return modipulate_global_init();
+    ModipulateErr err = modipulate_global_init();
+
+    return (err == MODIPULATE_ERROR_NONE ? LOADED_OK : ERR_FAIL);
 }
 
 double modipulategml_global_deinit(void) {
-    return modipulate_global_deinit();
+    ModipulateErr err = modipulate_global_deinit();
+
+    return (err == MODIPULATE_ERROR_NONE ? ERR_OK : ERR_FAIL);
 }
 
 char* modipulategml_error_to_string(double errno) {
@@ -71,7 +77,9 @@ char* modipulategml_error_to_string(double errno) {
 }
 
 double modipulategml_global_update(void) {
-    return modipulate_global_update();
+    ModipulateErr err = modipulate_global_update();
+
+    return (err == MODIPULATE_ERROR_NONE ? ERR_OK : ERR_FAIL);
 }
 
 double modipulategml_global_get_volume(void) {

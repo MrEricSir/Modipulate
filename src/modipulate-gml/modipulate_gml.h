@@ -12,6 +12,10 @@ extern "C" {
 #endif
 
 /* Initialize Modipulate
+ * As a special case, this function returns -1000 upon success.
+ * Since variables in GML are initialized to 0, and Game Maker could silently
+ * fail to load the entire library, this makes it easier to catch faiulre than
+ * a success code of `0`.
  */
 double modipulategml_global_init(void);
 
@@ -36,37 +40,68 @@ double modipulategml_global_get_volume(void);
 double modipulategml_global_set_volume(double vol);
 
 /* Load a song file into a song ID
- * Returns new song ID, or negative number upone error
+ * Returns new song ID, or negative number upon error
  */
 double modipulategml_song_load(const char* filename);
 
-/* Unload a song by its ID
- * Returns 0, or negative number upone error
+/* Unload a song
+ * Returns 0, or negative number upon error
  */
 double modipulategml_song_unload(double songid);
 
-/* Play a song by its ID
+/* Play a song
  */
 double modipulategml_song_play(double songid);
 
-/* Stop (pause) a song by its ID
+/* Stop (pause) a song
  */
 double modipulategml_song_stop(double songid);
 
-/*char*  modipulategml_song_get_info(double songid);
-double modipulategml_song_get_volume(double songid);
-double modipulategml_song_set_volume(double songid, double volume);
-double modipulategml_song_volume_command(double songid, double channel,
-    double volume_command, double volume_value);
-double modipulategml_song_enable_volume(double songid, double channel,
-    double volume_command, double enable);
-double modipulategml_song_effect_command(double songid, double channel,
-    double effect_command, double effect_value);
-double modipulategml_song_play_sample(double songid, double sample,
+/* Get song info in the form of a JSON string
+ * In GML, this data structure can be decoded to a ds_map with json_decode()
+ */
+/*char*  modipulategml_song_get_info(double songid);*/
+
+/* Get song volume
+ */
+/*double modipulategml_song_get_volume(double songid);*/
+
+/* Set song volume
+ */
+/*double modipulategml_song_set_volume(double songid, double volume);*/
+
+/* Execute a volume command on a song's channel
+ * See your MOD format reference for command meanings
+ */
+/*double modipulategml_song_volume_command(double songid, double channel,
+    double volume_command, double volume_value);*/
+
+/* Enable processing of a specific volume command on a song channel
+ */
+/*double modipulategml_song_enable_volume(double songid, double channel,
+    double volume_command);*/
+
+/* Disable processing of a specific volume command on a song channel
+ */
+/*double modipulategml_song_disable_volume(double songid, double channel,
+    double volume_command);*/
+
+/* Execute an FX column command on a song's channel
+ */
+/*double modipulategml_song_effect_command(double songid, double channel,
+    double effect_command, double effect_value);*/
+
+/* Play a sample stored in a song, referred by its internal sample number
+ * Set volume and FX column commands to < 0 in order to bypass commands
+ */
+/*double modipulategml_song_play_sample(double songid, double sample,
     double note, double channel, double modulus, double offset,
     double volume_command, double volume_value,
-    double effect_command, double effect_value);
-double modipulategml_song_fade_channel(double songid, double msec,
+    double effect_command, double effect_value);*/
+
+/* Fade a channel to a specified volume over a specified duration
+ */
+/*double modipulategml_song_fade_channel(double songid, double msec,
     double channel, double destination_amp);*/
 
 /* "C" */
