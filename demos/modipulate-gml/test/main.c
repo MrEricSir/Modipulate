@@ -147,9 +147,11 @@ int main(int argc, char* argv[])
 
     /* -- Samples -- */
 
-    printf("-- Playing a sample: ");
-    res_d = modipulategml_song_play_sample(songs[1], 1, 64, 1, 2, 0,
-        -1, -1, -1, -1);
+    printf("-- Playing some samples: ");
+    for (i = 0; i < 12; i++) {
+        res_d = modipulategml_song_play_sample(songs[1], 1, 64 + i, 1, 2, i,
+            -1, -1, -1, -1);
+    }
     PRINT_RES_D;
 
     printf("-- Updating: ");
