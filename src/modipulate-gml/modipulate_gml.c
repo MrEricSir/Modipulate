@@ -60,6 +60,7 @@ char* modipulategml_error_to_string(double errno) {
 
     switch ((int)errno) {
         case ERR_OK:
+        case LOADED_OK:
             return "Everything is OK";
         case ERR_OUTOFRANGE:
             return "Song ID is outside of valid range";
