@@ -16,7 +16,7 @@ for more information.
 License
 -------
 
-Copyright 2011-2014 Eric Gregory and Stevie Hryciw.  
+Copyright 2011-2015 Eric Gregory and Stevie Hryciw.  
 
 Modipulate is released under a BSD license. See the LICENSE file for more
 information.

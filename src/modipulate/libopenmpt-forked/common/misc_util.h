@@ -20,6 +20,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <algorithm>
+
 #include "typedefs.h"
 
 #if defined(HAS_TYPE_TRAITS)

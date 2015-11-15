@@ -39,6 +39,14 @@ if (APPLE)
     set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
 endif (APPLE)
 
+if (MSVC)
+	# Use static runtime on Windows
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+endif (WIN32)
+
+# Hacky way to support Visual C++ 2013
+add_definitions(-D_ALLOW_KEYWORD_MACROS)
+
 # Removes a filename from a list
 function(remove_from_list haystack needle)
     SET(i 0)
