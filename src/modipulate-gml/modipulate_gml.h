@@ -93,12 +93,12 @@ double modipulategml_song_disable_volume(double songid, double channel,
 
 /* Enable processing of a specific FX command on a song channel
  */
-double modipulategml_song_enable_volume(double songid, double channel,
+double modipulategml_song_enable_effect(double songid, double channel,
     double effect_command);
 
 /* Disable processing of a specific FX command on a song channel
  */
-double modipulategml_song_disable_volume(double songid, double channel,
+double modipulategml_song_disable_effect(double songid, double channel,
     double effect_command);
 
 /* Play a sample stored in a song, referred by its internal sample number
