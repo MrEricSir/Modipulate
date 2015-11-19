@@ -7,6 +7,9 @@
  * https://github.com/MrEricSir/Modipulate/
  */
 
+#ifndef MODIPULATEGML_H
+#define MODIPULATEGML_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,11 +59,6 @@ double modipulategml_song_play(double songid);
 /* Stop (pause) a song
  */
 double modipulategml_song_stop(double songid);
-
-/* Get song info in the form of a JSON string
- * In GML, this data structure can be decoded to a ds_map with json_decode()
- */
-/*char*  modipulategml_song_get_info(double songid);*/
 
 /* Get song volume
  */
@@ -118,4 +116,7 @@ double modipulategml_song_fade_channel(double songid, double msec,
 /* "C" */
 #ifdef __cplusplus
 }
+#endif
+
+/* MODIPULATEGML_H */
 #endif

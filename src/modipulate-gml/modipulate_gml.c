@@ -5,6 +5,7 @@
 
 /* ------------------------------------------------------------------------ */
 
+#include <assert.h>
 #include <stdio.h>
 #include "modipulate.h"
 #include "modipulate_gml.h"
@@ -95,6 +96,7 @@ char* modipulategml_error_to_string(double errno) {
         case ERR_FULL:
             return "No more capacity to load songs";
         default:
+            assert(0);
             return "Unknown error";
     }
 }
