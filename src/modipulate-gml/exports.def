@@ -1,0 +1,22 @@
+LIBRARY     LIBMODIPULATEGML
+EXPORTS
+    modipulategml_global_init
+    modipulategml_global_deinit
+    modipulategml_error_to_string
+    modipulategml_global_update
+    modipulategml_global_get_volume
+    modipulategml_global_set_volume
+    modipulategml_song_load
+    modipulategml_song_unload
+    modipulategml_song_play
+    modipulategml_song_stop
+    modipulategml_song_get_volume
+    modipulategml_song_set_volume
+    modipulategml_song_volume_command
+    modipulategml_song_effect_command
+    modipulategml_song_enable_volume
+    modipulategml_song_disable_volume
+    modipulategml_song_enable_effect
+    modipulategml_song_disable_effect
+    modipulategml_song_play_sample
+    modipulategml_song_fade_channel
