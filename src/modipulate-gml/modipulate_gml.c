@@ -80,8 +80,14 @@ char* modipulategml_error_to_string(double errno) {
         case ERR_ASSERT:
             return "Error in modipulate-gml code";
         case ERR_FAIL:
+#ifdef _WIN32
+            /* VS 2010 did not like snprintf() */
+            _snprintf_s(errbuf, sizeof (errbuf), sizeof (errbuf),
+                "Internal Modipulate error: %s", moderr ? moderr : "?");
+#else
             snprintf(errbuf, sizeof (errbuf),
                 "Internal Modipulate error: %s", moderr ? moderr : "?");
+#endif
             return errbuf;
         case ERR_INVALIDSONGID:
             return "Song ID does not point to a loaded song";
