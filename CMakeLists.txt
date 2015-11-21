@@ -42,7 +42,7 @@ endif (APPLE)
 if (MSVC)
 	# Use static runtime on Windows
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-endif (WIN32)
+endif (MSVC)
 
 # Hacky way to support Visual C++ 2013
 add_definitions(-D_ALLOW_KEYWORD_MACROS)
