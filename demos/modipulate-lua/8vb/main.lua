@@ -103,7 +103,7 @@ function love.load()
 
 	--love.timer.sleep(500)
 
-    song:play(true)
+    song:play()
 end
 
 ----
