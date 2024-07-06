@@ -5,7 +5,7 @@
     "modern" (accurate) tempo mode.
 
 
-2014-05-03  Eric Gregory <mrericsir@gmail.com>
+2014-05-03  Eric Gregory <https://github.com/MrEricSir>
 
     * Modipulate-OSC is now based on oscpkt
 
@@ -16,7 +16,7 @@
     integration via the modipulate-osc application.
 	
 
-2014-04-20  Eric Gregory <mrericsir@gmail.com>
+2014-04-20  Eric Gregory <https://github.com/MrEricSir>
 
     * Support for multiple songs.
 	
@@ -26,7 +26,7 @@
 	doubles for internal consistency. (API change)
 
 
-2014-04-06  Eric Gregory <mrericsir@gmail.com>
+2014-04-06  Eric Gregory <https://github.com/MrEricSir>
 
     * Modipulate is now based on the newer libopenmpt
 	library instead of libmodplug.
@@ -36,7 +36,7 @@
 	* Instruments now use a 0-based index.
 
 
-2012-04-08  Eric Gregory <mrericsir@gmail.com>
+2012-04-08  Eric Gregory <https://github.com/MrEricSir>
 
     * Modipulate now has a C API, with a
     second library providing a Lua API.
@@ -52,7 +52,7 @@
     other IDEs.
 
 
-2011-09-22  Eric Gregory <mrericsir@gmail.com>
+2011-09-22  Eric Gregory <https://github.com/MrEricSir>
 
     * Welcome to Modipulate. This library is intended for
     manipulation between games and music.
