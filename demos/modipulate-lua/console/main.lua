@@ -49,7 +49,7 @@ function love.load()
     song:onRowChange(rowChanged)
     song:onNote(noteChanged)
 
-    song:play(true)
+    song:play()
 end
 
 
@@ -112,7 +112,7 @@ function love.keypressed(k)
 	elseif k == 'o' then
 		-- Load & play a new song (at the same time)
 		song2 = modipulate.loadSong('../../media/8vb1.it')
-		song2:play(true)
+		song2:play()
     end
 end
 

@@ -83,7 +83,7 @@ a / s    Transpose (octave)\
 	font = love.graphics.newFont('Courier_New.ttf', 12)
 	love.graphics.setFont(font)
 
-    song:play(true)
+    song:play()
 end
 
 ----
